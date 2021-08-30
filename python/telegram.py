@@ -70,7 +70,20 @@ def create_app(session, user_agent):
     session_file = open('data/cookies.txt', 'wb')
     pickle.dump([session, user_agent], session_file)
 
-    answer = session.post('https://my.telegram.org/apps', headers=user_agent)
+    answer = session.get('https://my.telegram.org/apps', headers=user_agent)
+    print(answer.json())
+
+    form_data = {
+        'hash': '8cab5b23e32958c2dc',
+        'app_title': 'test',
+        'app_shortname': 'test',
+        'app_platform': 'desktop',
+        # 'app_url': '',
+        # 'app_desc': '',
+    }
+
+    # answer = session.post('https://my.telegram.org/apps',
+    #                       data=form_data, headers=user_agent)
 
 
 def get_api_id_n_hash(session, user_agent):
@@ -105,5 +118,6 @@ async def send_file(client):
         progress_callback=progress_callback
     )
 
+start()
 # get_api_id_n_hash(*pickle.load(open('data/cookies.txt', 'rb')))
-create_app()
+# create_app()
