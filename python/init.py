@@ -2,14 +2,13 @@ from colorama import init
 import pandas as pd
 import math
 import os
-import inspect
 
 
 init()  # init colors in terminal
-name = 'gmanka_backup'
 version = '0.1.0'
-
 os.chdir(f'{__file__}/../..')  # project root folder
+project_name = 'gmanka_backup'
+pd.set_option('mode.chained_assignment', None)
 
 
 def save(df):
@@ -19,13 +18,15 @@ def save(df):
 
 
 if 'data' not in os.listdir():
-    os.mkdir(name)
+    os.mkdir(project_name)
+
+if 'pickle' not in os.listdir('data'):
+    os.mkdir('data/pickle')
 
 if 'telegram.csv' not in os.listdir('data'):
     save(pd.DataFrame({
         'name': 'telegram',
         'phone_number': None,
-        'random_hash': None,
         'api_hash': None,
         'api_id': None,
     }, index=[0]))
