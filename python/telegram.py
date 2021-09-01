@@ -3,7 +3,7 @@ from telethon import TelegramClient
 
 
 async def upload_telegram():
-    client = TelegramClient(project_name, telegram.api_id[0], telegram.api_hash[0])
+    client = TelegramClient(Project.name, telegram.api_id[0], telegram.api_hash[0])
     await client.connect()
 
     # if not await client.is_user_authorized():

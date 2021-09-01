@@ -1,16 +1,23 @@
+from dataclasses import dataclass
 from colorama import init
-import pandas as pd
+# import pandas as pd
+# import requests
 import pickle
 import math
 # import yaml
 import os
 
 
+@dataclass()
+class Project:
+    version = '0.1.0'
+    root_folder = f'{__file__}/../..'
+    name = 'gmanka_backup'
+
+
 init()  # init colors in terminal
-version = '0.1.0'
-os.chdir(f'{__file__}/../..')  # project root folder
-project_name = 'gmanka_backup'
-pd.set_option('mode.chained_assignment', None)
+os.chdir(Project.root_folder)
+# pd.set_option('mode.chained_assignment', None)
 
 
 # def save(df):
@@ -26,11 +33,16 @@ class Telegram:
 
 
 def dump(data, name: str):
-    pickle.dump(data, open(f'data/pickle/{name}', 'wb'))
+    extension = name.split('.')[-1]
+    match extension:
+        case 'pickle':
+            pickle.dump(data, open(f'data/{name}', 'wb'))
+        case 'tml':
+            pass
 
 
 def load(name: str):
-    return pickle.load(open(f'data/pickle/{name}', 'rb'))
+    return pickle.load(open(f'data/{name}', 'rb'))
 
 
 if 'data' not in os.listdir():
