@@ -1,0 +1,23 @@
+Please specify name of file to safe.
+
+bad example:
+    my_dict = {
+        'key1': 'val1',
+        'key2': 'val2',
+    }
+    dump(my_dict)
+
+first good example:
+    my_dict = {
+        'key1': 'val1',
+        'key2': 'val2',
+        'name': 'my_dict.yml',
+    }
+    dump(my_dict)
+
+second good example:
+    my_dict = {
+        'key1': 'val1',
+        'key2': 'val2',
+    }
+    dump(my_dict, 'my_dict.yml')

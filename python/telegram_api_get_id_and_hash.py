@@ -1,3 +1,4 @@
+# python 3.10 +
 from init import *
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup as Bs
@@ -6,10 +7,7 @@ import json
 
 
 def input_phone(session, user_agent):
-    class ManyRequestsError(Exception):
-        pass
-
-    class JsonDecodeError(Exception):
+    class TooManyRequestsError(Exception):
         pass
 
     form_data = {'phone': telegram.phone_number}
@@ -23,12 +21,12 @@ def input_phone(session, user_agent):
 
     except json.decoder.JSONDecodeError:
         if answer.text == 'Sorry, too many tries. Please try again later.':
-            raise ManyRequestsError(
+            raise TooManyRequestsError(
                 'too many requests to telegram servers\n'
                 'try to change your ip or input another phone number\n'
                 'or phone number is wrong, make sure it registered in telegram')
         else:
-            raise JsonDecodeError("can't decode json from:\n\n" + answer.text)
+            raise "can't decode json from:\n\n" + answer.text
 
 
 def input_code(session, user_agent, random_hash, code):
