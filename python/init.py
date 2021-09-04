@@ -13,9 +13,8 @@ class Project:
     name = 'gmanka_backup'
 
 
-bd.init(path = Project.root_folder)
+bd.init(path=Project.root_folder)
 colorama_init()
-os.chdir(Project.root_folder)
 # pd.set_option('mode.chained_assignment', None)
 if 'telegram.yml' in os.listdir('data'):
     os.remove('data/telegram.yml')
@@ -39,6 +38,10 @@ if 'telegram.yml' in os.listdir('data'):
 
 
 # telegram.to_dict()
+bd.dump(bd.BetterData({
+    'a': '1',
+    'b': '2',
+}, 'a.yml'))
 
 
 def nice(size_bytes):

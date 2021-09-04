@@ -1,4 +1,4 @@
-Please specify name of file to safe.
+Please specify name of file to save
 
 bad example:
     my_dict = {
@@ -6,13 +6,13 @@ bad example:
         'key2': 'val2',
     }
     my_data = BetterData(my_dict)
-    dump(my_data)
+    dump(my_data)  # no name specified
 
 first good example:
     my_dict = {
         'key1': 'val1',
         'key2': 'val2',
-        'name': 'my_dict.yml',
+        'name': 'my_dict.yml',  # name specified here
     }
     my_data = BetterData(my_dict)
     dump(my_data)
@@ -23,7 +23,7 @@ second good example:
         'key2': 'val2',
     }
     my_data = BetterData(my_dict)
-    my_data.name = 'my_dict.yml'
+    my_data.name = 'my_dict.yml'  # name specified here
     dump(my_data)
 
 third good example:
@@ -32,4 +32,4 @@ third good example:
         'key2': 'val2',
     }
     my_data = BetterData(my_dict)
-    dump(my_data, 'my_dict.yml')
+    dump(my_data, 'my_dict.yml')  # name specified here

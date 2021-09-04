@@ -1,17 +1,17 @@
-Please specify name of file to safe.
+Please specify name of file to save
 
 bad example:
     my_dict = {
         'key1': 'val1',
         'key2': 'val2',
     }
-    dump(my_dict)
+    dump(my_dict)  # no name specified
 
 first good example:
     my_dict = {
         'key1': 'val1',
         'key2': 'val2',
-        'name': 'my_dict.yml',
+        'name': 'my_dict.yml',  # name specified here
     }
     dump(my_dict)
 
@@ -20,4 +20,4 @@ second good example:
         'key1': 'val1',
         'key2': 'val2',
     }
-    dump(my_dict, 'my_dict.yml')
+    dump(my_dict, 'my_dict.yml')  # name specified here
