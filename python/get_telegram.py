@@ -1,10 +1,13 @@
 # python 3.10 +
-from init import *
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup as Bs
 import betterdata as bd
 import requests
 import json
+import os
+
+
+bd.init(path=f'{__file__}/../..')
 
 
 def input_phone(session, user_agent):
@@ -117,3 +120,17 @@ def get_telegram():
     bd.dump(telegram)
 
     return telegram
+
+
+if 'telegram.yml' not in os.listdir('data'):
+    bd.dump({
+        'phone_number': None,
+        'api_hash': None,
+        'api_id': None,
+        'name': 'telegram.yml'
+    })
+
+telegram = bd.load('telegram.yml')
+
+if None in telegram.to_dict().values():
+    telegram = get_telegram()

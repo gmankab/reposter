@@ -7,6 +7,7 @@ import os
 
 def init(path=os.getcwd()):
     os.chdir(path)
+    print(path)
     if 'data' not in os.listdir():
         os.mkdir('data')
 
