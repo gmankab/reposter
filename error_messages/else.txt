@@ -8,6 +8,7 @@ bad example:
     my_data = BetterData(my_dict)
     dump(my_data)  # no name specified
 
+
 first good example:
     my_dict = {
         'key1': 'val1',
@@ -16,6 +17,7 @@ first good example:
     }
     my_data = BetterData(my_dict)
     dump(my_data)
+
 
 second good example:
     my_dict = {
@@ -26,10 +28,12 @@ second good example:
     my_data.name = 'my_dict.yml'  # name specified here
     dump(my_data)
 
+
 third good example:
-    my_dict = {
-        'key1': 'val1',
-        'key2': 'val2',
-    }
     my_data = BetterData(my_dict)
     dump(my_data, 'my_dict.yml')  # name specified here
+
+
+fourth good example:
+    my_data = BetterData(my_dict, 'my_dict.yml')  # name specified here
+    dump(my_data)

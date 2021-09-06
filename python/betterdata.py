@@ -21,6 +21,29 @@ class NameExpectedError(Exception):
         return open(f'error_messages/{name}.txt').read()
 
 
+class UnsupportedExtensionError(Exception):
+    pass
+
+
+class BetterData:
+    """
+    @DynamicAttrs
+    disabling pycharm "unresolved attribute" warnings
+    """
+    def __init__(self, data: dict, name: str = None):
+        if name:
+            data['name'] = name
+        for key, val in data.items():
+            vars(self)[key] = val
+
+    def to_dict(self, name=True):
+        if isinstance(name, str):
+            vars(self)['name'] = name
+        elif not name:
+            vars(self).pop('name', None)
+        return vars(self)
+
+
 def dump(data, name: str = None):
     if not name:
         if isinstance(data, dict):
@@ -39,27 +62,26 @@ def dump(data, name: str = None):
             if type(data) is not dict:
                 data = data.to_dict
             yaml.dump(data, open(f'data/{name}', 'w'))
+        case _:
+            raise UnsupportedExtensionError("only 'pickle' and 'yml' extensions supported")
 
 
-def load(name: str):
+def load(name: str, ins: str = 'bd'):  # ins is instance or type
     extension = name.split('.')[-1]
     match extension:
         case 'pickle':
-            return pickle.load(open(f'data/{name}', 'rb'))
+            data = pickle.load(open(f'data/{name}', 'rb'))
+            data.name = name
+            return data
         case 'yml':
-            return yaml.safe_load(open(f'data/{name}', 'r'))
-
-
-class BetterData:
-    """
-    @DynamicAttrs
-    disabling pycharm "unresolved attribute" warnings
-    """
-    def __init__(self, data: dict, name: str = None):
-        if name:
+            data = yaml.load(open(f'data/{name}', 'r').read(), Loader=yaml.Loader)
             data['name'] = name
-        for key, val in data.items():
-            vars(self)[key] = val
-
-    def to_dict(self, name=False):
-        return vars(self)
+            match ins.lower():
+                case 'dict' | 'dc' | 'dct':
+                    return data
+                case 'bd' | 'betterdata':
+                    return BetterData(data)
+                case _:
+                    raise TypeError("Only 'bd' and 'dct' instances supported")
+        case _:
+            raise UnsupportedExtensionError("only 'pickle' and 'yml' extensions supported")

@@ -26,22 +26,15 @@ if 'telegram.yml' in os.listdir('data'):
 #     # https://stackoverflow.com/questions/68787744
 
 
-# if 'telegram.yml' not in os.listdir('data'):
-#     dump({
-#         'phone_number': None,
-#         'api_hash': None,
-#         'api_id': None,
-#         'name': 'telegram.yml'
-#     })
-# else:
-#     telegram_dict = load('telegram.yml')
+if 'telegram.yml' not in os.listdir('data'):
+    bd.dump({
+        'phone_number': None,
+        'api_hash': None,
+        'api_id': None,
+        'name': 'telegram.yml'
+    })
 
-
-# telegram.to_dict()
-bd.dump(bd.BetterData({
-    'a': '1',
-    'b': '2',
-}, 'a.yml'))
+telegram = bd.load('telegram.yml')
 
 
 def nice(size_bytes):

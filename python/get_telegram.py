@@ -2,6 +2,7 @@
 from init import *
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup as Bs
+import betterdata as bd
 import requests
 import json
 
@@ -75,55 +76,44 @@ def get_api_id(webpage):
 
 
 def get_api_hash(webpage):
-    return list(Bs(webpage, 'html.parser').select(
-        'span[class="form-control input-xlarge uneditable-input"]')[1])[0]
+    return str(list(Bs(webpage, 'html.parser').select(
+        'span[class="form-control input-xlarge uneditable-input"]')[1])[0])
 
 
-def main():
+def get_telegram():
     # parsing https://my.telegram.org
     session = requests.session()
-    user_agent = {'User-Agent': UserAgent().random}
-
-    # session, user_agent = load('session')
-
-    # print(session)
-    # print(user_agent)
+    session.name = 'session.pickle'
+    user_agent = {
+        'User-Agent': UserAgent().random,
+        'name': 'user_agent.yml',
+    }
 
     telegram.phone_number = input(
-        'please input your phone number\n'
-        'so that we can make a bot and send world saves to telegram:\n')
-    dump(telegram, 'telegram')
+        'please input your phone number,\n'
+        'so that we can make a bot and send world saves to telegram:\n'
+    )
+    bd.dump(telegram)
 
     random_hash = input_phone(session, user_agent)
-    code = input('Now input code from telegram pm\n''it should be something like B4n_h6Mdg-9:\n')
+    code = input(
+        'Now input code from telegram pm,\n'
+        'it should be something like B4n_h6Mdg-9:\n'
+    )
     input_code(session, user_agent, random_hash, code)
-    dump([session, user_agent], 'session')
+
+    bd.dump(session)
+    bd.dump(user_agent)
 
     create_app(session, user_agent)
     webpage = get_webpage(session, user_agent)
 
-    api_id = get_api_id(webpage)
-    api_hash = get_api_hash(webpage)
+    bd.dump(session)
+    bd.dump(user_agent)
 
-    print(api_id)
-    print(api_hash)
-    print()
+    telegram.api_id = get_api_id(webpage)
+    telegram.api_hash = get_api_hash(webpage)
 
-    telegram.api_id = api_id
-    telegram.api_hash = api_hash
-    print(telegram.api_id)
-    print(telegram.api_hash)
-    print()
+    bd.dump(telegram)
 
-    dump(telegram, 'telegram')
-    print(telegram.api_id)
-    print(telegram.api_hash)
-    print()
-
-    telegram2 = load('telegram')
-    print(telegram2.api_id)
-    print(telegram2.api_hash)
-    print()
-
-
-# main()
+    return telegram
