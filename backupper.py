@@ -32,12 +32,14 @@ cwd = get_parrent_dir(__file__)
 
 # adding libs and files from Current Work Dir to sys.path
 # this is needed so that python can find this libs and files, then use them
-sys.path += (
-    cwd,
-    f'{cwd}/libs',
-)
 
 downloads = f'{cwd}/downloads'
+libs = f'{cwd}/libs'
+
+sys.path += (
+    cwd,
+    libs,
+)
 
 
 def install_libs():
@@ -45,10 +47,10 @@ def install_libs():
     pip = f'{sys.executable} -m pip'
 
     requirements = [
-        'rich'
-        'pyrogram'
-        'tgcrypto'
-        'pyyaml'
+        'rich',
+        'pyrogram',
+        'tgcrypto',
+        'yaml',
     ]
 
     try:
@@ -70,8 +72,11 @@ def install_libs():
                 py_dir
             ):
                 if file[-5:] == '._pth':
-                    with open(f'{py_dir}/file', 'r+') as file:
-                        print(file.read())
+                    with open(
+                        f'{py_dir}/{file}', 'r+'
+                    ) as file:
+                        if '#import site' in file.readlines()[-1]:
+                            file.write('import site')
 
             # instaling pip:
             get_pip = f'{downloads}/get-pip.py'
@@ -80,16 +85,21 @@ def install_libs():
 
             r.urlretrieve(
                 url = 'https://bootstrap.pypa.io/get-pip.py',
-                filename = f'{downloads}/get-pip.py',
+                filename = get_pip,
             )
+            os.system(f'{sys.executable} {get_pip} --no-warn-script-location')
 
-        # os.popen(f'{pip} install -U pip {" ".join(requirements)}')
+        requirements = 'rich pyrogram tgcrypto pyyaml'
+
+        os.system(f'{pip} config set global.no-warn-script-location true')
+        os.system(f'{pip} install -U pip {requirements} -t {libs}')
 
 
 install_libs()
 
 
 import pyrogram
+import yaml as yml
 
 # this lib needed for beautiful output:
 from rich import print
@@ -99,17 +109,20 @@ pretty.install()
 
 print('starting')
 
-if 'config.py' in os.listdir(cwd):
-    from config import api_id, api_hash
+config_path = f'{cwd}/config.yml'
+if os.path.isfile(config_path):
+    config_file = open(config_path, 'a+')
+    config = yml.load(config_file)
 else:
-    api_id = ''
-    api_hash = ''
+    config = {}
 
+if 'api_id' not in config:
+    config['api_id'] = 
 
 app = pyrogram.Client(
     'backupper',
-    api_id = api_id,
-    api_hash = api_hash,
+    api_id = config['api_id'],
+    api_hash = config['api_hash'],
 )
 
 
@@ -128,7 +141,7 @@ def save(
     msg,
 ):
     '''
-    save file and return path to it
+    download file and return path to it
     '''
     clear_dir(downloads)
 
@@ -136,7 +149,7 @@ def save(
         os.mkdir(downloads)
     app.download_media(
         msg,
-        file_name = downloads,  # path to save file
+        file_name = f'{downloads}/',  # path to save file
         progress = show_progress,
     )
     downloaded = os.listdir(downloads)
@@ -171,7 +184,7 @@ def backup(
         )
 
     if msg.document:
-        print('saving document')
+        print('downloading document')
         path = save(msg)
         print(f'uploading "{path}"')
         app.send_document(
@@ -182,7 +195,7 @@ def backup(
         os.remove(path)
     if msg.media:
         if msg.photo:
-            print('saving photo')
+            print('downloading photo')
             path = save(msg)
             print(f'uploading {path}')
             app.send_photo(
@@ -193,7 +206,7 @@ def backup(
             os.remove(path)
 
         if msg.voice:
-            print('saving voice')
+            print('downloading voice')
             path = save(msg)
             print(f'uploading {path}')
             app.send_voice(
@@ -204,7 +217,7 @@ def backup(
             os.remove(path)
 
         if msg.audio:
-            print('saving audio')
+            print('downloading audio')
             path = save(msg)
             print(f'uploading {path}')
             app.send_document(
@@ -215,7 +228,7 @@ def backup(
             os.remove(path)
 
         if msg.video:
-            print('saving video')
+            print('downloading video')
             path = save(msg)
             print(f'uploading {path}')
             app.send_video(
@@ -227,16 +240,18 @@ def backup(
 
 
 def main():
+    clear_dir(downloads)
     with app:
         print('getting messages')
-        for msg in app.iter_history(
-            chat_id = -1001655504016,
-            limit = None,
-            offset_id = 8,
-            reverse = True,
-        ):
-            backup(msg)
-            # print(msg)
+        # for msg in app.iter_history(
+        #     chat_id = -1001655504016,
+        #     limit = None,
+        #     offset_id = 8,
+        #     reverse = True,
+        # ):
+        #     backup(msg)
+        #     # print(msg)
+
     clear_dir(downloads)
 
 
