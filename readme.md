@@ -23,7 +23,7 @@
 ## usage
 
 - install [python-3.10.4](https://www.python.org/downloads/release/python-3104/) ([link for windows](https://www.python.org/ftp/python/3.10.4/python-3.10.4-embed-amd64.zip))
-- downloaded latest [backupper.py](latest_release/backupper.py), just open in browser and press <kbd>ctrl-s</kbd>
+- downloaded latest [backupper.py](https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py), just open in browser and press <kbd>ctrl-s</kbd>
 - run this file using python. To run it from terminal, you must:
   - copy full path to python executable (on windows it is `python.exe`)
   - copy full path to backupper.py
