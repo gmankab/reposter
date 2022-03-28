@@ -1,8 +1,8 @@
 /__pycache__
 /libs
-libs.zip
-dev_libs.zip
 backupper.session
-config.py
+config.yml
 downloads
+config.py
+libs.zip
 cache
