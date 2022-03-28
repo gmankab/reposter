@@ -1,11 +1,10 @@
-```
+# gmanka backupper
+
+```text
               __
     ____ _   / /_
    / __ `/  / __ \   Gmanka
-  / /_/ /  / /_/ /   Backup
+  / /_/ /  / /_/ /   Backupper
   \__, /  /_.___/     v0.1
  /____/
 ```
-
-### available commands:
-/gb start
