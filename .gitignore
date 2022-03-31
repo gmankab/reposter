@@ -1,7 +1,8 @@
 /__pycache__
 /libs
+/latest_release/libs
 backupper.session
-config.yml
+config*
 downloads
 config.py
 libs.zip

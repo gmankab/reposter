@@ -5,11 +5,11 @@
     ____ _   / /_
    / __ `/  / __ \   Gmanka
   / /_/ /  / /_/ /   Backupper
-  \__, /  /_.___/    v2.0
+  \__, /  /_.___/    v2.1 ([changelog](changelog.md#2.1))
  /____/
 ```
 
-## Supported OS
+## supported OS
 
 - windows 8, 10, 11
 - linux

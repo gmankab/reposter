@@ -3,7 +3,6 @@ script to backup
 '''
 
 # importing libraries
-from audioop import reverse
 from urllib import request as r
 import subprocess
 import pathlib

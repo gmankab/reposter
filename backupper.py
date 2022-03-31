@@ -3,7 +3,6 @@ script to backup
 '''
 
 # importing libraries
-from audioop import reverse
 from urllib import request as r
 import subprocess
 import pathlib
@@ -41,6 +40,12 @@ sys.path += (
     cwd,
     libs,
 )
+if len(sys.argv) > 1:
+    config_path = sys.argv[1]
+    if config_path[:2] == './':
+        config_path = f'{cwd}/{config_path[2:]}'
+else:
+    config_path = f'{cwd}/config.yml'
 
 
 def install_libs():
@@ -57,7 +62,8 @@ def install_libs():
     try:
         for requirement in requirements:
             __import__(requirement)
-    except ImportError:
+    except ImportError as error:
+        print(error)
         # clearing pip chache
         output = subprocess.getstatusoutput(
             f'{pip} cache purge'
@@ -107,79 +113,87 @@ import ruamel.yaml
 import rich
 from rich import pretty
 
+
 pretty.install()
 print = rich.console.Console().print
 yml = ruamel.yaml.YAML()
 
-print('starting')
 
-config_path = f'{cwd}/config.yml'
 if not os.path.isfile(config_path):
     open(config_path, 'w').close()
     created_new_config = True
+    print(f'creating new congig `{config_path}`')
+elif os.stat(config_path).st_size == 0:
+    # if config file empty
+    created_new_config = True
+    print(f'creating new congig `{config_path}`')
 else:
     created_new_config = False
+    print(f'loading config file `{config_path}`')
 
-if os.stat(config_path).st_size == 0:
-    created_new_config = True
-
-if created_new_config:
-    print('creating new config')
 
 config = yml.load(
     open(config_path, 'r')
 ) or {}  # empty dict if config file empty
 
-if (
-    'api_id' not in config
-) or (
-    'api_hash' not in config
-):
-    print(
-        '\nplease open https://my.telegram.org/apps and copy api_id and api_hash.\n[bold red]warning[/bold red]: use ony your api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash\n',
-    )
 
-for i in [
-    'api_id',
-    'api_hash',
-]:
-    if i not in config:
-        config[i] = input(
-            f'input {i}>> '
+def make_config():
+    if (
+        'api_id' not in config
+    ) or (
+        'api_hash' not in config
+    ):
+        print(
+            '\nplease open https://my.telegram.org/apps and copy api_id and api_hash.\n[bold red]warning[/bold red]: use ony your api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash\n',
         )
 
-if 'source_chat' not in config or 'target_chat' not in config:
-    print(
-        '\nYou can find ID of any chat in your browser\'s address bar at https://web.telegram.org/z/. It must be number without letters.\n[bold red]warning[/bold red]: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-10054636" instead of "-54636". Also if it hasn\'t "-" sign then you don\'t need to touch it. For example, it can be "38523532", "2348592", or "-100954843". If you want to use your account\'s "saved messages", input "me". Or you can use @name, of any user, chanel or chat.\n'
-    )
+    for i in [
+        'api_id',
+        'api_hash',
+    ]:
+        if i not in config:
+            config[i] = input(
+                f'input {i}>> '
+            )
 
-if 'source_chat' not in config:
-    config['source_chat'] = input(
-        'Input id of chat which you want to backup (source chat)>> '
-    )
+    if 'source_chat' not in config or 'target_chat' not in config:
+        print(
+            '\nYou can find ID of any chat in your browser\'s address bar at https://web.telegram.org/z/. It must be number without letters.\n[bold red]warning[/bold red]: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-10054636" instead of "-54636". Also if it hasn\'t "-" sign then you don\'t need to touch it. For example, it can be "38523532", "2348592", or "-100954843". If you want to use your account\'s "saved messages", input "me". Or you can use @name, of any user, chanel or chat.\n'
+        )
 
-if 'target_chat' not in config:
-    config['target_chat'] = input(
-        'Input id of chat where the messages will be saved (target chat)>> '
-    )
+    if 'source_chat' not in config:
+        config['source_chat'] = input(
+            'Input id of chat which you want to backup (source chat)>> '
+        )
 
-if 'message_id_start_from' not in config:
-    config['message_id_start_from'] = input(
-        'input the id of the message from which to start the backupping. To backup whole chat enter 0>> '
-    )
+    if 'target_chat' not in config:
+        config['target_chat'] = input(
+            'Input id of chat where the messages will be saved (target chat)>> '
+        )
 
-if 'update_message_id_start_from' not in config:
-    config['update_message_id_start_from'] = 'true'
+    if 'message_id_start_from' not in config:
+        config['message_id_start_from'] = input(
+            'input the id of the message from which to start the backupping. To backup whole chat enter 0>> '
+        )
 
-if 'count_of_messages_to_backup' not in config:
-    config['count_of_messages_to_backup'] = input(
-        'Input count of messages to backup. Leave blank to backup 10 messages>> '
-    )
+    if 'update_message_id_start_from' not in config:
+        config['update_message_id_start_from'] = 'true'
 
-if not config['count_of_messages_to_backup']:
-    config['count_of_messages_to_backup'] = 10
+    if 'count_of_messages_to_backup' not in config:
+        config['count_of_messages_to_backup'] = input(
+            'Input count of messages to backup. Leave blank to backup 10 messages, or input "all" to backup all messages>> '
+        )
 
-app = pyrogram.Client(
+    if not config['count_of_messages_to_backup']:
+        config['count_of_messages_to_backup'] = 10
+
+    if 'backupper.session' not in os.listdir(cwd):
+        input(
+            'Now you will need to log in to the account that has access to the chat that you are going to backup. Press enter to continue'
+        )
+
+
+tg = pyrogram.Client(
     'backupper',
     api_id = config['api_id'],
     api_hash = config['api_hash'],
@@ -197,8 +211,12 @@ def show_progress(current, total):
     print(f'{current}/{total}')
 
 
-if 'backupper.session' not in os.listdir(cwd):
-    input('Now you will need to log in to the account that has access to the chat that you are going to backup. Press enter to continue')
+def bugreport(bug):
+    print(bug)
+    tg.send_message(
+        config['bugreport_chat'],
+        bugreport,
+    )
 
 
 def save(
@@ -211,58 +229,54 @@ def save(
 
     if not os.path.isdir(downloads):
         os.mkdir(downloads)
-    app.download_media(
+    tg.download_media(
         msg,
         file_name = f'{downloads}/',  # path to save file
         progress = show_progress,
     )
     downloaded = os.listdir(downloads)
     if downloaded:
-        return f'{downloads}/{downloaded[0]}'  # returns saved file path
+        return downloaded
     else:
-        print(
-            'nothing downloaded from this message:',
-            msg,
-            'please contact developer',
-            sep = '\n'
-        )
+        bug = f'nothing downloaded from this message:\n{msg}\nthis is a bug, please contact developer'
+        bugreport(bug)
 
 
 def backup(
     msg,
-    target = config['target_chat'],
 ):
+    target = config['target_chat']
     print(msg)
     if msg.service:
         return
     if msg.text:
-        app.send_message(
+        tg.send_message(
             target,
             msg.text,
         )
 
     if msg.caption:
-        app.send_message(
+        tg.send_message(
             target,
             msg.caption,
         )
 
-    if msg.document:
-        print('downloading document')
-        path = save(msg)
-        print(f'uploading "{path}"')
-        app.send_document(
-            target,
-            document = path,
-            progress = show_progress,
-        )
-        os.remove(path)
     if msg.media:
+        if msg.document:
+            print('downloading document')
+            path = save(msg)
+            print(f'uploading "{path}"')
+            tg.send_document(
+                target,
+                document = path,
+                progress = show_progress,
+            )
+            os.remove(path)
         if msg.photo:
             print('downloading photo')
             path = save(msg)
             print(f'uploading "{path}"')
-            app.send_photo(
+            tg.send_photo(
                 target,
                 photo=path,
                 progress = show_progress,
@@ -273,7 +287,7 @@ def backup(
             print('downloading voice')
             path = save(msg)
             print(f'uploading "{path}"')
-            app.send_voice(
+            tg.send_voice(
                 target,
                 path,
                 progress = show_progress,
@@ -284,7 +298,7 @@ def backup(
             print('downloading audio')
             path = save(msg)
             print(f'uploading "{path}"')
-            app.send_document(
+            tg.send_document(
                 target,
                 path,
                 progress = show_progress,
@@ -295,7 +309,7 @@ def backup(
             print('downloading video')
             path = save(msg)
             print(f'uploading "{path}"')
-            app.send_video(
+            tg.send_video(
                 target,
                 path,
                 progress = show_progress,
@@ -306,7 +320,7 @@ def backup(
             print('downloading video_note')
             path = save(msg)
             print(f'uploading "{path}"')
-            app.send_video_note(
+            tg.send_video_note(
                 target,
                 path,
                 progress = show_progress,
@@ -323,7 +337,7 @@ def main():
     else:
         limit = int(limit)
 
-    with app:
+    with tg:
         print(
             '\ngetting messages',
             f'chat_id = {config["source_chat"]}',
@@ -333,15 +347,16 @@ def main():
             sep = '\n'
         )
 
-        for msg in app.iter_history(
+        for msg in tg.iter_history(
             chat_id = config['source_chat'],
             limit = limit,
             offset_id = int(config['message_id_start_from']),
             reverse = True,
         ):
-            backup(msg)
-            # print(msg)
+            # backup(msg)
+            print(msg)
             latest = msg.message_id
+
     if config['update_message_id_start_from']:
         config['message_id_start_from'] = latest
 
