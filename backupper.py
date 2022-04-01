@@ -5,6 +5,7 @@ python 3.10.4
 
 # importing libraries
 from urllib import request as r
+from inspect import cleandoc as cd
 import subprocess
 import pathlib
 import shutil
@@ -70,7 +71,6 @@ def install_libs():
         'ruamel.yaml'
     ]
 
-
     try:
         for requirement in requirements:
             __import__(requirement)
@@ -132,15 +132,6 @@ yml = ruamel.yaml.YAML()
 
 if not os.path.isfile(config_path):
     open(config_path, 'w').close()
-    created_new_config = True
-    print(f'creating new congig `{config_path}`')
-elif os.stat(config_path).st_size == 0:
-    # if config file empty
-    created_new_config = True
-    print(f'creating new congig `{config_path}`')
-else:
-    created_new_config = False
-    print(f'loading config file `{config_path}`')
 
 
 config = yml.load(
@@ -148,25 +139,15 @@ config = yml.load(
 ) or {}  # empty dict if config file empty
 
 
-def config_dump():
-    yml.dump(
-        config,
-        open(config_path, 'w')
-    )
-
-def config_comment(
-    comment,
-):
-    config_dump()
-    open(
-        config_path,
-        'a'
-    ).write(
-        f'\n# {comment}\n'
-    )
-
-
 def make_config():
+    if os.stat(config_path).st_size == 0:
+        # if config file empty
+        created_new_config = True
+        print(f'creating new config `{config_path}`')
+    else:
+        created_new_config = False
+        print(f'loading config `{config_path}`')
+
     if (
         'api_id' not in config
     ) or (
@@ -175,6 +156,7 @@ def make_config():
         print(
             '\nplease open https://my.telegram.org/apps and copy api_id and api_hash.\n[bold red]warning[/bold red]: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash\n',
         )
+        created_new_config = True
 
     for i in [
         'api_id',
@@ -186,49 +168,78 @@ def make_config():
             )
 
     if 'source_chat' not in config or 'target_chat' not in config:
-        print(
-            '\nYou can find ID of any chat in your browser\'s address bar at https://web.telegram.org/z/. It must be number without letters.\n[bold red]warning[/bold red]: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-10054636" instead of "-54636". Also if it hasn\'t "-" sign then you don\'t need to touch it. For example, it can be "38523532", "2348592", or "-100954843". If you want to use your account\'s "saved messages", input "me". Or you can use @name, of any user, chanel or chat.\n'
+        open(config_path, 'w').write(
+            '\nYou can find ID of any chat in your browser\'s address bar at https://web.telegram.org/z/. It must be number without letters.\n[bold red]warning[/bold red]: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-100154636" instead of "-154636". Also if it hasn\'t "-" sign then you don\'t need to touch it. For example, it can be "38523532", "1348592", or "-100954843". If you want to use your account\'s "saved messages", input "me". Or you can use @name, of any user, chanel or chat.\n'
         )
+        created_new_config = True
 
     if 'source_chat' not in config:
         config['source_chat'] = input(
-            'Input id of chat which you want to backup (source chat)>> '
+            'Input id of chat which you want to backup (source chat) >> '
         )
 
     if 'target_chat' not in config:
         config['target_chat'] = input(
-            'Input id of chat where the messages will be saved (target chat)>> '
+            'Input id of chat where the messages will be saved (target chat) >> '
         )
 
     if 'message_id_start_from' not in config:
         config['message_id_start_from'] = input(
-            'input the id of the message from which to start the backupping. To backup whole chat enter 0>> '
+            'input the id of the message from which to start the backupping. To backup whole chat enter 0 >> '
         )
+        created_new_config = True
 
     if 'update_message_id_start_from' not in config:
         config['update_message_id_start_from'] = 'true'
-
-    config_comment(
-        'if "update_message_id_start_from" is true, then after backupping messages "message_id_start_from" value will be changed to id of latest backupped message'
-    )
-
+        created_new_config = True
 
     if 'count_of_messages_to_backup' not in config:
         config['count_of_messages_to_backup'] = input(
-            'Input count of messages to backup. Leave blank to backup 10 messages, or input "all" to backup all messages>> '
+            'Input count of messag es to backup. Leave blank to backup 10 messages, or input "all" to backup all messages >> '
         )
+        created_new_config = True
 
     if not config['count_of_messages_to_backup']:
         config['count_of_messages_to_backup'] = 10
+        created_new_config = True
 
-
-    config_comment(
-    '"count_of_messages_to_backup" value may be a number, or "all"'
-    )
+    if not config['bugreport_chat']:
+        config['bugreport_chat'] = 'me'
+        created_new_config = True
 
     if created_new_config:
+        open(config_path, 'w').write(cd(
+        f"""
+        # please open https://my.telegram.org/apps and copy api_id and api_hash.
+        # WARNING: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash
+        api_id: {config['api_id']}
+        api_hash: {config['api_hash']}
+
+        # You can find ID of any chat in your browser's address bar at https://web.telegram.org/z/. It must be number without letters.
+        # WARNING: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-100154636" instead of "-154636". Also if it hasn't "-" sign then you don't need to touch it. For example, it can be "38523532", "1348592", or "-100954843". If you want to use your account's "saved messages", input "me". Or you can use @name, of any user, chanel or chat.
+
+        # id of chat which you want to backup
+        source_chat: {config['source_chat']}
+
+        # id of chat where the messages will be saved
+        target_chat: {config['target_chat']}
+
+        # input the id of the message from which to start the backupping. To backup whole chat enter 0
+        message_id_start_from: {config['message_id_start_from']}
+
+        # if true then value of "message_id_start_from" will be updated after every backup and will be set to latest backupped message id + 1
+        update_message_id_start_from: {config['update_message_id_start_from']}
+
+        # may be a number, or "all"
+        count_of_messages_to_backup: {config['count_of_messages_to_backup']}
+
+        # chat id where bugreports will be sent
+        bugreport_chat: {config['bugreport_chat']}
+        """
+        ))
+
         print(
-            'Created new config, please check it: {config.path}',
+            f'Created new config, please check it: {config_path}',
             style='bright_green'
         )
 
