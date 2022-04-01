@@ -1,5 +1,6 @@
 '''
 script to backup
+python 3.10.4
 '''
 
 # importing libraries
@@ -68,6 +69,7 @@ def install_libs():
         'tgcrypto',
         'ruamel.yaml'
     ]
+
 
     try:
         for requirement in requirements:
@@ -146,6 +148,24 @@ config = yml.load(
 ) or {}  # empty dict if config file empty
 
 
+def config_dump():
+    yml.dump(
+        config,
+        open(config_path, 'w')
+    )
+
+def config_comment(
+    comment,
+):
+    config_dump()
+    open(
+        config_path,
+        'a'
+    ).write(
+        f'\n# {comment}\n'
+    )
+
+
 def make_config():
     if (
         'api_id' not in config
@@ -153,7 +173,7 @@ def make_config():
         'api_hash' not in config
     ):
         print(
-            '\nplease open https://my.telegram.org/apps and copy api_id and api_hash.\n[bold red]warning[/bold red]: use ony your api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash\n',
+            '\nplease open https://my.telegram.org/apps and copy api_id and api_hash.\n[bold red]warning[/bold red]: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash\n',
         )
 
     for i in [
@@ -188,6 +208,11 @@ def make_config():
     if 'update_message_id_start_from' not in config:
         config['update_message_id_start_from'] = 'true'
 
+    config_comment(
+        'if "update_message_id_start_from" is true, then after backupping messages "message_id_start_from" value will be changed to id of latest backupped message'
+    )
+
+
     if 'count_of_messages_to_backup' not in config:
         config['count_of_messages_to_backup'] = input(
             'Input count of messages to backup. Leave blank to backup 10 messages, or input "all" to backup all messages>> '
@@ -196,11 +221,24 @@ def make_config():
     if not config['count_of_messages_to_backup']:
         config['count_of_messages_to_backup'] = 10
 
+
+    config_comment(
+    '"count_of_messages_to_backup" value may be a number, or "all"'
+    )
+
+    if created_new_config:
+        print(
+            'Created new config, please check it: {config.path}',
+            style='bright_green'
+        )
+
     if 'backupper.session' not in os.listdir(cwd):
         input(
             'Now you will need to log in to the account that has access to the chat that you are going to backup. Press enter to continue'
         )
 
+
+make_config()
 
 tg = pyrogram.Client(
     'backupper',
@@ -244,7 +282,11 @@ def backup(
             msg.chat.id, msg.message_id
         ):
             files.append(
-                getattr(pyrogram.types, f'InputMedia{msg.media.title()}')(_backup(i))
+                getattr(
+                    pyrogram.types,
+                    f'InputMedia{msg.media.title()}')(
+                    _backup(i)
+                )
             )
         tg.send_media_group(
             'me',
@@ -369,19 +411,6 @@ def main():
         config['message_id_start_from'] = latest
 
     clear_dir(downloads)
-    yml.dump(
-        config,
-        open(config_path, 'w')
-    )
-    if created_new_config:
-        print(
-            'Created new config.yml, please check it',
-            style='bright_green'
-        )
-        open(config_path, 'a').write(
-            '# if "update_message_id_start_from" is true, then after backupping messages "message_id_start_from" value will be changed to id of latest backupped message\n\n# "count_of_messages_to_backup" value may be changed to number'
-        )
-        input()
 
 
 main()
