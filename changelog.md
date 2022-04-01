@@ -8,7 +8,7 @@
 - fixed remembering the last message
 - fixed backupping messages with multiple media
 - now the media is not separated from the caption
-- Added multiconfig support. Just specify path to your config file after `backupper` executable in your terminal command or `.bat` or `.sh` script. Example: `python backupper.py my_new_config.yml` or `python backupper.bat my_new_config.yml`
+- Added multiconfig support. Just specify path to your config file after `backupper` executable in your terminal command or `.bat` or `.sh` script. Example: `backupper.py my_new_config.yml` or `python backupper.bat my_new_config.yml`
 - added automatic sending bugreports to "saved messages" so then you can forward it to developer
 - added much more comments to config file
 - added option for don't close program after backupping messages and wait for new messages
