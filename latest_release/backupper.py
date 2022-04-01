@@ -405,9 +405,9 @@ def main():
     with tg:
         print(
             '\ngetting messages',
-            f'chat_id = {config["source_chat"]}',
-            f'limit = {limit}',
-            f'offset_id = {config["message_id_start_from"]}',
+            f'chat_id: {type(config["source_chat"])} = {config["source_chat"]}',
+            f'limit: {type(limit)} = {limit}',
+            f'offset_id {type(config["message_id_start_from"])} = {config["message_id_start_from"]}',
             f'reverse = {True}',
             sep = '\n'
         )
