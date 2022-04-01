@@ -219,7 +219,12 @@ def make_config():
             'Input id of chat which you want to backup (source chat) >> '
         )
 
-    if config['source_chat'].isdigit():
+    if isinstance(
+        config['source_chat'],
+        str,
+    ) and config[
+        'source_chat'
+    ].isdigit():
         config['source_chat'] = int(config['source_chat'])
 
     if 'target_chat' not in config:
