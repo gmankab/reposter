@@ -9,10 +9,10 @@ set python_dir=%cwd%python%python_version%
 set python=%python_dir%\python.exe
 set python_tmp=%python_dir%\python.tmp
 set python_zip=%python_dir%\python.zip
-set python_link=https://www.python.org/ftp/python/3.10.4/python-3.10.4-embed-amd64.zip
-
-
+set project_tmp=%cwd%\%project_name%.tmp
 set project_py=%cwd%\%project_name%.py
+set python_link=https://www.python.org/ftp/python/3.10.4/python-3.10.4-embed-amd64.zip
+set project_link=https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py
 
 
 if not exist "%python_dir%" (
@@ -31,6 +31,12 @@ if not exist "%python%" (
     cd "%python_dir%"
     tar -xf "%python_zip%"
     cd "%cwd%"
+)
+
+if not exist "%project_py%" (
+    echo downloading %project_py%...
+    curl "%project_link%" -o "%project_tmp%"
+    ren "%project_tmp%" "%project_name%.py"
 )
 
 "%python%" "%project_py%"
