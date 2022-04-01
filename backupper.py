@@ -27,6 +27,16 @@ def get_parrent_dir(file):
     )
 
 
+def clear_dir(dir):
+    shutil.rmtree(
+        dir,
+        ignore_errors=True,
+    )
+
+    if not os.path.isdir(downloads):
+        os.mkdir(downloads)
+
+
 # getting Current Work Dir path
 cwd = get_parrent_dir(__file__)
 
@@ -87,8 +97,7 @@ def install_libs():
 
             # instaling pip:
             get_pip = f'{downloads}/get-pip.py'
-            if not os.path.isdir(downloads):
-                os.mkdir(downloads)
+            clear_dir(downloads)
 
             r.urlretrieve(
                 url = 'https://bootstrap.pypa.io/get-pip.py',
@@ -200,13 +209,6 @@ tg = pyrogram.Client(
 )
 
 
-def clear_dir(dir):
-    shutil.rmtree(
-        dir,
-        ignore_errors=True,
-    )
-
-
 def show_progress(current, total):
     print(f'{current}/{total}')
 
@@ -219,113 +221,119 @@ def bugreport(bug):
     )
 
 
-def save(
-    msg,
-):
-    '''
-    download file and return path to it
-    '''
-    clear_dir(downloads)
-
-    if not os.path.isdir(downloads):
-        os.mkdir(downloads)
-    tg.download_media(
-        msg,
-        file_name = f'{downloads}/',  # path to save file
-        progress = show_progress,
-    )
-    downloaded = os.listdir(downloads)
-    if downloaded:
-        return downloaded
-    else:
-        bug = f'nothing downloaded from this message:\n{msg}\nthis is a bug, please contact developer'
-        bugreport(bug)
-
-
 def backup(
     msg,
 ):
-    target = config['target_chat']
-    print(msg)
-    if msg.service:
-        return
-    if msg.text:
-        tg.send_message(
-            target,
-            msg.text,
+    def _backup(msg):
+        # print(msg)
+
+        media_type = msg.media
+        file_id = msg[media_type].file_id
+
+        return tg.download_media(
+            file_id,
+            file_name = f'{downloads}/',  # path to save file
+            progress = show_progress,
         )
 
-    if msg.caption:
-        tg.send_message(
-            target,
-            msg.caption,
+    clear_dir(downloads)
+
+    if msg.media_group_id:
+        files = []
+        for i in tg.get_media_group(
+            msg.chat.id, msg.message_id
+        ):
+            files.append(
+                getattr(pyrogram.types, f'InputMedia{msg.media.title()}')(_backup(i))
+            )
+        tg.send_media_group(
+            'me',
+            files
         )
+    else:
+        _backup(msg)
 
-    if msg.media:
-        if msg.document:
-            print('downloading document')
-            path = save(msg)
-            print(f'uploading "{path}"')
-            tg.send_document(
-                target,
-                document = path,
-                progress = show_progress,
-            )
-            os.remove(path)
-        if msg.photo:
-            print('downloading photo')
-            path = save(msg)
-            print(f'uploading "{path}"')
-            tg.send_photo(
-                target,
-                photo=path,
-                progress = show_progress,
-            )
-            os.remove(path)
+    # target = config['target_chat']
+    # print(msg)
+    # if msg.service:
+    #     return
+    # if msg.text:
+    #     tg.send_message(
+    #         target,
+    #         msg.text,
+    #     )
 
-        if msg.voice:
-            print('downloading voice')
-            path = save(msg)
-            print(f'uploading "{path}"')
-            tg.send_voice(
-                target,
-                path,
-                progress = show_progress,
-            )
-            os.remove(path)
+    # if msg.caption:
+    #     tg.send_message(
+    #         target,
+    #         msg.caption,
+    #     )
 
-        if msg.audio:
-            print('downloading audio')
-            path = save(msg)
-            print(f'uploading "{path}"')
-            tg.send_document(
-                target,
-                path,
-                progress = show_progress,
-            )
-            os.remove(path)
+    # if msg.media:
+    #     if msg.document:
+    #         print('downloading document')
+    #         path = save(msg)
+    #         print(f'uploading "{path}"')
+    #         tg.send_document(
+    #             target,
+    #             document = path,
+    #             progress = show_progress,
+    #         )
+    #         os.remove(path)
+    #     if msg.photo:
+    #         print('downloading photo')
+    #         path = save(msg)
+    #         print(f'uploading "{path}"')
+    #         tg.send_photo(
+    #             target,
+    #             photo=path,
+    #             progress = show_progress,
+    #         )
+    #         os.remove(path)
 
-        if msg.video:
-            print('downloading video')
-            path = save(msg)
-            print(f'uploading "{path}"')
-            tg.send_video(
-                target,
-                path,
-                progress = show_progress,
-            )
-            os.remove(path)
+    #     if msg.voice:
+    #         print('downloading voice')
+    #         path = save(msg)
+    #         print(f'uploading "{path}"')
+    #         tg.send_voice(
+    #             target,
+    #             path,
+    #             progress = show_progress,
+    #         )
+    #         os.remove(path)
 
-        if msg.video_note:
-            print('downloading video_note')
-            path = save(msg)
-            print(f'uploading "{path}"')
-            tg.send_video_note(
-                target,
-                path,
-                progress = show_progress,
-            )
-            os.remove(path)
+    #     if msg.audio:
+    #         print('downloading audio')
+    #         path = save(msg)
+    #         print(f'uploading "{path}"')
+    #         tg.send_document(
+    #             target,
+    #             path,
+    #             progress = show_progress,
+    #         )
+    #         os.remove(path)
+
+    #     if msg.video:
+    #         print('downloading video')
+    #         path = save(msg)
+    #         print(f'uploading "{path}"')
+    #         tg.send_video(
+    #             target,
+    #             path,
+    #             progress = show_progress,
+    #         )
+    #         os.remove(path)
+
+    #     if msg.video_note:
+    #         print('downloading video_note')
+    #         path = save(msg)
+    #         print(f'uploading "{path}"')
+    #         tg.send_video_note(
+    #             target,
+    #             path,
+    #             progress = show_progress,
+    #         )
+    #         os.remove(path)
 
 
 def main():
@@ -353,8 +361,8 @@ def main():
             offset_id = int(config['message_id_start_from']),
             reverse = True,
         ):
-            # backup(msg)
-            print(msg)
+            backup(msg)
+
             latest = msg.message_id
 
     if config['update_message_id_start_from']:
