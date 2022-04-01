@@ -16,7 +16,8 @@
 - windows 8, 10, 11
 - linux
 - mac
-- android, run linux on android using [termux](https://github.com/termux/termux-app/releases)
+- android with [termux](https://github.com/termux/termux-app/releases)
+- ios with [terminus](https://apps.apple.com/ru/app/termius-terminal-ssh-client/id549039908)
 
 ## unsupported OS
 
