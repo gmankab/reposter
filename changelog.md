@@ -11,6 +11,7 @@
 - fixed backupping messages with multiple media
 - now the media is not separated from the caption
 - fixed remembering the last message
+- added option for don't close program after backupping messages and wait for new messages
 - most of the code has been rewritten, cleaned up and optimized
 
 ## 2.0

@@ -66,7 +66,7 @@ else:
 
 
 def install_libs():
-    print('checking libs')
+    print('checking if all libs installed...')
     pip = f'{sys.executable} -m pip'
 
     requirements = [
@@ -81,7 +81,7 @@ def install_libs():
             __import__(requirement)
     except ImportError as import_error:
         print(import_error)
-        # clearing pip chache
+        print('deleating pip chache')
         output = subprocess.getstatusoutput(
             f'{pip} cache purge'
         )[1]
@@ -209,7 +209,7 @@ def make_config():
             )
 
     if 'source_chat' not in config or 'target_chat' not in config:
-        open(config_path, 'w').write(
+        print(
             '\nYou can find ID of any chat in your browser\'s address bar at https://web.telegram.org/z/. It must be number without letters.\n[bold red]warning[/bold red]: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-100154636" instead of "-154636". Also if it hasn\'t "-" sign then you don\'t need to touch it. For example, it can be "38523532", "1348592", or "-100954843". If you want to use your account\'s "saved messages", input "me". Or you can use @name, of any user, chanel or chat.\n'
         )
         created_new_config = True
@@ -370,7 +370,7 @@ def backup(
                 progress = progress_callback,
             )
     elif msg.text:
-        print(f'sending text{msg.text}')
+        print(f'sending text "{msg.text}"')
         tg.send_message(
             config['target_chat'],
             msg.text,

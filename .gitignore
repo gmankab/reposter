@@ -6,6 +6,7 @@ config*
 downloads
 config.py
 libs.zip
-cache
 test.py
+python*
+cache
 data
