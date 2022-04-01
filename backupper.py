@@ -133,15 +133,21 @@ from rich import pretty
 pretty.install()
 print = rich.console.Console().print
 yml = ruamel.yaml.YAML()
+config = {}
 
 
 if not os.path.isfile(config_path):
     open(config_path, 'w').close()
 
 
-config = yml.load(
-    open(config_path, 'r')
-) or {}  # empty dict if config file empty
+def load_config():
+    global config
+    config = yml.load(
+        open(config_path, 'r')
+    ) or {}  # empty dict if config file empty
+
+
+load_config()
 
 
 def dump_config():
@@ -219,14 +225,6 @@ def make_config():
             'Input id of chat which you want to backup (source chat) >> '
         )
 
-    if isinstance(
-        config['source_chat'],
-        str,
-    ) and config[
-        'source_chat'
-    ].isdigit():
-        config['source_chat'] = int(config['source_chat'])
-
     if 'target_chat' not in config:
         config['target_chat'] = input(
             'Input id of chat where the messages will be saved (target chat) >> '
@@ -265,7 +263,8 @@ def make_config():
             f'Created new config, please check it: {config_path}',
             style='bright_green'
         )
-    dump_config()
+        dump_config()
+        load_config()
 
     if 'backupper.session' not in os.listdir(cwd):
         input(
@@ -405,9 +404,9 @@ def main():
     with tg:
         print(
             '\ngetting messages',
-            f'chat_id = {config["source_chat"]}',
-            f'limit = {limit}',
-            f'offset_id = {config["message_id_start_from"]}',
+            f'chat_id: {type(config["source_chat"])} = {config["source_chat"]}',
+            f'limit: {type(limit)} = {limit}',
+            f'offset_id {type(config["message_id_start_from"])} = {config["message_id_start_from"]}',
             f'reverse = {True}',
             sep = '\n'
         )
