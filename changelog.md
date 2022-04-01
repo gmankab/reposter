@@ -5,7 +5,7 @@
 
 ## 2.1
 
-- Added multiconfig support. Just specify path to your config file after `backupper.py` in your terminal command or `.bat` or `.sh` script. Example: `python backupper.py my_new_config.yml`
+- Added multiconfig support. Just specify path to your config file after `backupper` executable in your terminal command or `.bat` or `.sh` script. Example: `python backupper.py my_new_config.yml` or `python backupper.bat my_new_config.yml`
 - added automatic sending bugreports to "saved messages" so then you can forward it to developer
 - added much more comments to config file
 - fixed backupping messages with multiple media
