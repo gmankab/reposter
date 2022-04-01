@@ -219,6 +219,9 @@ def make_config():
             'Input id of chat which you want to backup (source chat) >> '
         )
 
+    if config['source_chat'].isdigit():
+        config['source_chat'] = int(config['source_chat'])
+
     if 'target_chat' not in config:
         config['target_chat'] = input(
             'Input id of chat where the messages will be saved (target chat) >> '
@@ -271,6 +274,7 @@ tg = pyrogram.Client(
     'backupper',
     api_id = config['api_id'],
     api_hash = config['api_hash'],
+    workdir = cwd,
 )
 
 
