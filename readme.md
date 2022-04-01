@@ -13,7 +13,7 @@
 
 ## supported OS
 
-- windows 8, 10, 11
+- windows 10, 11
 - linux
 - mac
 - android with [termux](https://github.com/termux/termux-app/releases)
@@ -21,7 +21,7 @@
 
 ## unsupported OS
 
-- windows 7 or earlier
+- windows 8 or earlier
 
 ## usage
 
