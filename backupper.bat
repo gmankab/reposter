@@ -39,4 +39,4 @@ if not exist "%project_py%" (
     ren "%project_tmp%" "%project_name%.py"
 )
 
-"%python%" "%project_py%"
+"%python%" "%project_py%" %*

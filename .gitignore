@@ -1,12 +1,5 @@
 /__pycache__
 /libs
-/latest_release/libs
-backupper.session
-config*
-downloads
-config.py
-libs.zip
-test.py
 python*
-cache
+start*
 data

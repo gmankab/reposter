@@ -1,20 +1,21 @@
 '''
 script to backup
-python 3.10.4
 '''
+
+script_version = '2.2'
 
 # importing libraries
 from urllib import request as r
 from inspect import cleandoc as cd
+from pathlib import Path
 import subprocess
 import traceback
-import pathlib
 import shutil
 import sys
 import os
 
 
-def clean_path(path):
+def clean(path):
     path = str(path).replace('\\', '/')
     # conerting a\\b///\\\c\\/d/e/ to a//b//////c///d/e/
 
@@ -25,9 +26,7 @@ def clean_path(path):
 
 
 def get_parrent_dir(file):
-    return clean_path(
-        pathlib.Path(file).parent
-    )
+    return clean(Path(file).parent)
 
 
 def mkdir(dir):
@@ -43,16 +42,21 @@ def clear_dir(dir):
     mkdir(dir)
 
 
+def restart():
+    os.system(f'{sys.executable} {Path(__file__)}')
+    sys.exit()
+
+
 # changing current work dir
 cwd = f'{get_parrent_dir(__file__)}/data'
 mkdir(cwd)
 os.chdir(cwd)
 
-# adding libs and files from Current Work Dir to sys.path
-# this is needed so that python can find this libs and files, then use them
-
 downloads = f'{cwd}/downloads'
 libs = f'{cwd}/libs'
+
+# adding libs and files from Current Work Dir to sys.path
+# this is needed so that python can find this libs and files, then use them
 
 sys.path += (
     cwd,
@@ -115,8 +119,9 @@ def install_libs():
         os.system(f'{pip} config set global.no-warn-script-location true')
         os.system(f'{pip} install -U pip {" ".join(requirements)} -t {libs}')
         print('installed, restarting...')
-        os.system(f'{sys.executable} {pathlib.Path(__file__)}')
-        sys.exit()
+        clear_dir(downloads)
+        restart()
+    print('done')
 
 
 install_libs()
@@ -140,146 +145,175 @@ if not os.path.isfile(config_path):
     open(config_path, 'w').close()
 
 
-def load_config():
+def load_config(
+    data = None
+):
     global config
-    config = yml.load(
-        open(config_path, 'r')
-    ) or {}  # empty dict if config file empty
+    if data:
+        config = yml.load(
+            data
+        ) or {}
+    else:
+        config = yml.load(
+            open(
+                config_path,
+                'r'
+            ).read()
+        ) or {}
 
 
-load_config()
-
-
-def dump_config():
-    open(config_path, 'w').write(
-f"""\
-# please open https://my.telegram.org/apps and copy api_id and api_hash.
-# WARNING: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash
-api_id: {config['api_id']}
-api_hash: {config['api_hash']}
-
-# You can find ID of any chat in your browser's address bar at https://web.telegram.org/z/. It must be number without letters.
-# WARNING: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-100154636" instead of "-154636". Also if it hasn't "-" sign then you don't need to touch it. For example, it can be "38523532", "1348592", or "-100954843". If you want to use your account's "saved messages", input "me". Or you can use @name, of any user, chanel or chat.
-
-# id of chat which you want to backup
-source_chat: {config['source_chat']}
-
-# id of chat where the messages will be saved
-target_chat: {config['target_chat']}
-
-# input the id of the message from which to start the backupping. To backup whole chat enter 0
-message_id_start_from: {config['message_id_start_from']}
-
-# if true then value of "message_id_start_from" will be updated after every backup and will be set to latest backupped message id + 1
-update_message_id_start_from: {config['update_message_id_start_from']}
-
-# May be a number, or "all". If media files are grouped in your message, then telegram will consider them as separate messages. Consider it
-count_of_messages_to_backup: {config['count_of_messages_to_backup']}
-
-# chat id where bugreports will be sent
-bugreport_chat: {config['bugreport_chat']}
-
-
-# don't close program after backupping messages and wait for new messages:
-expect_new_messages: {config['expect_new_messages']}
-"""
+def dump_config(
+    data = None
+):
+    if not data:
+        data = config
+    yml.dump(
+        data,
+        open(
+            config_path,
+            'w',
+        ),
     )
 
 
+def auto_rename(file):
+    file = Path(file)
+    ls = os.listdir(file.parent)
+    count = 0
+    new_name = file.name
+    while new_name in ls:
+        count += 1
+        new_name = f'{file.stem}{count}{file.suffix}'
+    os.rename(file, new_name)
+    return clean(Path(file.parent, new_name))
+
+
 def make_config():
-    if os.stat(config_path).st_size == 0:
-        # if config file empty
-        created_new_config = True
-        print(f'creating new config `{config_path}`')
-    else:
-        created_new_config = False
-        print(f'loading config `{config_path}`')
+    blank_config = f"""\
+# # # please reset all "_" with your values. All values must be specified without quotes.
 
-    if (
-        'api_id' not in config
-    ) or (
-        'api_hash' not in config
-    ):
-        print(
-            '\nplease open https://my.telegram.org/apps and copy api_id and api_hash.\n[bold red]warning[/bold red]: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org on the next day and they unbanned me. So please use only your own api_id and api_hash\n',
-        )
-        created_new_config = True
+# # # API KEY
+# # # open https://my.telegram.org/apps and copy api_id and api_hash
+# # # WARNING: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org and on the next day and they unbanned me. api_id: _
+api_hash: _
+phone_number: _
 
-    for i in [
-        'api_id',
-        'api_hash',
-    ]:
-        if i not in config:
-            config[i] = input(
-                f'input {i}>> '
-            )
+# # # example:
+# api_id: 12345
+# api_hash: 0123456789abcdef0123456789abcdef
+# phone_number: +12223334455
 
-    if 'source_chat' not in config or 'target_chat' not in config:
-        print(
-            '\nYou can find ID of any chat in your browser\'s address bar at https://web.telegram.org/z/. It must be number without letters.\n[bold red]warning[/bold red]: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-100154636" instead of "-154636". Also if it hasn\'t "-" sign then you don\'t need to touch it. For example, it can be "38523532", "1348592", or "-100954843". If you want to use your account\'s "saved messages", input "me". Or you can use @name, of any user, chanel or chat.\n'
-        )
-        created_new_config = True
 
-    if 'source_chat' not in config:
-        config['source_chat'] = input(
-            'Input id of chat which you want to backup (source chat) >> '
-        )
+# # # CHATS ID
+# # # You can find ID of any chat in your browser's address bar at https://web.telegram.org/z/. It must be number without letters.
+# # # WARNING: if ID have "-" sign at the beginning then you must add "100" after "-". For example, you must use "-100154636" instead of "-154636". Also if it hasn't "-" sign then you don't need to touch it.
+# # # If you want to use your account's "saved messages", input "me".
+# # # Or you can use @name, of any user, chanel or chat.
 
-    if 'target_chat' not in config:
-        config['target_chat'] = input(
-            'Input id of chat where the messages will be saved (target chat) >> '
-        )
+# # # source chat is a chat which you want to backup
+# # # target chat is a chat where the messages will be saved
 
-    if 'message_id_start_from' not in config:
-        config['message_id_start_from'] = input(
-            'input the id of the message from which to start the backupping. To backup whole chat enter 0 >> '
-        )
-        created_new_config = True
+chats:
+- source: _
+  target: _
+# # # uncomment strings below if you want to backup multiple chats
+# # # just delete "# " to uncomment strings
+# - source: _
+#   target: _
+# - source: _
+#   target: _
 
-    if 'update_message_id_start_from' not in config:
-        config['update_message_id_start_from'] = 'true'
-        created_new_config = True
+# # # Example 1:
+# chats:
+# - source: gmanka
+#   target: me
+# # # it will backup your dialogue with @gmanka to saved messages
 
-    if 'count_of_messages_to_backup' not in config:
-        config['count_of_messages_to_backup'] = input(
-            'Input count of messag es to backup. If media files are grouped in your message, then telegram will consider them as separate messages. Consider it. Leave blank to backup 10 messages, or input "all" to backup all messages >> '
-        )
-        created_new_config = True
+# # # Example 2:
+# chats:
+# - source: 340953532
+#   target: me
+# - source: -10018483
+#   target: my_cool_channel
+# - source: durov
+#   target: zelensy
+# # # it will backup 3 chats at once. Messages from chat with id "340953532" to saved messages, messages from chat with id "-10018483" to @my_cool_channel, and messages from @durov to @zelensky. You can enter as many chats as you want, for example 10 or 100
 
-    if not config['count_of_messages_to_backup']:
-        config['count_of_messages_to_backup'] = 10
-        created_new_config = True
+# # # this script can send logs and bugreports in chats
+log_chat:
+bugreport_chat:
+# # # don't touch it and leave blank if you don't want to read logs and bugreports in telegram
 
-    if 'bugreport_chat' not in config:
-        config['bugreport_chat'] = 'me'
-        created_new_config = True
+# # # Example 1:
+# log_chat:
+# bugreport_chat: me
+# # # no logs, bugreports in saved messages
 
-    if 'expect_new_messages' not in config:
-        config['expect_new_messages'] = False
-        created_new_config = True
+# # # Example 2:
+# log_chat: -1001691839821
+# bugreport_chat: -1001601095783
+# # # logs and bugreports in specified chats
 
-    if created_new_config:
-        print(
-            f'Created new config, please check it: {config_path}',
-            style='bright_green'
-        )
+# # # MODS
+handle_new_messages: False
+# handle_new_messages: True
+# # # if True, then the script will wait for new messages to backup them
+
+backup_old_messages: False
+# backup_old_messages: True
+# # #  if True, then script will backup an old messages from the chat
+
+
+# # # if you don't use "backup_old_messages" feature, then you don't need everything below and changing these values will be useless for you
+
+
+# # # input the id of the message from which to start the backupping. To backup whole chat enter 0. This value will be updated automatically, and there is no way to prevent it from updating
+message_id_start_from: 0
+
+
+# May be a number, or "all". If media files are grouped in your message, then telegram will see them as separate messages, don't forget about it
+count_of_messages_to_backup: all
+
+
+# # # WARNING: DON'T TOUCH VERSION
+# # # WARNING: DON'T TOUCH VERSION
+version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
+# # # WARNING: DON'T TOUCH VERSION
+# # # WARNING: DON'T TOUCH VERSION
+"""
+
+    def new():
+        load_config(blank_config)
         dump_config()
+        print(f'Created new config: {config_path}, please check, read and fill it. You can close this script for now and open it later, after filling config. Or don\'t close it and just press Enter after filling config to continue', style = 'light_green')
+        input()
         load_config()
 
-    if 'backupper.session' not in os.listdir(cwd):
-        input(
-            'Now you will need to log in to the account that has access to the chat that you are going to backup. Press enter to continue'
-        )
+    if (
+        Path(config_path).exists()
+    ) and (
+        os.stat(config_path).st_size != 0
+    ):
+        load_config()
+        if (
+            'version' not in config
+        ) or (
+            str(config['version']) != script_version
+        ):
+            print(f'[red]old[/red] {config_path} [red]file renamed to[/red] {auto_rename(config_path)}')
+            new()
+    else:
+        new()
 
 
 make_config()
 
-tg = pyrogram.Client(
-    'backupper',
-    api_id = config['api_id'],
-    api_hash = config['api_hash'],
-    workdir = cwd,
-)
+# tg = pyrogram.Client(
+#     'backupper',
+#     api_id = config['api_id'],
+#     api_hash = config['api_hash'],
+#     workdir = cwd,
+# )
 
 
 def progress_callback(current, total):
@@ -425,23 +459,23 @@ def main():
     return 'success'
 
 
-result = None
-while result != 'success':
-    try:
-        result = main()
-    except:
-        error = traceback.format_exc()
-        bugreport(error)
+# result = None
+# while result != 'success':
+#     try:
+#         result = main()
+#     except:
+#         error = traceback.format_exc()
+#         bugreport(error)
 
-while config['expect_new_messages']:
-    try:
-        tg.add_handler(
-            pyrogram.handlers.MessageHandler(
-                backup,
-                pyrogram.filters.chat(config['source_chat'])
-            )
-        )
-        tg.run()
-    except:
-        error = traceback.format_exc()
-        bugreport(error)
+# while config['expect_new_messages']:
+#     try:
+#         tg.add_handler(
+#             pyrogram.handlers.MessageHandler(
+#                 backup,
+#                 pyrogram.filters.chat(config['source_chat'])
+#             )
+#         )
+#         tg.run()
+#     except:
+#         error = traceback.format_exc()
+#         bugreport(error)

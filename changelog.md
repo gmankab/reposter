@@ -3,11 +3,24 @@
 - [2.1](#21)
 - [2.0](#20)
 
+## 2.2
+
+- removed ability to input data in config.yml directly from script because it was difficult and took up most of the code, now you can only do it yourself in a text editor
+- fixed some typos
+- fixed a bug due to which if you passed an argument with the path for the config to a bat file, it was lost and not passed to the python script
+- config become more detailed
+- added ability to backup multiple chats
+- added ability to just forward message instead of downloading it to the storage
+- added update checker
+- added ability to turn on auto updates
+- most of the code has been rewritten, cleaned up and optimized
+
 ## 2.1
 
 - fixed remembering the last message
 - fixed backupping messages with multiple media
 - now the media is not separated from the caption
+- now script automatically restarts if crashes
 - Added multiconfig support. Just specify path to your config file after `backupper` executable in your terminal command or `.bat` or `.sh` script. Example: `backupper.py my_new_config.yml` or `python backupper.bat my_new_config.yml`
 - added automatic sending bugreports to "saved messages" so then you can forward it to developer
 - added much more comments to config file
