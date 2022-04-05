@@ -410,6 +410,7 @@ class Handler:
             time.sleep(1)
         self.runned = True
         clear_dir(downloads)
+        print(msg)
 
         def download(msg, index = None):
             print()
