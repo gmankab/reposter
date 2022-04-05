@@ -11,6 +11,7 @@ from pathlib import Path
 import subprocess
 import traceback
 import shutil
+import time
 import sys
 import os
 
@@ -138,9 +139,10 @@ from rich import pretty
 
 
 pretty.install()
-print = rich.console.Console().print
 yml = ruamel.yaml.YAML()
 config = {}
+rich_print = rich.console.Console().print
+print = rich_print
 
 
 if not os.path.isfile(config_path):
@@ -289,33 +291,26 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
         new()
 
 
-make_config()
+tg = None
 
-tg = pyrogram.Client(
-    'backupper',
-    api_id = config['api_id'],
-    api_hash = config['api_hash'],
-    phone_number = config['phone_number'],
-    workdir = cwd,
-)
+
+def print(
+    *args,
+    **kwargs
+):
+    rich_print(
+        *args,
+        **kwargs
+    )
+    if args and 'log_chat' in config:
+        tg.send_message(
+            config['log_chat'],
+            args[0],
+    )
 
 
 def progress_callback(current, total):
     print(f'{current}/{total}')
-
-
-# while config['handle_new_messages']:
-#     try:
-#         tg.add_handler(
-#             pyrogram.handlers.MessageHandler(
-#                 backup,
-#                 pyrogram.filters.chat(config['source_chat'])
-#             )
-#         )
-#         tg.run()
-#     except:
-#         error = traceback.format_exc()
-#         bugreport(error)
 
 
 class Handler:
@@ -327,6 +322,8 @@ class Handler:
         self.source = source
         self.target = target
         self.latest_id = 0
+        self.runned = False
+        self.downloads = f'{downloads}/{self.source}/'
         tg.add_handler(
             pyrogram.handlers.MessageHandler(
                 self.backup,
@@ -341,119 +338,150 @@ class Handler:
         client,
         msg,
     ):
-        local_downloads = f'{downloads}/{self.source}'
-        id = msg.message_id
-        if id <= self.latest_id:
-            return
-        print(f'backupping message {id}')
+        while self.runned:
+            time.sleep(1)
+        self.runned = True
+        clear_dir(downloads)
 
-        def download(msg):
+        def download(msg, index = None):
+            print()
+            id = msg.message_id
+            print(f'latest = {self.latest_id}')
+            print(f'id = {id}')
+            if id <= self.latest_id:
+                print('aborted')
+                return 'aborted'
+            self.latest_id = id
+            print(f'now latest is {self.latest_id}')
+            print()
+
+            media_type = msg.media
+            file_id = msg[media_type].file_id
             print('downloading file:')
+            print(f'file_id = {file_id}')
             caption = msg.caption
             print(f'caption = {caption}')
-            media_type = msg.media
             print(f'media_type = {media_type}')
-            file_id = msg[media_type].file_id
-            print(f'file_id = {file_id}')
-            path = tg.download_media(
-                msg,
-                file_name = f'{local_downloads}/',  # path to save file
-                progress = progress_callback
+            path = Path(
+                clean(
+                    tg.download_media(
+                        msg,
+                        file_name = self.downloads,  # path to save file
+                        progress = progress_callback
+                    )
+                )
             )
-            print(f'downloaded {path}')
-            return path, caption
+            if index is not None:
+                new_path = f'{path.parent}/{index}{path.suffix}'
+                os.rename(
+                    path,
+                    new_path,
+                )
+                path = new_path
 
-        clear_dir(local_downloads)
+            print(f'downloaded {path}')
+            return (path, caption)
 
         if msg.media_group_id:
             print(f'found media group: {msg.media_group_id}')
             files = []
-            for sub_msg in tg.get_media_group(
-                msg.chat.id, msg.message_id
+            for index, sub_msg in enumerate(
+                tg.get_media_group(
+                    msg.chat.id, msg.message_id
+                )
             ):
-                print(sub_msg.message_id)
-                print(sub_msg[sub_msg.media].file_id)
-            #     path, caption = download(media)
-            #     files.append(
-            #         getattr(
-            #             pyrogram.types,
-            #             f'InputMedia{media.media.title()}'
-            #         )(
-            #             media = path,
-            #             caption = caption,
-            #         )
-            #     )
-
-            # print(
-            #     'sending files',
-            #     files,
-            # )
-            # tg.send_media_group(
-            #     chat_id = self.target,
-            #     media = files,
-            # )
-            # print('done.')
-        elif msg.media:
-            path, caption = download(msg)
-            print(
-                f'sending {msg.media} {path}'
+                downloaded = download(sub_msg, index)
+                if downloaded != 'aborted':
+                    path, caption = downloaded
+                    files.append(
+                        getattr(
+                            pyrogram.types,
+                            f'InputMedia{sub_msg.media.title()}'
+                        )(
+                            media = path,
+                            caption = caption,
+                        )
+                    )
+            if files:
+                print(
+                    'sending files',
+                    files,
+                )
+            tg.send_media_group(
+                chat_id = self.target,
+                media = files,
             )
-            if caption:
-                getattr(
-                    tg,
-                    f'send_{msg.media}',
-                )(
-                    self.target,
-                    path,
-                    caption = caption,
+            print('done.')
+        elif msg.media:
+            downloaded = download(msg)
+            if downloaded != 'aborted':
+                path, caption = downloaded
+                print(
+                    f'sending {msg.media} {path}'
+                )
+                if caption:
+                    getattr(
+                        tg,
+                        f'send_{msg.media}',
+                    )(
+                        self.target,
+                        path,
+                        caption = caption,
+                        progress = progress_callback,
+                    )
+                else:
+                    getattr(
+                        tg,
+                        f'send_{msg.media}',
+                    )(
+                        self.target,
+                        path,
                     progress = progress_callback,
-                )
-            else:
-                getattr(
-                    tg,
-                    f'send_{msg.media}',
-                )(
-                    self.target,
-                    path,
-                progress = progress_callback,
-                )
+                    )
         elif msg.text:
             print(f'sending text "{msg.text}"')
             tg.send_message(
                 self.target,
                 msg.text,
             )
-
-        # if id >= int(config['message_id_start_from']):
-        #     config['message_id_start_from'] = id + 1
-
-        # if config['update_message_id_start_from']:
-        #     dump_config()
-        # return 'success'
+        self.runned = False
 
 
-# handlers = []
+def main():
+    try:
+        global tg
+        make_config()
+
+        tg = pyrogram.Client(
+            'backupper',
+            api_id = config['api_id'],
+            api_hash = config['api_hash'],
+            phone_number = config['phone_number'],
+            workdir = cwd,
+        )
+
+        handlers = []
+        tg.start()
+
+        for chat in config['chats']:
+            handlers.append(
+                Handler(
+                    chat['source'],
+                    chat['target'],
+                )
+            )
+
+        print('start')
+        pyrogram.idle()
+    except:
+        error = traceback.format_exc()
+        print(error)
+
+        if 'bugreport_chat' in config:
+            tg.send_message(
+                config['bugreport_chat'],
+                error,
+            )
 
 
-# for index, chat in enumerate(
-#     config['chats']
-# ):
-#     handlers.append(
-#         Handler(
-#             chat['source'],
-#             chat['target'],
-#         )
-#     )
-
-a = Handler(
-    522002143,
-    'me',
-)
-# b = Handler(
-#     -1001741038571,
-#     'me',
-# )
-
-
-print('start')
-tg.run()
+main()
