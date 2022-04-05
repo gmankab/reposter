@@ -1,5 +1,6 @@
 # contents
 
+- [2.2](#22)
 - [2.1](#21)
 - [2.0](#20)
 
@@ -18,6 +19,7 @@
 - added ota update checker
 - added ability to turn on automatic ota updates
 - most of the code has been rewritten, cleaned up and optimized
+- you can [compare this code v2.2 with previous v2.1](https://github.com/gmankab/backupper/compare/55de634ac3ddea494c24bc550213e67e37b53556...441f50d4748313d59b882f91c0da7b6b81987d89)
 
 ## 2.1
 
@@ -31,7 +33,7 @@
 - added option for don't close program after backupping messages and wait for new messages
 - added ability to just run batch file on windows without installing python
 - most of the code has been rewritten, cleaned up and optimized
-- you can [compare this code with previous version 2.0](https://github.com/gmankab/backupper/compare/5400581431cd98b55fe4c1ab359857b418db3724...55de634ac3ddea494c24bc550213e67e37b53556#diff-686181f4d0f8e0a0d2b779c9a242a53d0794f3b9d1cb1513255a8930b8ab0372)
+- you can [compare this code v2.1 with previous v2.0](https://github.com/gmankab/backupper/compare/5400581431cd98b55fe4c1ab359857b418db3724...55de634ac3ddea494c24bc550213e67e37b53556#diff-686181f4d0f8e0a0d2b779c9a242a53d0794f3b9d1cb1513255a8930b8ab0372)
 
 ## 2.0
 
