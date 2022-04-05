@@ -1,4 +1,4 @@
-script_version = '2.1'
+script_version = '2.2'
 
 '''
 script to backup
@@ -221,34 +221,34 @@ phone_number: _
 chats:
 - source: _
   target: _
-  forwarding_way: _
+  forward_way: _
 # # # uncomment strings below if you want to backup multiple chats
 # # # just delete "# " to uncomment strings
 # - source: _
 #   target: _
-#   forwarding_way: _
+#   forward_way: _
 # - source: _
 #   target: _
-#   forwarding_way: _
+#   forward_way: _
 
 # # # Example 1:
 # chats:
 # - source: gmanka
 #   target: me
-#   forwarding_way: without_author
+#   forward_way: save_on_disk
 # # # it will backup your dialogue with @gmanka to saved messages
 
 # # # Example 2:
 # chats:
 # - source: 340953532
 #   target: me
-#   forwarding_way: without_author
+#   forward_way: save_on_disk
 # - source: -10018483
 #   target: my_cool_channel
-#   forwarding_way: with_author
+#   forward_way: forward
 # - source: durov
 #   target: zelensy
-#   forwarding_way: without_author
+#   forward_way: save_on_disk
 # # # it will backup 3 chats at once. Messages from chat with id "340953532" to saved messages, messages from chat with id "-10018483" to @my_cool_channel, and messages from @durov to @zelensky. You can enter as many chats as you want, for example 10 or 100
 
 # # # this script can send logs and bugreports in chats
@@ -359,23 +359,49 @@ class Handler:
     def __init__(
         self,
         source,
-        target
+        target,
+        forward_way,
     ):
         self.source = source
         self.target = target
         self.latest_id = 0
         self.runned = False
         self.downloads = f'{downloads}/{self.source}/'
+        if forward_way == 'save_on_disk':
+            backup = self.forward
+        else:
+            backup = self.save_on_disk
         tg.add_handler(
             pyrogram.handlers.MessageHandler(
-                self.backup,
+                backup,
                 pyrogram.filters.chat(
                     source
                 )
             )
         )
 
-    def backup(
+    def forward(
+        self,
+        client,
+        msg,
+    ):
+        print(msg)
+        if msg.media_group_id:
+            if msg.media_group_id > self.latest_id:
+                self.latest_id = msg.media_group_id
+            else:
+                return
+            tg.copy_media_group(
+                chat_id = self.target,
+                from_chat_id = msg.chat.id,
+                message_id = msg.message_id,
+            )
+        else:
+            msg.copy(
+                self.target,
+            )
+
+    def save_on_disk(
         self,
         client,
         msg,
@@ -510,6 +536,7 @@ def main():
                 Handler(
                     chat['source'],
                     chat['target'],
+                    chat['forward_way'],
                 )
             )
 

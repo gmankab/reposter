@@ -221,27 +221,34 @@ phone_number: _
 chats:
 - source: _
   target: _
+  forward_way: _
 # # # uncomment strings below if you want to backup multiple chats
 # # # just delete "# " to uncomment strings
 # - source: _
 #   target: _
+#   forward_way: _
 # - source: _
 #   target: _
+#   forward_way: _
 
 # # # Example 1:
 # chats:
 # - source: gmanka
 #   target: me
+#   forward_way: save_on_disk
 # # # it will backup your dialogue with @gmanka to saved messages
 
 # # # Example 2:
 # chats:
 # - source: 340953532
 #   target: me
+#   forward_way: save_on_disk
 # - source: -10018483
 #   target: my_cool_channel
+#   forward_way: forward
 # - source: durov
 #   target: zelensy
+#   forward_way: save_on_disk
 # # # it will backup 3 chats at once. Messages from chat with id "340953532" to saved messages, messages from chat with id "-10018483" to @my_cool_channel, and messages from @durov to @zelensky. You can enter as many chats as you want, for example 10 or 100
 
 # # # this script can send logs and bugreports in chats
@@ -260,6 +267,11 @@ bugreport_chat:
 # # # logs and bugreports in specified chats
 
 
+script_updates: automatic
+# script_updates: disabled
+# script_updates: ask
+
+
 # # # WARNING: DON'T TOUCH VERSION
 # # # WARNING: DON'T TOUCH VERSION
 version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
@@ -270,7 +282,7 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
     def new():
         load_config(blank_config)
         dump_config()
-        print(f'Created new config: {config_path}, please check, read and fill it. You can close this script for now and open it later, after filling config. Or don\'t close it and just press Enter after filling config to continue', style = 'light_green')
+        rich_print(f'Created new config: {config_path}, please check, read and fill it. You can close this script for now and open it later, after filling config. Or don\'t close it and just press Enter after filling config to continue', style = 'light_green')
         input()
         load_config()
 
@@ -285,7 +297,7 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
         ) or (
             str(config['version']) != script_version
         ):
-            print(f'[red]old[/red] {config_path} [red]file renamed to[/red] {auto_rename(config_path)}')
+            rich_print(f'[red]old[/red] {config_path} [red]file renamed to[/red] {auto_rename(config_path)}')
             new()
     else:
         new()
@@ -313,27 +325,83 @@ def progress_callback(current, total):
     print(f'{current}/{total}')
 
 
+def check_update():
+    if config['script_updates'] == 'disabled':
+        return
+    url = 'https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py'
+    script_b = r.urlopen(url).read()
+    script = script_b.decode("utf8")
+    begin = script.find("'") + 1
+    end = script.find("'", begin)
+    new_version = script[begin:end]
+    if new_version <= script_version:
+        return
+    print(f'found new script version: {new_version}')
+    if config['script_updates'] == 'ask':
+        answer = ''
+        while answer not in [
+            'y',
+            'n',
+        ]:
+            print('wanna update? y/n')
+            answer = input().lower()
+        if answer == 'n':
+            return
+    print('updating...')
+    open(__file__, 'wb').write(script_b)
+    print()
+    print('done, restartind!')
+    print()
+    restart()
+
+
 class Handler:
     def __init__(
         self,
         source,
-        target
+        target,
+        forward_way,
     ):
         self.source = source
         self.target = target
         self.latest_id = 0
         self.runned = False
         self.downloads = f'{downloads}/{self.source}/'
+        if forward_way == 'save_on_disk':
+            backup = self.forward
+        else:
+            backup = self.save_on_disk
         tg.add_handler(
             pyrogram.handlers.MessageHandler(
-                self.backup,
+                backup,
                 pyrogram.filters.chat(
                     source
                 )
             )
         )
 
-    def backup(
+    def forward(
+        self,
+        client,
+        msg,
+    ):
+        print(msg)
+        if msg.media_group_id:
+            if msg.media_group_id > self.latest_id:
+                self.latest_id = msg.media_group_id
+            else:
+                return
+            tg.copy_media_group(
+                chat_id = self.target,
+                from_chat_id = msg.chat.id,
+                message_id = msg.message_id,
+            )
+        else:
+            msg.copy(
+                self.target,
+            )
+
+    def save_on_disk(
         self,
         client,
         msg,
@@ -468,8 +536,11 @@ def main():
                 Handler(
                     chat['source'],
                     chat['target'],
+                    chat['forward_way'],
                 )
             )
+
+        check_update()
 
         print('start')
         pyrogram.idle()

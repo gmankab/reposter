@@ -13,9 +13,10 @@
 - fixed bug with duplicate messages
 - config become more detailed
 - added ability to backup multiple chats
-- added ability to forward with author
-- added update checker
-- added ability to turn on automatic updates
+- added ability to backup without saving to storage
+- added ability to chose chat for bugreports and chat for logs
+- added ota update checker
+- added ability to turn on automatic ota updates
 - most of the code has been rewritten, cleaned up and optimized
 
 ## 2.1
