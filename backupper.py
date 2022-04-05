@@ -455,7 +455,8 @@ class Handler:
 def main():
     try:
         global tg
-        make_config()
+        # make_config()
+        load_config()
 
         tg = pyrogram.Client(
             'backupper',
@@ -517,4 +518,6 @@ def check_update():
     open(__file__, 'w').write(' ')
 
 
-main()
+# main()
+
+print('test')
