@@ -484,4 +484,14 @@ def main():
             )
 
 
-main()
+# main()
+
+
+def check_update():
+    url = 'https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py'
+    new_script = r.urlopen(url).read().decode("utf8")
+    for line in new_script.split:
+        if 'script_version = ' in line:
+            print(line)
+
+check_update()
