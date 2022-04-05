@@ -6,6 +6,7 @@
 ## 2.2
 
 - removed ability to input data in config.yml directly from script because it was difficult and took up most of the code, now you can only do it yourself in a text editor
+- removed ability to backup old messages
 - fixed some typos
 - fixed a bug due to which if you passed an argument with the path for the config to a bat file, it was lost and not passed to the python script
 - config become more detailed

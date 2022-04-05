@@ -30,8 +30,10 @@ def get_parrent_dir(file):
 
 
 def mkdir(dir):
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
+    Path(dir).mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
 
 def clear_dir(dir):
@@ -194,7 +196,8 @@ def make_config():
 
 # # # API KEY
 # # # open https://my.telegram.org/apps and copy api_id and api_hash
-# # # WARNING: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org and on the next day and they unbanned me. api_id: _
+# # # WARNING: use ony your own api_id and api_hash. I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org and on the next day and they unbanned me.
+api_id: _
 api_hash: _
 phone_number: _
 
@@ -254,26 +257,6 @@ bugreport_chat:
 # bugreport_chat: -1001601095783
 # # # logs and bugreports in specified chats
 
-# # # MODS
-handle_new_messages: False
-# handle_new_messages: True
-# # # if True, then the script will wait for new messages to backup them
-
-backup_old_messages: False
-# backup_old_messages: True
-# # #  if True, then script will backup an old messages from the chat
-
-
-# # # if you don't use "backup_old_messages" feature, then you don't need everything below and changing these values will be useless for you
-
-
-# # # input the id of the message from which to start the backupping. To backup whole chat enter 0. This value will be updated automatically, and there is no way to prevent it from updating
-message_id_start_from: 0
-
-
-# May be a number, or "all". If media files are grouped in your message, then telegram will see them as separate messages, don't forget about it
-count_of_messages_to_backup: all
-
 
 # # # WARNING: DON'T TOUCH VERSION
 # # # WARNING: DON'T TOUCH VERSION
@@ -308,166 +291,20 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
 
 make_config()
 
-# tg = pyrogram.Client(
-#     'backupper',
-#     api_id = config['api_id'],
-#     api_hash = config['api_hash'],
-#     workdir = cwd,
-# )
+tg = pyrogram.Client(
+    'backupper',
+    api_id = config['api_id'],
+    api_hash = config['api_hash'],
+    phone_number = config['phone_number'],
+    workdir = cwd,
+)
 
 
 def progress_callback(current, total):
     print(f'{current}/{total}')
 
 
-def bugreport(bug):
-    print(bug)
-    with tg:
-        tg.send_message(
-            config['bugreport_chat'],
-            f'```{bug}```',
-        )
-
-
-def backup(
-    client = None,
-    message = None,
-    msg = None,
-):
-    if message:
-        msg = message
-
-    id = msg.message_id
-    if id < int(config['message_id_start_from']):
-        return
-
-    def download(msg):
-        print(msg)
-        caption = msg.caption
-
-        media_type = msg.media
-        file_id = msg[media_type].file_id
-
-        print(f'downloading {media_type} {file_id}')
-
-        path = tg.download_media(
-            msg,
-            file_name = f'{downloads}/',  # path to save file
-            progress = progress_callback
-        )
-        print(f'downloaded {path}')
-        return path, caption
-
-    clear_dir(downloads)
-
-    if msg.media_group_id:
-        files = []
-        for i in tg.get_media_group(
-            msg.chat.id, msg.message_id
-        ):
-            path, caption = download(i)
-            files.append(
-                getattr(
-                    pyrogram.types,
-                    f'InputMedia{i.media.title()}'
-                )(
-                    media = path,
-                    caption = caption,
-                )
-            )
-            if i.message_id > id:
-                id = i.message_id
-
-        print(
-            'sending files',
-            files,
-        )
-        tg.send_media_group(
-            chat_id = config['target_chat'],
-            media = files,
-        )
-        print('done.')
-    elif msg.media:
-        path, caption = download(msg)
-        print(
-            f'sending {msg.media} {path}'
-        )
-        if caption:
-            getattr(
-                tg,
-                f'send_{msg.media}',
-            )(
-                config['target_chat'],
-                path,
-                caption = caption,
-                progress = progress_callback,
-            )
-        else:
-            getattr(
-                tg,
-                f'send_{msg.media}',
-            )(
-                config['target_chat'],
-                path,
-                progress = progress_callback,
-            )
-    elif msg.text:
-        print(f'sending text "{msg.text}"')
-        tg.send_message(
-            config['target_chat'],
-            msg.text,
-        )
-
-    if id >= int(config['message_id_start_from']):
-        config['message_id_start_from'] = id + 1
-
-    if config['update_message_id_start_from']:
-        dump_config()
-    return 'success'
-
-
-def main():
-    clear_dir(downloads)
-
-    limit = config['count_of_messages_to_backup']
-    if limit == 'all':
-        limit = None
-    else:
-        limit = int(limit)
-
-    with tg:
-        print(
-            '\ngetting messages',
-            f'chat_id: {type(config["source_chat"])} = {config["source_chat"]}',
-            f'limit: {type(limit)} = {limit}',
-            f'offset_id {type(config["message_id_start_from"])} = {config["message_id_start_from"]}',
-            f'reverse = {True}',
-            sep = '\n'
-        )
-
-        for msg in tg.iter_history(
-            chat_id = config['source_chat'],
-            limit = limit,
-            offset_id = int(config['message_id_start_from']),
-            reverse = True,
-        ):
-            backup(
-                msg = msg
-            )
-
-    clear_dir(downloads)
-    return 'success'
-
-
-# result = None
-# while result != 'success':
-#     try:
-#         result = main()
-#     except:
-#         error = traceback.format_exc()
-#         bugreport(error)
-
-# while config['expect_new_messages']:
+# while config['handle_new_messages']:
 #     try:
 #         tg.add_handler(
 #             pyrogram.handlers.MessageHandler(
@@ -479,3 +316,144 @@ def main():
 #     except:
 #         error = traceback.format_exc()
 #         bugreport(error)
+
+
+class Handler:
+    def __init__(
+        self,
+        source,
+        target
+    ):
+        self.source = source
+        self.target = target
+        self.latest_id = 0
+        tg.add_handler(
+            pyrogram.handlers.MessageHandler(
+                self.backup,
+                pyrogram.filters.chat(
+                    source
+                )
+            )
+        )
+
+    def backup(
+        self,
+        client,
+        msg,
+    ):
+        local_downloads = f'{downloads}/{self.source}'
+        id = msg.message_id
+        if id <= self.latest_id:
+            return
+        print(f'backupping message {id}')
+
+        def download(msg):
+            print('downloading file:')
+            caption = msg.caption
+            print(f'caption = {caption}')
+            media_type = msg.media
+            print(f'media_type = {media_type}')
+            file_id = msg[media_type].file_id
+            print(f'file_id = {file_id}')
+            path = tg.download_media(
+                msg,
+                file_name = f'{local_downloads}/',  # path to save file
+                progress = progress_callback
+            )
+            print(f'downloaded {path}')
+            return path, caption
+
+        clear_dir(local_downloads)
+
+        if msg.media_group_id:
+            print(f'found media group: {msg.media_group_id}')
+            files = []
+            for sub_msg in tg.get_media_group(
+                msg.chat.id, msg.message_id
+            ):
+                print(sub_msg.message_id)
+                print(sub_msg[sub_msg.media].file_id)
+            #     path, caption = download(media)
+            #     files.append(
+            #         getattr(
+            #             pyrogram.types,
+            #             f'InputMedia{media.media.title()}'
+            #         )(
+            #             media = path,
+            #             caption = caption,
+            #         )
+            #     )
+
+            # print(
+            #     'sending files',
+            #     files,
+            # )
+            # tg.send_media_group(
+            #     chat_id = self.target,
+            #     media = files,
+            # )
+            # print('done.')
+        elif msg.media:
+            path, caption = download(msg)
+            print(
+                f'sending {msg.media} {path}'
+            )
+            if caption:
+                getattr(
+                    tg,
+                    f'send_{msg.media}',
+                )(
+                    self.target,
+                    path,
+                    caption = caption,
+                    progress = progress_callback,
+                )
+            else:
+                getattr(
+                    tg,
+                    f'send_{msg.media}',
+                )(
+                    self.target,
+                    path,
+                progress = progress_callback,
+                )
+        elif msg.text:
+            print(f'sending text "{msg.text}"')
+            tg.send_message(
+                self.target,
+                msg.text,
+            )
+
+        # if id >= int(config['message_id_start_from']):
+        #     config['message_id_start_from'] = id + 1
+
+        # if config['update_message_id_start_from']:
+        #     dump_config()
+        # return 'success'
+
+
+# handlers = []
+
+
+# for index, chat in enumerate(
+#     config['chats']
+# ):
+#     handlers.append(
+#         Handler(
+#             chat['source'],
+#             chat['target'],
+#         )
+#     )
+
+a = Handler(
+    522002143,
+    'me',
+)
+# b = Handler(
+#     -1001741038571,
+#     'me',
+# )
+
+
+print('start')
+tg.run()
