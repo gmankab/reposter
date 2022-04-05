@@ -1,8 +1,8 @@
+script_version = '2.2'
+
 '''
 script to backup
 '''
-
-script_version = '2.2'
 
 # importing libraries
 from urllib import request as r
