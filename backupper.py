@@ -260,6 +260,11 @@ bugreport_chat:
 # # # logs and bugreports in specified chats
 
 
+script_updates: automatic
+# script_updates: disabled
+# script_updates: ask
+
+
 # # # WARNING: DON'T TOUCH VERSION
 # # # WARNING: DON'T TOUCH VERSION
 version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
@@ -488,10 +493,27 @@ def main():
 
 
 def check_update():
+    if config['updates'] == 'disabled':
+        return
     url = 'https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py'
-    new_script = r.urlopen(url).read().decode("utf8")
-    for line in new_script.split:
-        if 'script_version = ' in line:
-            print(line)
+    script = r.urlopen(url).read().decode("utf8")
+    begin = script.find("'") + 1
+    end = script.find("'", begin)
+    new_version = script[begin:end]
+    print(f'found new script version: {new_version}')
+    if new_version <= script_version:
+        return
+    if config['updates'] == 'ask':
+        answer = ''
+        while answer not in [
+            'y',
+            'n',
+        ]:
+            print('wanna update? y/n')
+            answer = input().lower()
+        if answer == 'n':
+            return
+    print('updating...')
+
 
 check_update()
