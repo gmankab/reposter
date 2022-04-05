@@ -1,4 +1,4 @@
-script_version = '2.2'
+script_version = '2.1'
 
 '''
 script to backup
@@ -476,6 +476,8 @@ def main():
                 )
             )
 
+        check_update()
+
         print('start')
         pyrogram.idle()
     except:
@@ -489,21 +491,19 @@ def main():
             )
 
 
-# main()
-
-
 def check_update():
-    if config['updates'] == 'disabled':
+    print(config)
+    if config['script_updates'] == 'disabled':
         return
     url = 'https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py'
     script = r.urlopen(url).read().decode("utf8")
     begin = script.find("'") + 1
     end = script.find("'", begin)
     new_version = script[begin:end]
-    print(f'found new script version: {new_version}')
     if new_version <= script_version:
         return
-    if config['updates'] == 'ask':
+    print(f'found new script version: {new_version}')
+    if config['script_updates'] == 'ask':
         answer = ''
         while answer not in [
             'y',
@@ -514,6 +514,7 @@ def check_update():
         if answer == 'n':
             return
     print('updating...')
+    open(__file__, 'w').write(' ')
 
 
-check_update()
+main()
