@@ -1,4 +1,4 @@
-script_version = '2.1'
+script_version = '2.2'
 
 '''
 script to backup
@@ -318,6 +318,36 @@ def progress_callback(current, total):
     print(f'{current}/{total}')
 
 
+def check_update():
+    if config['script_updates'] == 'disabled':
+        return
+    url = 'https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py'
+    script_b = r.urlopen(url).read()
+    script = script_b.decode("utf8")
+    begin = script.find("'") + 1
+    end = script.find("'", begin)
+    new_version = script[begin:end]
+    if new_version <= script_version:
+        return
+    print(f'found new script version: {new_version}')
+    if config['script_updates'] == 'ask':
+        answer = ''
+        while answer not in [
+            'y',
+            'n',
+        ]:
+            print('wanna update? y/n')
+            answer = input().lower()
+        if answer == 'n':
+            return
+    print('updating...')
+    open(__file__, 'wb').write(script_b)
+    print()
+    print('done, restartind!')
+    print()
+    restart()
+
+
 class Handler:
     def __init__(
         self,
@@ -492,32 +522,4 @@ def main():
             )
 
 
-def check_update():
-    print(config)
-    if config['script_updates'] == 'disabled':
-        return
-    url = 'https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.py'
-    script = r.urlopen(url).read().decode("utf8")
-    begin = script.find("'") + 1
-    end = script.find("'", begin)
-    new_version = script[begin:end]
-    if new_version <= script_version:
-        return
-    print(f'found new script version: {new_version}')
-    if config['script_updates'] == 'ask':
-        answer = ''
-        while answer not in [
-            'y',
-            'n',
-        ]:
-            print('wanna update? y/n')
-            answer = input().lower()
-        if answer == 'n':
-            return
-    print('updating...')
-    open(__file__, 'w').write(' ')
-
-
-# main()
-
-print('test')
+main()
