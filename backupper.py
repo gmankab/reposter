@@ -1,4 +1,4 @@
-script_version = '2.2'
+script_version = '2.1'
 
 '''
 script to backup
@@ -221,27 +221,34 @@ phone_number: _
 chats:
 - source: _
   target: _
+  forwarding_way: _
 # # # uncomment strings below if you want to backup multiple chats
 # # # just delete "# " to uncomment strings
 # - source: _
 #   target: _
+#   forwarding_way: _
 # - source: _
 #   target: _
+#   forwarding_way: _
 
 # # # Example 1:
 # chats:
 # - source: gmanka
 #   target: me
+#   forwarding_way: without_author
 # # # it will backup your dialogue with @gmanka to saved messages
 
 # # # Example 2:
 # chats:
 # - source: 340953532
 #   target: me
+#   forwarding_way: without_author
 # - source: -10018483
 #   target: my_cool_channel
+#   forwarding_way: with_author
 # - source: durov
 #   target: zelensy
+#   forwarding_way: without_author
 # # # it will backup 3 chats at once. Messages from chat with id "340953532" to saved messages, messages from chat with id "-10018483" to @my_cool_channel, and messages from @durov to @zelensky. You can enter as many chats as you want, for example 10 or 100
 
 # # # this script can send logs and bugreports in chats
@@ -275,7 +282,7 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
     def new():
         load_config(blank_config)
         dump_config()
-        print(f'Created new config: {config_path}, please check, read and fill it. You can close this script for now and open it later, after filling config. Or don\'t close it and just press Enter after filling config to continue', style = 'light_green')
+        rich_print(f'Created new config: {config_path}, please check, read and fill it. You can close this script for now and open it later, after filling config. Or don\'t close it and just press Enter after filling config to continue', style = 'light_green')
         input()
         load_config()
 
@@ -290,7 +297,7 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
         ) or (
             str(config['version']) != script_version
         ):
-            print(f'[red]old[/red] {config_path} [red]file renamed to[/red] {auto_rename(config_path)}')
+            rich_print(f'[red]old[/red] {config_path} [red]file renamed to[/red] {auto_rename(config_path)}')
             new()
     else:
         new()
@@ -485,8 +492,7 @@ class Handler:
 def main():
     try:
         global tg
-        # make_config()
-        load_config()
+        make_config()
 
         tg = pyrogram.Client(
             'backupper',

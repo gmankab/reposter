@@ -13,7 +13,7 @@
 - fixed bug with duplicate messages
 - config become more detailed
 - added ability to backup multiple chats
-<!-- - added ability to just forward message instead of downloading it to the storage -->
+- added ability to forward with author
 - added update checker
 - added ability to turn on automatic updates
 - most of the code has been rewritten, cleaned up and optimized
