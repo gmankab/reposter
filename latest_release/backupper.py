@@ -1,4 +1,5 @@
-script_version = '2.3'
+script_version = '2.4'
+latest_supported_config = '2.2'
 
 '''
 script to backup
@@ -295,7 +296,7 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
         if (
             'version' not in config
         ) or (
-            str(config['version']) != script_version
+            str(config['version']) < latest_supported_config
         ):
             rich_print(f'[red]old[/red] {config_path} [red]file renamed to[/red] {auto_rename(config_path)}')
             new()
@@ -368,9 +369,9 @@ class Handler:
         self.runned = False
         self.downloads = f'{downloads}/{self.source}/'
         if forward_way == 'save_on_disk':
-            backup = self.forward
-        else:
             backup = self.save_on_disk
+        else:
+            backup = self.forward
         tg.add_handler(
             pyrogram.handlers.MessageHandler(
                 backup,
