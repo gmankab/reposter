@@ -1,4 +1,5 @@
-script_version = '2.4'
+script_version = '2.5'
+relese_type = 'stable'
 latest_supported_config = '2.2'
 
 '''
@@ -318,13 +319,12 @@ def print(
     )
 
     if args and 'log_chat' in config:
-        for text in textwrap.wrap(
-            str(args[0]),
-            1000
-        ):
+        text = str(args[0])
+        chunk_size = 1000
+        for i in range(0, len(text), chunk_size):
             tg.send_message(
                 config['log_chat'],
-                text,
+                text[i:i + chunk_size],
             )
 
 

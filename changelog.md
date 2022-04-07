@@ -1,9 +1,16 @@
 # contents
 
+- [2.4](#24)
 - [2.3](#23)
 - [2.2](#22)
 - [2.1](#21)
 - [2.0](#20)
+
+## 2.4
+
+- fixed some typos
+- fixed mistakenly confused forwarding ways
+- fixed bug with logging long messages
 
 ## 2.3
 
