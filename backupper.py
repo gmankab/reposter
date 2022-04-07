@@ -1,4 +1,4 @@
-script_version = '2.2'
+script_version = '2.3'
 
 '''
 script to backup
@@ -521,11 +521,15 @@ def main():
         global tg
         make_config()
 
+        phone_number = str(config['phone_number'])
+        if phone_number[0] != '+':
+            phone_number = '+' + phone_number
+
         tg = pyrogram.Client(
             'backupper',
             api_id = config['api_id'],
             api_hash = config['api_hash'],
-            phone_number = config['phone_number'],
+            phone_number = phone_number,
             workdir = cwd,
         )
 
