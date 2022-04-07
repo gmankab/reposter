@@ -1,4 +1,4 @@
-script_version = '2.5'
+script_version = '2.6'
 relese_type = 'stable'
 latest_supported_config = '2.2'
 
@@ -380,10 +380,10 @@ class Handler:
             backup = self.forward
         tg.add_handler(
             pyrogram.handlers.MessageHandler(
-                backup,
-                pyrogram.filters.chat(
+                callback = backup,
+                filters = pyrogram.filters.chat(
                     source
-                )
+                ) & ~pyrogram.filters.edited
             )
         )
 
