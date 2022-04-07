@@ -26,7 +26,7 @@
 ## usage
 
 - easy way for windows:
-  - download latest [backupper.bat](https://raw.githubusercontent.com/gmankab/backupper/main/latest_release/backupper.bat), just open link in browser and press <kbd>ctrl-s</kbd>
+  - download latest [backupper.bat](https://github.com/gmankab/backupper/releases/download/2.1/backupper.bat)
   - run it
 
 - hard way for any OS:
