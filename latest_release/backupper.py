@@ -11,6 +11,7 @@ from inspect import cleandoc as cd
 from pathlib import Path
 import subprocess
 import traceback
+import textwrap
 import shutil
 import time
 import sys
@@ -248,7 +249,7 @@ chats:
 #   target: my_cool_channel
 #   forward_way: forward
 # - source: durov
-#   target: zelensy
+#   target: zelensky
 #   forward_way: save_on_disk
 # # # it will backup 3 chats at once. Messages from chat with id "340953532" to saved messages, messages from chat with id "-10018483" to @my_cool_channel, and messages from @durov to @zelensky. You can enter as many chats as you want, for example 10 or 100
 
@@ -315,11 +316,16 @@ def print(
         *args,
         **kwargs
     )
+
     if args and 'log_chat' in config:
-        tg.send_message(
-            config['log_chat'],
-            args[0],
-    )
+        for text in textwrap.wrap(
+            str(args[0]),
+            1000
+        ):
+            tg.send_message(
+                config['log_chat'],
+                text,
+            )
 
 
 def progress_callback(current, total):
@@ -555,10 +561,18 @@ def main():
         print(error)
 
         if 'bugreport_chat' in config:
-            tg.send_message(
-                config['bugreport_chat'],
-                error,
-            )
+            for text in textwrap.wrap(
+                str(error),
+                1000,
+            ):
+                tg.send_message(
+                    config['log_chat'],
+                    text,
+                )
+                tg.send_message(
+                    config['bugreport_chat'],
+                    error,
+              )
 
 
 main()
