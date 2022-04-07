@@ -23,7 +23,7 @@
 - added ability to backup without saving to storage
 - added ability to chose chat for bugreports and chat for logs
 - added ota update checker
-- added ability to turn on automatic ota updates
+- added automatic ota updates
 - most of the code has been rewritten, cleaned up and optimized
 - you can [compare this code v2.2 with previous v2.1](https://github.com/gmankab/backupper/compare/55de634ac3ddea494c24bc550213e67e37b53556...441f50d4748313d59b882f91c0da7b6b81987d89)
 
