@@ -4,8 +4,13 @@
 - [2.1](#21)
 - [2.0](#20)
 
+## 2.3
+
+- fixed telegram authorization
+
 ## 2.2
 
+- BUG: BROKEN TELEGRAM AUTHORIZATION
 - removed ability to input data in config.yml directly from script because it was difficult and took up most of the code, now you can only do it yourself in a text editor
 - removed ability to backup old messages
 - fixed some typos
