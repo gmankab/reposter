@@ -1,5 +1,4 @@
-/__pycache__
-/libs
-python*
-start*
+__pycache__
+libs
 data
+start.sh
