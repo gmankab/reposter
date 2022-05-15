@@ -23,15 +23,20 @@ class Handler:
         forward_way,
     ):
         self.source = source
-        self.target = target
         self.runned = False
         self.latest_id = 0
         self.callback_message = None
-        self.downloads = f'{downloads}/{self.target}/'
+
         if forward_way == 'save_on_disk':
             backup = self.save_on_disk
         else:
             backup = self.forward
+
+        if isinstance(target, str):
+            self.targets = [target]
+        else:
+            self.targets = target
+
         bot.add_handler(
             pyrogram.handlers.MessageHandler(
                 backup,
@@ -44,17 +49,18 @@ class Handler:
         )
 
     def progress_callback(self, loaded, total):
-        text = loaded * 100 // total
+        text = f'{loaded * 100 // total}% {loaded}/{total}'
         c.log(text)
-        if self.callback_message:
-            self.callback_message.edit(
-                text = text
-            )
-        else:
-            bot.send_message(
-                chat_id = config['log_chat'],
-                text = text,
-            )
+        if 'log_chat' in config and config['log_chat']:
+            if self.callback_message:
+                self.callback_message.edit(
+                    text = text
+                )
+            else:
+                bot.send_message(
+                    chat_id = config['log_chat'],
+                    text = text,
+                )
 
     def forward(
         self,
@@ -69,135 +75,135 @@ class Handler:
                 self.latest_id = msg.media_group_id
             else:
                 return
-            bot.copy_media_group(
-                chat_id = self.target,
-                from_chat_id = msg.chat.id,
-                message_id = msg.message_id,
-            )
-        else:
-            msg.copy(
-                self.target,
-            )
+        for target in self.targets:
+            if msg.media_group_id:
+                bot.copy_media_group(
+                    chat_id = target,
+                    from_chat_id = msg.chat.id,
+                    message_id = msg.id,
+                )
+            else:
+                msg.copy(
+                    target,
+                )
 
     def save_on_disk(
         self,
         _,
         msg,
     ):
-        log(msg)
-        if msg.edit_date:
-            return
         while self.runned:
             time.sleep(1)
         self.runned = True
-        f.rmtree(downloads)
-        log(msg)
-
-        def download(msg, index = None):
-            print()
-            id = msg.message_id
+        print()
+        if msg.media_group_id:
+            id = msg.media_group_id
             log(f'latest = {self.latest_id}')
             log(f'id = {id}')
             if id <= self.latest_id:
                 log('aborted')
+                self.runned = False
                 return 'aborted'
             self.latest_id = id
             log(f'now latest is {self.latest_id}')
             print()
+        log(msg)
+        if msg.edit_date:
+            self.runned = False
+            return
+        for target in self.targets:
+            local_downloads = f'{downloads}/{target}/'
+            f.rmtree(local_downloads)
+            log(msg)
 
-            media_type = msg.media
-            file_id = msg[media_type].file_id
-            log('downloading file:')
-            log(f'file_id = {file_id}')
-            caption = msg.caption
-            log(f'caption = {caption}')
-            log(f'media_type = {media_type}')
-            self.callback_message = None
-            path = Path(
-                f.clean_path(
-                    bot.download_media(
-                        msg,
-                        file_name = self.downloads,  # path to save file
-                        progress = self.progress_callback
-                    )
-                )
-            )
-            self.callback_message = None
-            if index is not None:
-                new_path = f'{path.parent}/{index}{path.suffix}'
-                os.rename(
-                    path,
-                    new_path,
-                )
-                path = new_path
-
-            log(f'downloaded {path}')
-            return (path, caption)
-
-        if msg.media_group_id:
-            log(f'found media group: {msg.media_group_id}')
-            files = []
-            for index, sub_msg in enumerate(
-                bot.get_media_group(
-                    msg.chat.id, msg.message_id
-                )
-            ):
-                downloaded = download(sub_msg, index)
-                if downloaded != 'aborted':
-                    path, caption = downloaded
-                    files.append(
-                        getattr(
-                            pyrogram.types,
-                            f'InputMedia{sub_msg.media.title()}'
-                        )(
-                            media = path,
-                            caption = caption,
+            def download(msg, index = None):
+                media_type = msg.media.value
+                file_id = getattr(
+                    msg,
+                    media_type,
+                ).file_id
+                log('downloading file:')
+                log(f'file_id = {file_id}')
+                caption = msg.caption
+                log(f'caption = {caption}')
+                log(f'media_type = {media_type}')
+                self.callback_message = None
+                path = Path(
+                    f.clean_path(
+                        bot.download_media(
+                            msg,
+                            file_name = local_downloads,  # path to save file
+                            progress = self.progress_callback
                         )
                     )
-            if files:
-                log(
-                    'sending files',
-                    files,
-                )
-            bot.send_media_group(
-                chat_id = self.target,
-                media = files,
-            )
-            log('done.')
-        elif msg.media:
-            downloaded = download(msg)
-            if downloaded != 'aborted':
-                path, caption = downloaded
-                log(
-                    f'sending {msg.media} {path}'
                 )
                 self.callback_message = None
-                if caption:
+                if index is not None:
+                    new_path = f'{path.parent}/{index}{path.suffix}'
+                    os.rename(
+                        path,
+                        new_path,
+                    )
+                    path = new_path
+
+                log(f'downloaded {path}')
+                return (path, caption)
+
+            if msg.media_group_id:
+                log(f'found media group: {msg.media_group_id}')
+                files = []
+                for index, sub_msg in enumerate(
+                    bot.get_media_group(
+                        msg.chat.id, msg.id
+                    )
+                ):
+                    downloaded = download(sub_msg, index)
+                    if downloaded != 'aborted':
+                        path, caption = downloaded
+                        files.append(
+                            getattr(
+                                pyrogram.types,
+                                f'InputMedia{sub_msg.media.value.title()}'
+                            )(
+                                media = path,
+                                caption = caption,
+                            )
+                        )
+                if files:
+                    log(
+                        'sending files',
+                        files,
+                    )
+                    bot.send_media_group(
+                        chat_id = target,
+                        media = files,
+                    )
+                    log('done.')
+            elif msg.media:
+                c.log(msg.media.value)
+                downloaded = download(msg)
+                if downloaded != 'aborted':
+                    path, caption = downloaded
+                    log(
+                        f'sending {msg.media.value} {path}'
+                    )
+                    self.callback_message = None
                     getattr(
                         bot,
-                        f'send_{msg.media}',
+                        f'send_{msg.media.value}',
                     )(
-                        self.target,
+                        target,
                         path,
                         caption = caption,
                         progress = self.progress_callback,
                     )
-                else:
-                    getattr(
-                        bot,
-                        f'send_{msg.media}',
-                    )(
-                        self.target,
-                        path,
-                    progress = self.progress_callback,
-                    )
-                self.callback_message = None
-        elif msg.text:
-            log(f'sending text "{msg.text}"')
-            send_msg(
-                chat_id = self.target,
-                text = msg.text,
-            )
+                    self.callback_message = None
+            elif msg.text:
+                log(f'sending text "{msg.text}"')
+                send_msg(
+                    chat_id = target,
+                    text = msg.text,
+                )
         self.runned = False
 
 
@@ -229,7 +235,6 @@ def send_msg(
                 sended_message = bot.send_message(
                     chat_id = chat_id,
                     text = chunk,
-                    parse_mode = parse_mode,
                     entities = entities,
                     disable_web_page_preview = disable_web_page_preview,
                     disable_notification = disable_notification,
@@ -237,10 +242,11 @@ def send_msg(
                     schedule_date = schedule_date,
                     protect_content = protect_content,
                     reply_markup = reply_markup,
+                    **kwargs
                 )
             except:
                 log(
-                    text = f'error sending {text} to {chat_id}\n\n{format_exc()}',
+                    f'error sending {text} to {chat_id}\n\n{format_exc()}',
                     chat = 'bugreport_chat',
                     check_if_in_config = True,
                 )
@@ -254,6 +260,7 @@ def send_msg(
                 disable_notification = disable_notification,
                 reply_to_message_id = reply_to_message_id,
                 reply_markup = reply_markup,
+                **kwargs
             )
         else:
             raise AttributeError(
@@ -268,12 +275,12 @@ def send_msg(
 
 
 def log(
-    text,
+    *args,
     chat = 'log_chat',
     pin = False,
     check_if_in_config = False,
 ):
-    c.log(text)
+    c.log(*args)
 
     if chat == 'log_chat':
         check_if_in_config = True
@@ -283,12 +290,13 @@ def log(
             return
         chat = config[chat]
 
-    if chat:
-        send_msg(
-            chat_id = chat,
-            text = text,
-            pin = pin,
-        )
+    for i in args:
+        if chat:
+            send_msg(
+                chat_id = chat,
+                text = i,
+                pin = pin,
+            )
 
 
 def start_bot(
@@ -309,6 +317,7 @@ def start_bot(
     )
 
     handlers = []
+
     for chat in config['chats']:
         handlers.append(
             Handler(
@@ -317,6 +326,7 @@ def start_bot(
                 forward_way = chat['forward_way'],
             )
         )
+
     try:
         bot.start()
     except:
@@ -338,7 +348,7 @@ def main(
         except:
             try:
                 log(
-                    text = format_exc(),
+                    format_exc(),
                     chat = 'bugreport_chat',
                     pin = True,
                     check_if_in_config = True,
