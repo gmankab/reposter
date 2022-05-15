@@ -282,7 +282,7 @@ def log(
 ):
     c.log(*args)
 
-    if chat == 'log_chat':
+    if chat in ('log_chat', 'bugreport_chat'):
         check_if_in_config = True
 
     if check_if_in_config:
