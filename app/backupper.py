@@ -1,5 +1,5 @@
 script_version = '2.7'
-relese_type = 'stable'
+release_type = 'stable'
 latest_supported_config = '2.7'
 required_python = '3.10'
 print('starting...')
@@ -88,7 +88,7 @@ data_dir = f'{proj_root}/data'
 app_dir = f'{proj_root}/app'
 libs_dir = f'{app_dir}/libs'
 
-os.chdir(data_dir)
+os.chdir(proj_root)
 for dir in (
     app_dir,
     libs_dir,
@@ -98,7 +98,7 @@ for dir in (
         sys.path.append(dir)
 
 from app.init import config_create
-from libs.rich import pretty
+from libs.rich import pretty  # type: ignore
 
 pretty.install()
 config_create(

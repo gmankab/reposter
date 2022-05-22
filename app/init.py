@@ -12,7 +12,6 @@ def config_create(
     latest_supported_config,
     script_version,
 ):
-    config = config_load()
     blank_config = f"""\
 # # # please reset all "_" with your values. All values must be specified without quotes.
 
@@ -116,7 +115,7 @@ version: {script_version}  # # # WARNING: DON'T TOUCH VERSION
     ) and (
         os.stat(config_path).st_size != 0
     ):
-        config_load()
+        config = config_load()
         if latest_supported_config and script_version:
             if (
                 'version' not in config
@@ -167,9 +166,9 @@ def install_libs():
     if 'No module named pip' in output:
         print('installing pip...')
         # pip is a shit which allow to install libs, so if we want to install libs we must have pip
-        py_dir = f.get_parrent_dir(sys.executable)
+        py_dir = f.parrent(sys.executable)
 
-        # fixing shit which doesn't allow to install pip in python embedable in windows:
+        # fixing shit which doesn't allow to install pip in python embeddable in windows:
         for file in os.listdir(
             py_dir
         ):
@@ -180,7 +179,7 @@ def install_libs():
                     if '#import site' in file.readlines()[-1]:
                         file.write('import site')
 
-        # instaling pip:
+        # installing pip:
         get_pip = f'{downloads}/get-pip.py'
         f.mkdir(downloads)
 
@@ -238,8 +237,8 @@ f.mkdir(data_dir)
 
 
 try:
-    from libs.ruamel import yaml
-    from libs.rich import pretty, console
+    from libs.ruamel import yaml  # type: ignore
+    from libs.rich import pretty, console  # type: ignore
 except ImportError as import_error:
     print(import_error)
     install_libs()

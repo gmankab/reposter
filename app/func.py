@@ -6,11 +6,11 @@ import os
 
 def clean_path(path):
     path = str(path).replace('\\', '/')
-    # conerting a\\b///\\\c\\/d/e/ to a//b//////c///d/e/
+    # converting a\\b///\\\c\\/d/e/ to a//b//////c///d/e/
 
-    # conerting a//b//////c///d/e/ to a/b/c/d/e/
     while '//' in path:
         path = path.replace('//', '/')
+        # converting a//b//////c///d/e/ to a/b/c/d/e/
     return path
 
 

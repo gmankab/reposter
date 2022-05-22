@@ -1,6 +1,6 @@
 from app import func as f
 from app.init import config_load, data_dir, downloads, c
-from libs.rich import pretty
+from libs.rich import pretty  # type: ignore
 from traceback import format_exc
 from pathlib import Path
 import pyrogram  # type: ignore
