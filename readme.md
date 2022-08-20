@@ -1,3 +1,3 @@
 # reposter
 
-<img src="reposter/icon.svg" width="200" height="200">
+<img src="reposter/icon.svg" width="128" height="128">
