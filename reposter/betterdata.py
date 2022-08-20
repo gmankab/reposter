@@ -30,21 +30,23 @@ class Data:
     '''
     def __init__(
         self,
-        data: dict,
+        data: dict = {},
         file_path: str | Path = None,
     ) -> None:
-        if not isinstance(
-            data,
-            dict,
+        self.data = {}
+        self.file_path = None
+        self.set_data(
+            data = data,
+            file_path = file_path,
+        )
+        if (
+            not self.data
+        ) and (
+            self.file_path
+        ) and (
+            self.file_path.exists()
         ):
-            raise TypeError(
-                f'expected [green]dict but {type(data)} got'
-            )
-        for key, val in data.items():
-            vars(self)[key] = val
-        self.data = data
-        if file_path:
-            self.file_path = file_path
+            self.read_file()
 
     def __repr__(self) -> any:
         return self.data
@@ -69,6 +71,26 @@ class Data:
     ):
         return self.data + additional
 
+    def set_data(
+        self,
+        data: dict = {},
+        file_path = None
+    ):
+        if not isinstance(
+            data,
+            dict,
+        ):
+            raise TypeError(
+                f'expected [green]dict but {type(data)} got'
+            )
+
+        if file_path:
+            self.file_path = Path(file_path)
+        if data:
+            self.data = data
+            for key, val in data.items():
+                vars(self)[key] = val
+
     def to_str(
         self
     ):
@@ -76,12 +98,26 @@ class Data:
             data = self.data
         )
 
+    def read_file(
+        self,
+        file_path = None,
+    ):
+        self.set_data(
+            file_path = file_path,
+        )
+        self.set_data(
+            data = yml.read_file(
+                file_path = self.file_path
+            )
+        )
+
     def to_file(
         self,
         file_path = None
     ):
-        if file_path:
-            self.file_path = file_path
+        self.set_data(
+            file_path = file_path
+        )
         yml.to_file(
             data = self.data,
             file_path = self.file_path,

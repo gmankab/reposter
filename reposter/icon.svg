@@ -1,39 +1,164 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 26.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 240.1 240.1" style="enable-background:new 0 0 240.1 240.1;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:url(#Oval_00000080166318782067952870000009100733583702682764_);}
-	.st1{fill:#FFFFFF;}
-</style>
-<g id="Livello_1">
-	<g id="Artboard">
-		
-			<linearGradient id="Oval_00000003067998488394434160000010228473704082694038_" gradientUnits="userSpaceOnUse" x1="-2215.6619" y1="961.798" x2="-2215.6619" y2="962.0363" gradientTransform="matrix(1000 0 0 1000 2215782 -961798)">
-			<stop  offset="0" style="stop-color:#2AABEE"/>
-			<stop  offset="1" style="stop-color:#229ED9"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256mm"
+   height="256mm"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg383"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   sodipodi:docname="icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview385"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#000000"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.52724989"
+     inkscape:cx="191.56002"
+     inkscape:cy="495.96976"
+     inkscape:window-width="1920"
+     inkscape:window-height="999"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg383" />
+  <defs
+     id="defs380">
+    <linearGradient
+       id="Oval_00000003067998488394434160000010228473704082694038_"
+       gradientUnits="userSpaceOnUse"
+       x1="-2215.6619"
+       y1="961.79797"
+       x2="-2215.6619"
+       y2="962.03632"
+       gradientTransform="matrix(1065.7785,0,0,1065.7785,2361532.8,-1025063.7)">
+			<stop
+   offset="0"
+   style="stop-color:#2AABEE"
+   id="stop180" />
+
+			<stop
+   offset="1"
+   style="stop-color:#229ED9"
+   id="stop182" />
+
 		</linearGradient>
+  </defs>
+  <circle
+     id="Oval-3"
+     style="clip-rule:evenodd;fill:url(#Oval_00000003067998488394434160000010228473704082694038_);fill-rule:evenodd;stroke-width:1.06578"
+     cx="128"
+     cy="128"
+     r="128"
+     inkscape:label="circle" />
+  <g
+     id="Слой_2"
+     transform="matrix(0,-1.1871553,1.1871553,0,-11.787537,270.51799)"
+     inkscape:label="arrow">
+	<g
+   id="g18"
+   inkscape:label="3">
+		<circle
+   class="st1"
+   cx="120.1"
+   cy="49"
+   r="18.4"
+   id="circle12"
+   style="fill:#ffffff" />
+
+		<rect
+   x="101.7"
+   y="49"
+   class="st1"
+   width="36.700001"
+   height="137.2"
+   id="rect14"
+   style="fill:#ffffff" />
+
+		<circle
+   class="st1"
+   cx="120.1"
+   cy="186.3"
+   r="18.4"
+   id="circle16"
+   style="fill:#ffffff" />
+
+	</g>
+
+	<g
+   id="g26"
+   inkscape:label="2">
+		<circle
+   class="st1"
+   cx="166.89999"
+   cy="136.39999"
+   r="18.4"
+   id="circle20"
+   style="fill:#ffffff" />
+
 		
-			<circle id="Oval" style="fill-rule:evenodd;clip-rule:evenodd;fill:url(#Oval_00000003067998488394434160000010228473704082694038_);" cx="120.1" cy="120.1" r="120.1"/>
+			<rect
+   x="125.1"
+   y="127.1"
+   transform="matrix(0.7309,0.6825,-0.6825,0.7309,148.7961,-54.4733)"
+   class="st1"
+   width="36.700001"
+   height="68.599998"
+   id="rect22"
+   style="fill:#ffffff" />
+
+		<circle
+   class="st1"
+   cx="120.1"
+   cy="186.5"
+   r="18.4"
+   id="circle24"
+   style="fill:#ffffff" />
+
 	</g>
-</g>
-<g id="Слой_2">
-	<g>
-		<circle class="st1" cx="120.1" cy="49" r="18.4"/>
-		<rect x="101.7" y="49" class="st1" width="36.7" height="137.2"/>
-		<circle class="st1" cx="120.1" cy="186.3" r="18.4"/>
-	</g>
-	<g>
-		<circle class="st1" cx="166.9" cy="136.4" r="18.4"/>
+
+	<g
+   id="g34"
+   inkscape:label="1">
+		<circle
+   class="st1"
+   cx="73.199997"
+   cy="136.39999"
+   r="18.4"
+   id="circle28"
+   style="fill:#ffffff" />
+
 		
-			<rect x="125.1" y="127.1" transform="matrix(0.7309 0.6825 -0.6825 0.7309 148.7961 -54.4733)" class="st1" width="36.7" height="68.6"/>
-		<circle class="st1" cx="120.1" cy="186.5" r="18.4"/>
+			<rect
+   x="78.300003"
+   y="127.1"
+   transform="matrix(-0.7309,0.6825,-0.6825,-0.7309,277.4377,213.4634)"
+   class="st1"
+   width="36.700001"
+   height="68.599998"
+   id="rect30"
+   style="fill:#ffffff" />
+
+		<circle
+   class="st1"
+   cx="120"
+   cy="186.5"
+   r="18.4"
+   id="circle32"
+   style="fill:#ffffff" />
+
 	</g>
-	<g>
-		<circle class="st1" cx="73.2" cy="136.4" r="18.4"/>
-		
-			<rect x="78.3" y="127.1" transform="matrix(-0.7309 0.6825 -0.6825 -0.7309 277.4377 213.4634)" class="st1" width="36.7" height="68.6"/>
-		<circle class="st1" cx="120" cy="186.5" r="18.4"/>
-	</g>
+
 </g>
 </svg>

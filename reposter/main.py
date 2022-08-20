@@ -24,25 +24,12 @@ traceback.install(
 )
 c = rich.console.Console()
 print = c.print
-config_path = Path(
-    f'{proj_path}/config.yml'
-)
 run_st = subprocess.getstatusoutput
-
-
-def config_create():
-    if config_path.exists():
-        Data.config = yml.read_file(
-            config_path
-        )
-    else:
-        # Data.api_id: interact_input('api_id')
-        #     'api_hash:
-        # Data.config = {
-
-        # }
-
-        pass
+config = Data(
+    file_path=Path(
+        f'{proj_path}/config.yml'
+    )
+)
 
 
 def run(
