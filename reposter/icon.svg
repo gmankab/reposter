@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 26.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 240.1 240.1" style="enable-background:new 0 0 240.1 240.1;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:url(#Oval_00000080166318782067952870000009100733583702682764_);}
+	.st1{fill:#FFFFFF;}
+</style>
+<g id="Livello_1">
+	<g id="Artboard">
+		
+			<linearGradient id="Oval_00000003067998488394434160000010228473704082694038_" gradientUnits="userSpaceOnUse" x1="-2215.6619" y1="961.798" x2="-2215.6619" y2="962.0363" gradientTransform="matrix(1000 0 0 1000 2215782 -961798)">
+			<stop  offset="0" style="stop-color:#2AABEE"/>
+			<stop  offset="1" style="stop-color:#229ED9"/>
+		</linearGradient>
+		
+			<circle id="Oval" style="fill-rule:evenodd;clip-rule:evenodd;fill:url(#Oval_00000003067998488394434160000010228473704082694038_);" cx="120.1" cy="120.1" r="120.1"/>
+	</g>
+</g>
+<g id="Слой_2">
+	<g>
+		<circle class="st1" cx="120.1" cy="49" r="18.4"/>
+		<rect x="101.7" y="49" class="st1" width="36.7" height="137.2"/>
+		<circle class="st1" cx="120.1" cy="186.3" r="18.4"/>
+	</g>
+	<g>
+		<circle class="st1" cx="166.9" cy="136.4" r="18.4"/>
+		
+			<rect x="125.1" y="127.1" transform="matrix(0.7309 0.6825 -0.6825 0.7309 148.7961 -54.4733)" class="st1" width="36.7" height="68.6"/>
+		<circle class="st1" cx="120.1" cy="186.5" r="18.4"/>
+	</g>
+	<g>
+		<circle class="st1" cx="73.2" cy="136.4" r="18.4"/>
+		
+			<rect x="78.3" y="127.1" transform="matrix(-0.7309 0.6825 -0.6825 -0.7309 277.4377 213.4634)" class="st1" width="36.7" height="68.6"/>
+		<circle class="st1" cx="120" cy="186.5" r="18.4"/>
+	</g>
+</g>
+</svg>
