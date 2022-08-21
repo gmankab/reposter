@@ -5,14 +5,29 @@ BETTERDATA
 https://github.com/gmankab/betterdata
 '''
 
+from easyselect import Selection
+from pathlib import Path
+import gmanka_yml as yml
 from rich import (
     pretty,
     traceback,
 )
 import rich
-from pathlib import Path
-import gmanka_yml as yml
-from collections.abc import Iterable
+import sys
+
+
+yes_or_no = Selection(
+    items = [
+        'yes',
+        'no',
+        'cancel'
+    ],
+    styles = [
+        'green',
+        'red',
+        'bright_black'
+    ]
+)
 
 
 pretty.install()
@@ -64,12 +79,19 @@ class Data:
     ) -> None:
         self.data[key] = val
         vars(self)[key] = val
+        self.to_file()
 
     def __add__(
         self,
         additional,
     ):
         return self.data + additional
+
+    def __contains__(
+        self,
+        item,
+    ):
+        return item in self.data
 
     def set_data(
         self,
@@ -90,6 +112,7 @@ class Data:
             self.data = data
             for key, val in data.items():
                 vars(self)[key] = val
+            self.to_file()
 
     def to_str(
         self
@@ -118,10 +141,48 @@ class Data:
         self.set_data(
             file_path = file_path
         )
-        yml.to_file(
-            data = self.data,
-            file_path = self.file_path,
-        )
+        if self.file_path and self.data:
+            yml.to_file(
+                data = self.data,
+                file_path = self.file_path,
+            )
+
+    def interact_input(
+        self,
+        item: str,
+        try_int: bool = True,
+        stop_if_exist: bool = True,
+        exit_on_cancel: bool = True,
+        selection: Selection = yes_or_no,
+    ):
+        if stop_if_exist and item in self.data:
+            return
+
+        while True:
+            print(f'[bold]input {item}:')
+            val = input()
+            if not val:
+                continue
+            print(
+                f'[deep_sky_blue1]{val}[/deep_sky_blue1] - is it correct?'
+            )
+
+            match selection.choose():
+                case 'no':
+                    continue
+                case 'cancel':
+                    if exit_on_cancel:
+                        sys.exit()
+                    else:
+                        return
+                case 'yes':
+                    if try_int and val.isdigit():
+                        val = int(val)
+                    self[item] = val
+                    if self.file_path:
+                        self.to_file()
+                        print(f'[green]{item} saved to config:\n[deep_sky_blue1]{self.file_path}')
+                    return
 
     def print(
         self
@@ -129,11 +190,3 @@ class Data:
         c.print(
             self.data
         )
-
-
-data2 = Data(
-    {
-        'a': 1,
-        2: 'b',
-    }
-)

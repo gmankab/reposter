@@ -14,10 +14,9 @@ proj_path = Path(__file__).parent.resolve()
 icon_ico_source = f'{proj_path}/icon.ico'
 c = rich.console.Console()
 print = c.print
-print(
-    f'[bold]{app_name} [white]{app_version}'
-)
 portable = 'portable' in sys.argv
+
+
 yes_or_no = Selection(
     items = [
         'yes',
@@ -25,7 +24,7 @@ yes_or_no = Selection(
     ],
     styles = [
         'green',
-        'red'
+        'red',
     ]
 )
 
