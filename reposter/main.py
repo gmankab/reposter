@@ -9,15 +9,18 @@ from rich import (
     pretty,
     traceback,
 )
-from betterdata import Data
-import rich
 from pathlib import Path
+from betterdata import Data
 from easyselect import Selection
 from dataclasses import dataclass
-import subprocess
+from pyrogram.handlers import MessageHandler
 import gmanka_yml as yml
+import subprocess
 import pyrogram
 import platform
+import asyncio
+import rich
+import time
 import os
 
 pretty.install()
@@ -48,14 +51,16 @@ pyrogram {pyrogram.__version__},
 if portable:
     app_full_name = f'portable {app_full_name}'
 
+start_message = f'{app_full_name},\n{os_name}'
+
+
 print(
-    app_full_name,
-    os_name,
-    sep = ',\n',
+    start_message,
     highlight = False,
 )
 
 bot: pyrogram.client.Client = None
+self_chat_handler = None
 
 
 def chat(
@@ -64,7 +69,39 @@ def chat(
     return bot.get_chat(chat_id)
 
 
-def parse_link(
+def check_chat_exist(chat_id):
+    try:
+        chat(chat_id)
+        return True
+    except Exception as exception:
+        return exception
+
+
+def is_group(
+    chat_id,
+    chat_link,
+):
+    if chat(chat_id).type in [
+        pyrogram.enums.ChatType.GROUP,
+        pyrogram.enums.ChatType.SUPERGROUP,
+    ]:
+        try:
+            bot.get_chat_member(
+                chat_id, "me"
+            )
+        except pyrogram.errors.exceptions.bad_request_400.UserNotParticipant:
+            return f'you are not a member of {chat_link}'
+            
+        return f'successfully set {chat_link} as chat for settings and logs, please open it'
+    else:
+        return f'{chat_link} is not a group chat'
+
+
+def get_id():
+    pass
+
+
+def init_parse_link(
     chat_link: str
 ):
     chat_link = chat_link.replace(
@@ -74,7 +111,7 @@ def parse_link(
         'http://',
         '',
     )
-    id = None
+    chat_id = None
     if chat_link[:6] == 't.me/+':
         pass
     elif chat_link[:4] == 't.me':
@@ -89,27 +126,36 @@ def parse_link(
     ) or (
         'web.telegram.org/z/#' in chat_link
     ):
-        id = int(
-            chat_link.rsplit(
-                '#',
-                1
-            )[-1]
-        )
-        print(f'id = {id}')
-    else:
-        return f'"{chat_link}" is not a telegram link'
-
-    try:
-        if id:
-            chat(id)
+        chat_id = chat_link.rsplit(
+            '#',
+            1,
+        )[-1]
+        # print(f'id = {id}')
+        if check_chat_exist(
+            int(chat_id)
+        ) is True:
+            return is_group(int(chat_id), chat_link)
         else:
-            chat(chat_link)
-        return f'{chat_link} - valid link\n\nsaved to config'
-    except Exception as exception:
-        c.print_exception(
-            show_locals=True
-        )
-        return f'{chat_link} - invalid link\n\n{exception}'
+            chat_id = int(
+                chat_id.replace(
+                    '-',
+                    '-100',
+                )
+            )
+            if check_chat_exist(
+                chat_id,
+            ) is True:
+                return is_group(chat_id, chat_link)
+            else:
+                return f'{chat_link} is a bad link'
+    else:
+        return f'{chat_link} is not working telegram link'
+    if check_chat_exist(
+        chat_link
+    ) is True:
+        return is_group(chat_link, chat_link)
+    else:
+        return f'{chat_link} is a bad link'
 
 
 def run(
@@ -143,9 +189,33 @@ def init_config() -> None:
         config['chats_tree'] = {}
 
 
+def self_username():
+    self_chat = chat('me')
+    if self_chat.username:
+        return 'https://t.me/' + self_chat.username
+    else:
+        phone_number = str(config.phone_number)
+        if phone_number[0] != '+':
+            phone_number = '+' + phone_number
+        return 'https://t.me/' + phone_number
+
+
+def set_logs_chat(
+    _,
+    msg: pyrogram.types.Message
+):
+    msg.reply(
+        text = init_parse_link(
+            chat_link = msg.text
+        ),
+        quote = True,
+    )
+
+
 def main() -> None:
     init_config()
     global bot
+    global self_chat_handler
     if 'session' in config and config.session:
         bot = pyrogram.client.Client(
             name = app_name,
@@ -175,25 +245,34 @@ def main() -> None:
         if 'logs_chat' not in config:
             bot.send_message(
                 chat_id = chat("me").id,
-                text = '''\
-Please create new empty chat and send here clickable link to it. You will use it to configure script. You must be admin, and nobody except you must have access to this chat
+                text = f'''\
+{start_message}
+
+Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring script. You must be an admin, and nobody except you must have access to this chat.
 
 acceptable formats:
-@username
+@chat_name
 t.me/chat_name
 t.me/+6XqO65TrfatjNGU6
 webz.telegram.org/#-1657778608
 '''
             )
         # for link in [
-        #     'https://t.me/gmanka',
+        #     # 'https://t.me/gmanka',
         #     # 't.me/sdasldkasldkas',
-        #     't.me/+6XqO65TrfatjNGU6',
+        #     # 't.me/+6XqO65TrfatjNGU6',
         #     'https://webz.telegram.org/#-1657778608'
         # ]:
-        #     print(parse_link(link))
-        # print(f'\n[bold green]please open telegram webz and see your "saved messages" chat in telegram - [/bold green][bold]{self_chat}')
-        print(chat('t.me/+6XqO65TrfatjNGU6'))
+        #     print(init_parse_link(link))
+
+        print(f'\n[bold green]please open telegram and see your "saved messages" chat in telegram - [/bold green][bold]{self_username()}')
+
+        self_chat_handler = bot.add_handler(
+            MessageHandler(
+                set_logs_chat
+            )
+        )
+        pyrogram.idle()
 
 
 main()
