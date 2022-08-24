@@ -70,7 +70,10 @@ class Data:
         self,
         item,
     ) -> any:
-        return self.data[item]
+        if item in self.data:
+            return self.data[item]
+        else:
+            return None
 
     def __setitem__(
         self,
@@ -155,7 +158,7 @@ class Data:
         exit_on_cancel: bool = True,
         selection: Selection = yes_or_no,
     ):
-        if stop_if_exist and item in self.data:
+        if stop_if_exist and self.data[item]:
             return
 
         while True:
