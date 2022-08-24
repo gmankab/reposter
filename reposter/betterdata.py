@@ -158,11 +158,11 @@ class Data:
         exit_on_cancel: bool = True,
         selection: Selection = yes_or_no,
     ):
-        if stop_if_exist and self.data[item]:
+        if stop_if_exist and self[item]:
             return
 
         while True:
-            print(f'[bold]input {item}:')
+            print(f'\n[bold]input {item}:')
             val = input()
             if not val:
                 continue
