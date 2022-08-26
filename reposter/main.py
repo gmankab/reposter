@@ -51,7 +51,7 @@ python_imp = f'{platform.python_implementation()} {platform.python_version()}'
 
 app_full_name = f'''
 gmanka {app_name} {app_version},
-pg {pg.__version__},
+pyrogram {pg.__version__},
 {python_imp}\
 '''
 
@@ -62,6 +62,12 @@ t.me/chat_name
 t.me/+6XqO65TrfatjNGU6
 webz.telegram.org/#-1657778608
 '''
+acceptable_links_list = [
+    '@chat_name',
+    't.me/chat_name',
+    't.me/+6XqO65TrfatjNGU6',
+    'webz.telegram.org/#-1657778608',
+]
 
 if portable:
     app_full_name = f'portable {app_full_name}'
@@ -249,12 +255,7 @@ def init_set_logs_chat(
     _,
     msg: types.Message
 ):
-    answer: types.Message = msg.reply(
-        'applying...',
-        quote = True,
-        disable_web_page_preview = True,
-    )
-
+    answer = applying(msg)
     chat_link = str(
         msg.text
     ).replace(
@@ -298,12 +299,7 @@ def set_logs_chat(
     if not chat_link:
         return
 
-    answer: types.Message = msg.reply(
-        'applying...',
-        quote = True,
-        disable_web_page_preview = True,
-    )
-
+    answer = applying(msg)
     chat = is_group_owner(
         parse_chat_link(
             chat_link
@@ -368,17 +364,27 @@ you can see acceptable link formats via this command:
     )
 
     text = '''\
-**source** chat is a chat from which messages are reposted
-**target** chat is a chat in which messages are reposted
+**source chat** is a chat from which messages are reposted
+**target chat** is a chat in which messages are reposted
 '''
 
     if config.chats_tree:
+        text += '''
+/remove_CHAT_NAME - stop reposting from/to this chat
+/from_SOURCE_CHAT_NAME_to **TARGET_CHAT_NAME** - add new target chat
+
+chats tree:
+'''
         for source, target in config.chats_tree.items():
-            text += source
+            text += f'''\
+{source}
+├─ /remove_{source}
+╰─ /from_{source}_to
+'''
     else:
         text += '''
 there is no source chat now, you can add add it via this command:
-/set_new_source_chat PUT_SOURCE_CHAT_LINK_HERE
+/add_source_chat PUT_SOURCE_CHAT_LINK_HERE
 '''
 
     send_msg(
@@ -388,7 +394,7 @@ there is no source chat now, you can add add it via this command:
     )
 
 
-def set_new_source_chat(
+def add_source_chat(
     _,
     msg: types.Message,
 ):
@@ -396,12 +402,7 @@ def set_new_source_chat(
     if not chat_link:
         return
 
-    answer: types.Message = msg.reply(
-        'applying...',
-        quote = True,
-        disable_web_page_preview = True,
-    )
-
+    answer = applying(msg)
     chat = parse_chat_link(
         chat_link
     )
@@ -432,12 +433,19 @@ def set_new_source_chat(
 
 def split_message(
     msg: types.Message,
-):
+) -> str | None:
     msg_words = msg.text.split()
     match len(msg_words):
         case 1:
+            text = f'''\
+you must paste link to chat after "{msg.text}"
+
+examples:
+'''
+            for link in acceptable_links_list:
+                text += f'{msg.text} {link}\n'
             msg.reply(
-                'you must paste link to chat after "/set_logs_chat"',
+                text,
                 disable_web_page_preview = True,
             )
         case 2:
@@ -471,7 +479,7 @@ def set_can_configure_all_members_of_this_chat(
     answer.edit_text(
         f'''\
 successfully set **can_configure** to **{config.can_configure}**
-use /help to configure script
+use /help to configure reposter
 '''
     )
 
@@ -490,7 +498,7 @@ def set_can_configure_only_me(
     answer.edit_text(
         f'''\
 successfully set **can_configure** to **{config.can_configure}**
-use /help to configure script
+use /help to configure reposter
 '''
     )
 
@@ -503,6 +511,80 @@ def show_acceptable_link_formats(
         text = acceptable_link_formats,
         quote = True,
     )
+
+
+def remove_chat_name(
+    _,
+    msg: types.Message,
+):
+    msg.reply(
+        text = '''
+/remove_CHAT_NAME - stop reposting from/to this chat
+'''
+    )
+
+
+def from_source_chat_name_to(
+    _,
+    msg: types.Message,
+):
+    msg.reply(
+        text = '''
+**source chat** is a chat from which messages are reposted
+**target chat** is a chat in which messages are reposted
+
+/from_SOURCE_CHAT_NAME_to **TARGET_CHAT_NAME** - add new target chat
+'''
+    )
+
+
+def repost(
+    _,
+    msg: types.Message,
+):
+    pass
+
+
+def applying(
+    msg: types.Message
+) -> types.Message:
+    return msg.reply(
+        text = 'applying...',
+        quote = True,
+    )
+
+
+def remove(
+    _,
+    msg: types.Message,
+):
+    answer = applying(msg)
+    splitted = msg.text.split('_')
+    chat_link = splitted[-1]
+    print(
+        splitted
+    )
+    result = config.chats_tree.pop(
+        chat_link,
+        None,
+    )
+    # config.to_file()
+    if result is None:
+        answer.edit_text(
+            f'''\
+{chat_link} - no such chat in chats tree
+
+use /help to see chats tree
+'''
+        )
+    else:
+        answer.edit_text(
+            f'''
+successfully removed {chat_link} from chats tree
+
+use /help to see updated chats tree
+'''
+        )
 
 
 def refresh_handlers():
@@ -534,6 +616,21 @@ def refresh_handlers():
                     commands
                 )
 
+    def new_handler(
+        func,
+        commands: list[str] | str,
+    ):
+        temp_data.handlers.append(
+            bot.add_handler(
+                MessageHandler(
+                    func,
+                    filters = blank_filter(
+                        commands = commands
+                    )
+                )
+            )
+        )
+
     for func, commands in {
         help:
             ['help', 'h'],
@@ -545,18 +642,25 @@ def refresh_handlers():
             'show_acceptable_link_formats',
         set_logs_chat:
             'set_logs_chat',
-        set_new_source_chat:
-            'set_new_source_chat',
+        add_source_chat:
+            'add_source_chat',
+        remove_chat_name:
+            'remove_chat_name',
+        from_source_chat_name_to:
+            'from_source_chat_name_to',
     }.items():
-        temp_data.handlers.append(
-            bot.add_handler(
-                MessageHandler(
-                    func,
-                    filters = blank_filter(
-                        commands = commands
-                    )
-                )
-            )
+        new_handler(
+            func = func,
+            commands = commands,
+        )
+    for source, target in config.chats_tree.items():
+        new_handler(
+            func = repost,
+            commands = f'from_{source}_to',
+        )
+        new_handler(
+            func = remove,
+            commands = f'remove_{source}',
         )
 
 
@@ -584,7 +688,7 @@ def init_logs_chat_handler():
         )
 
     send_msg(
-        text = start_message + '\n\nuse /help to configure script',
+        text = start_message + '\n\nuse /help to configure reposter',
         chat_id = logs_chat.id,
     )
     refresh_handlers()
@@ -633,7 +737,7 @@ def main() -> None:
                 text = f'''\
 {start_message}
 
-Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring script. You must be an owner, and nobody except you must have access to this chat.
+Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring reposter. You must be an owner, and nobody except you must have access to this chat.
 
 {acceptable_link_formats}
 '''
