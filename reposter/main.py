@@ -14,10 +14,10 @@ from betterdata import Data
 from easyselect import Selection
 from dataclasses import dataclass
 from pyrogram.handlers import MessageHandler
-from pyrogram import filters
+from pyrogram import filters, types
 import gmanka_yml as yml
+import pyrogram as pg
 import subprocess
-import pyrogram
 import platform
 import asyncio
 import rich
@@ -39,9 +39,9 @@ config = Data(
 )
 
 temp_data = Data()
-bot: pyrogram.client.Client = None
-get_chat: pyrogram.client.Client.get_chat = None
-send_msg: pyrogram.client.Client.send_message = None
+bot: pg.client.Client = None
+get_chat: pg.client.Client.get_chat = None
+send_msg: pg.client.Client.send_message = None
 
 os_name = platform.system()
 if os_name == 'Linux':
@@ -51,7 +51,7 @@ python_imp = f'{platform.python_implementation()} {platform.python_version()}'
 
 app_full_name = f'''
 gmanka {app_name} {app_version},
-pyrogram {pyrogram.__version__},
+pg {pg.__version__},
 {python_imp}\
 '''
 
@@ -77,7 +77,7 @@ print(
 
 def is_chat_exist(
     chat_id: str | int,
-) -> pyrogram.types.Chat | bool:
+) -> types.Chat | bool:
     try:
         return get_chat(chat_id)
     except Exception as exception:
@@ -85,29 +85,34 @@ def is_chat_exist(
 
 
 def is_group_owner(
-    chat: pyrogram.types.Chat,
-    chat_link,
-) -> str | pyrogram.types.Chat:
+    chat: types.Chat,
+    chat_link: str,
+) -> str | types.Chat:
+    if isinstance(
+        chat,
+        str
+    ):
+        return chat
     if chat.type not in [
-        pyrogram.enums.ChatType.GROUP,
-        pyrogram.enums.ChatType.SUPERGROUP,
+        pg.enums.ChatType.GROUP,
+        pg.enums.ChatType.SUPERGROUP,
     ]:
         return f'{chat_link} is not a group chat'
     try:
-        user: pyrogram.types.ChatMember = bot.get_chat_member(
+        user: types.ChatMember = bot.get_chat_member(
             chat.id,
             'me',
         )
-        if user.status != pyrogram.enums.ChatMemberStatus.OWNER:
+        if user.status != pg.enums.ChatMemberStatus.OWNER:
             return f'you are not an owner of {chat_link}'
-    except pyrogram.errors.exceptions.bad_request_400.UserNotParticipant:
+    except pg.errors.exceptions.bad_request_400.UserNotParticipant:
         return f'you are not a member of {chat_link}'
     return chat
 
 
 def get_chat_from_link(
     chat_link
-) -> pyrogram.types.Chat:
+) -> types.Chat:
     if (
         'webz.telegram.org/#' in chat_link
     ) or (
@@ -137,7 +142,7 @@ def get_chat_from_link(
 
 def parse_chat_link(
     chat_link: str
-):
+) -> types.Chat | str:
     chat_id = None
     if chat_link[:6] == 't.me/+':
         pass
@@ -161,7 +166,7 @@ def parse_chat_link(
             int(chat_id),
         )
         if chat:
-            return is_group_owner(chat, chat_link)
+            return chat
         else:
             chat_id = chat_id.replace(
                 '-',
@@ -171,16 +176,16 @@ def parse_chat_link(
                 int(chat_id),
             )
             if chat:
-                return is_group_owner(chat, chat_link)
+                return chat
             else:
                 return f'{chat_link} is a bad link'
     else:
-        return f'{chat_link} is not working telegram link'
+        return f'{chat_link} is not a clickable telegram link {acceptable_link_formats}'
     chat = is_chat_exist(
         chat_link
     )
     if chat:
-        return is_group_owner(chat, chat_link)
+        return chat
     else:
         return f'{chat_link} is a bad link'
 
@@ -242,11 +247,12 @@ def self_username():
 
 def init_set_logs_chat(
     _,
-    msg: pyrogram.types.Message
+    msg: types.Message
 ):
-    answer: pyrogram.types.Message = msg.reply(
+    answer: types.Message = msg.reply(
         'applying...',
         quote = True,
+        disable_web_page_preview = True,
     )
 
     chat_link = str(
@@ -259,79 +265,73 @@ def init_set_logs_chat(
         '',
     )
 
-    chat = parse_chat_link(chat_link)
+    chat = is_group_owner(
+        parse_chat_link(
+            chat_link
+        ),
+        chat_link,
+    )
 
     if isinstance(
         chat,
         str,
     ):
         answer.edit_text(
-            chat
+            chat,
+            disable_web_page_preview = True,
         )
     else:
         temp_data['logs_chat'] = chat
         config['logs_chat'] = chat_link
         init_logs_chat_handler()
         answer.edit_text(
-            f'successfully set {chat_link} as chat for settings and logs, please open it'
+            f'successfully set {chat_link} as chat for settings and logs, please open it',
+            disable_web_page_preview = True,
         )
 
 
 def set_logs_chat(
     _,
-    msg: pyrogram.types.Message
+    msg: types.Message
 ):
-    answer: pyrogram.types.Message = msg.reply(
+    chat_link = split_message(msg)
+    if not chat_link:
+        return
+
+    answer: types.Message = msg.reply(
         'applying...',
         quote = True,
+        disable_web_page_preview = True,
     )
 
-    msg_words = msg.text.split()
-    match len(msg_words):
-        case 1:
-            answer.edit_text(
-                'you must paste link to source chat after "/set_logs_chat"'
-            )
-            return
-        case 2:
-            pass
-        case _:
-            answer.edit_text(
-                'you must paste only 1 link'
-            )
-            return
-
-    chat_link = str(
-        msg_words[-1]
-    ).replace(
-        'https://',
-        '',
-    ).replace(
-        'http://',
-        '',
+    chat = is_group_owner(
+        parse_chat_link(
+            chat_link
+        ),
+        chat_link,
     )
-
-    chat = parse_chat_link(chat_link)
 
     if isinstance(
         chat,
         str,
     ):
         answer.edit_text(
-            chat
+            chat,
+            disable_web_page_preview = True,
         )
     else:
         temp_data['logs_chat'] = chat
         config['logs_chat'] = chat_link
         init_logs_chat_handler()
         answer.edit_text(
-            f'successfully set {chat_link} as chat for settings and logs, please open it'
+            f'successfully set {chat_link} as chat for settings and logs, please open it',
+            disable_web_page_preview = True,
         )
 
 
-def get_help(
+def help(
     _ = None,
-    msg: pyrogram.types.Message = None,
+    msg: types.Message = None,
     chat_id = None
 ) -> None:
     if msg:
@@ -367,24 +367,101 @@ you can see acceptable link formats via this command:
         chat_id = chat_id,
     )
 
-    send_msg(
-        text = '''
+    text = '''\
 **source** chat is a chat from which messages are reposted
 **target** chat is a chat in which messages are reposted
+'''
 
+    if config.chats_tree:
+        for source, target in config.chats_tree.items():
+            text += source
+    else:
+        text += '''
 there is no source chat now, you can add add it via this command:
-/set_source_chat PUT_SOURCE_CHAT_LINK_HERE
-''',
+/set_new_source_chat PUT_SOURCE_CHAT_LINK_HERE
+'''
+
+    send_msg(
+        text = text,
         reply_to_message_id = reply_msg_id,
         chat_id = chat_id,
     )
 
 
+def set_new_source_chat(
+    _,
+    msg: types.Message,
+):
+    chat_link = split_message(msg)
+    if not chat_link:
+        return
+
+    answer: types.Message = msg.reply(
+        'applying...',
+        quote = True,
+        disable_web_page_preview = True,
+    )
+
+    chat = parse_chat_link(
+        chat_link
+    )
+
+    if isinstance(
+        chat,
+        str,
+    ):
+        answer.edit_text(
+            chat,
+            disable_web_page_preview = True,
+        )
+    else:
+        if chat_link in config.chats_tree:
+            answer.edit_text(
+                text = f'{chat_link} already in chats tree',
+                disable_web_page_preview = True,
+            )
+            return
+
+        config.chats_tree[chat_link] = {}
+        config.to_file()
+        answer.edit_text(
+            f'successfully set {chat_link} as source chat',
+            disable_web_page_preview = True,
+        )
+
+
+def split_message(
+    msg: types.Message,
+):
+    msg_words = msg.text.split()
+    match len(msg_words):
+        case 1:
+            msg.reply(
+                'you must paste link to chat after "/set_logs_chat"',
+                disable_web_page_preview = True,
+            )
+        case 2:
+            return str(
+                msg_words[-1]
+            ).replace(
+                'https://',
+                '',
+            ).replace(
+                'http://',
+                '',
+            )
+        case _:
+            msg.reply(
+                'you must paste only 1 link',
+                disable_web_page_preview = True,
+            )
+
+
 def set_can_configure_all_members_of_this_chat(
     _,
-    msg: pyrogram.types.Message,
+    msg: types.Message,
 ):
-    answer: pyrogram.types.Message = msg.reply(
+    answer: types.Message = msg.reply(
         'applying...',
         quote = True,
     )
@@ -401,9 +478,9 @@ use /help to configure script
 
 def set_can_configure_only_me(
     _,
-    msg: pyrogram.types.Message,
+    msg: types.Message,
 ):
-    answer: pyrogram.types.Message = msg.reply(
+    answer: types.Message = msg.reply(
         'applying...',
         quote = True,
     )
@@ -420,7 +497,7 @@ use /help to configure script
 
 def show_acceptable_link_formats(
     _,
-    msg: pyrogram.types.Message,
+    msg: types.Message,
 ):
     msg.reply(
         text = acceptable_link_formats,
@@ -432,7 +509,7 @@ def refresh_handlers():
     logs_chat = temp_data['logs_chat']
     if not logs_chat:
         raise TypeError(
-            'logs chat must be "pyrogram.types.Chat"'
+            'logs chat must be "types.Chat"'
         )
     for handler in temp_data.handlers:
         bot.remove_handler(*handler)
@@ -458,7 +535,7 @@ def refresh_handlers():
                 )
 
     for func, commands in {
-        get_help:
+        help:
             ['help', 'h'],
         set_can_configure_all_members_of_this_chat:
             'set_can_configure_all_members_of_this_chat',
@@ -468,6 +545,8 @@ def refresh_handlers():
             'show_acceptable_link_formats',
         set_logs_chat:
             'set_logs_chat',
+        set_new_source_chat:
+            'set_new_source_chat',
     }.items():
         temp_data.handlers.append(
             bot.add_handler(
@@ -493,7 +572,7 @@ def init_logs_chat_handler():
         bot.get_chat_member(
             logs_chat.id, 'gmanka_bot'
         )
-    except pyrogram.errors.exceptions.bad_request_400.UserNotParticipant:
+    except pg.errors.exceptions.bad_request_400.UserNotParticipant:
         bot.add_chat_members(
             chat_id = logs_chat.id,
             user_ids = 'gmanka_bot',
@@ -517,7 +596,7 @@ def main() -> None:
     global send_msg
     global get_chat
     if config['tg_session']:
-        bot = pyrogram.client.Client(
+        bot = pg.client.Client(
             name = app_name,
             session_string = config.tg_session,
         )
@@ -526,7 +605,7 @@ def main() -> None:
         phone_number = str(config.phone_number)
         if phone_number[0] != '+':
             phone_number = '+' + phone_number
-        bot = pyrogram.client.Client(
+        bot = pg.client.Client(
             name = app_name,
             api_id = config.api_id,
             api_hash = config.api_hash,
@@ -572,7 +651,7 @@ Please create new empty group chat and send here clickable link to it. This chat
             print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
             init_logs_chat_handler()
 
-        pyrogram.idle()
+        pg.idle()
 
 
 main()
