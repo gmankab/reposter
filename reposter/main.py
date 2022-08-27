@@ -576,88 +576,107 @@ def add_target(
     _,
     msg: types.Message,
 ):
-    splitted = msg.text.split()
-    match len(splitted):
-        case 1:
-            msg.reply(
-                text = '''
+    chats_str = msg.text.split(
+        maxsplit = 1
+    )
+    if len(
+        chats_str
+    ) == 1:
+        msg.reply(
+            text = '''
 **source chat** is a chat from which messages reposted
 **target chat** is a chat in which messages reposted
 
 /add_target SOURCE TARGET - add new target chat',
-    ''',
-                quote = True,
-            )
-            return
-        case 2:
-            msg.reply(
-                text = '''
+''',
+            quote = True,
+        )
+        return
+
+    answer = applying(msg)
+    chats = chats_str[-1].split(
+        ' -> '
+    )
+    if len(
+        chats
+    ) == 1:
+        msg.reply(
+            text = '''
 **source chat** is a chat from which messages reposted
 **target chat** is a chat in which messages reposted
 
 you must paste at least 2 links after /add_target - source chat link and target chat link
 '''
+        )
+        return
+
+    chats_tree = config.chats_tree
+    for chat in chats[:-1]:
+        if chat in chats_tree:
+            chats_tree = chats_tree[chat]
+        else:
+            answer.edit_text(
+                text = f'''\
+can\'t find {chat} in chats tree
+
+use /help to see chats tree
+'''
             )
             return
+    chats_tree[
+        chats[-1]
+    ] = {}
+    answer.edit_text(
+        f'''
+successfully added {chats[-1]} to chats tree
 
-    answer = applying(msg)
-    sources = splitted[1:-1]
-    target = splitted[-1]
-    # print(
-    #     'sources:',
-    #     sources
-    # )
-    # print(
-    #     'target:',
-    #     target
-    # )
-    dict_to_add = config.chats_tree
-    for source in sources[1:-1]:
-        dict_to_add = dict_to_add[source]
-    dict_to_add[sources[-1]][target] = {}
-    config.to_file()
-    answer.edit(
-        text = f'''
-successfully added target chat:
-
-{sources} -> {target}
+use /help to see updated chats tree
 '''
     )
-    # pp(
-    #     dict_to_add,
-    #     expand_all = True,
-    # )
-    # pp(
-    #     config.chats_tree,
-    #     expand_all = True,
-    # )
 
 
 def remove(
     _,
     msg: types.Message,
 ):
-    splitted = msg.text.split()
-    if len(splitted) == 1:
+    chats_str = msg.text.split(
+        maxsplit = 1
+    )
+    if len(chats_str) == 1:
         msg.reply(
-            '/remove CHAT_NAME - stop reposting from this chat and to this chat',
+            '/remove CHAT_NAME - remove this chat from chats tree',
             quote = True,
         )
         return
+
     answer = applying(msg)
-    chat_link = splitted[-1]
-    print(
-        splitted
+    chats = chats_str[-1].split(
+        ' -> '
     )
-    result = config.chats_tree.pop(
-        chat_link,
+
+    chats_tree = config.chats_tree
+    for chat in chats[:-1]:
+        if chat in chats_tree:
+            chats_tree = chats_tree[chat]
+        else:
+            answer.edit_text(
+                text = f'''\
+can\'t find {chat} in chats tree
+
+use /help to see chats tree
+'''
+            )
+            return
+
+    result = chats_tree.pop(
+        chats[-1],
         None,
     )
     # config.to_file()
     if result is None:
         answer.edit_text(
             f'''\
-{chat_link} - no such chat in chats tree
+can't find {chats[-1]} in chats tree
 
 use /help to see chats tree
 '''
@@ -665,7 +684,7 @@ use /help to see chats tree
     else:
         answer.edit_text(
             f'''
-successfully removed {chat_link} from chats tree
+successfully removed {chats[-1]} from chats tree
 
 use /help to see updated chats tree
 '''
