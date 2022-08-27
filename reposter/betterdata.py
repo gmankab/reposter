@@ -63,8 +63,11 @@ class Data:
         ):
             self.read_file()
 
-    def __repr__(self) -> any:
+    def __repr__(self) -> dict:
         return self.data
+
+    def __str__(self) -> str:
+        return str(self.data)
 
     def __getitem__(
         self,
@@ -87,13 +90,13 @@ class Data:
     def __add__(
         self,
         additional,
-    ):
+    ) -> dict:
         return self.data + additional
 
     def __contains__(
         self,
         item,
-    ):
+    ) -> bool:
         return item in self.data
 
     def set_data(

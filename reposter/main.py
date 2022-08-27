@@ -30,6 +30,7 @@ traceback.install(
 )
 c = rich.console.Console()
 print = c.print
+pp = pretty.pprint
 run_st = subprocess.getstatusoutput
 config_path = Path(
     f'{proj_path}/config.yml'
@@ -325,6 +326,51 @@ def set_logs_chat(
         )
 
 
+def build_chat_tree(
+    chats_tree: dict = None,
+):
+    level += 1
+    if not chats_tree:
+        chats_tree = config.chats_tree
+    items = chats_tree.items()
+    chat_index = len(chats_tree)
+
+    for source, target in items:
+        chat_index -= 1
+        if chat_index:
+            empty_indent = '│  ' * level
+            right = '├'
+        else:
+            empty_indent = '   '
+            right = '╰'
+        match level:
+            case 0:
+                full_indent = ''
+            case 1:
+                full_indent = f'''\
+│
+{right}──\
+'''
+            case _:
+                full_indent = f'''\
+{empty_indent * (level - 1)}│
+{empty_indent * (level - 1)}{right}──\
+'''
+        yield f'`{full_indent}` {source}\n'
+        yield f'`{empty_indent * level}├──` `/add_target {source} `TARGET\n'
+        if target:
+            target_list = list(
+                build_chat_tree(
+                    chats_tree = target,
+                    level = level,
+                )
+            )
+            for i in target_list:
+                yield i
+        else:
+            yield f'`{empty_indent * level}╰──` `/remove {source}`\n'
+
+
 def help(
     _ = None,
     msg: types.Message = None,
@@ -370,21 +416,17 @@ you can see acceptable link formats via this command:
 
     if config.chats_tree:
         text += '''
-/remove_CHAT_NAME - stop reposting from/to this chat
-/from_SOURCE_CHAT_NAME_to **TARGET_CHAT_NAME** - add new target chat
+/remove CHAT_NAME - stop reposting from this chat and to this chat
+/add_target SOURCE TARGET - add new target chat
 
 chats tree:
 '''
-        for source, target in config.chats_tree.items():
-            text += f'''\
-{source}
-├─ /remove_{source}
-╰─ /from_{source}_to
-'''
+        for i in build_chat_tree():
+            text += i
     else:
         text += '''
 there is no source chat now, you can add add it via this command:
-/add_source_chat PUT_SOURCE_CHAT_LINK_HERE
+/add_source PUT_SOURCE_CHAT_LINK_HERE
 '''
 
     send_msg(
@@ -394,7 +436,7 @@ there is no source chat now, you can add add it via this command:
     )
 
 
-def add_source_chat(
+def add_source(
     _,
     msg: types.Message,
 ):
@@ -513,38 +555,6 @@ def show_acceptable_link_formats(
     )
 
 
-def remove_chat_name(
-    _,
-    msg: types.Message,
-):
-    msg.reply(
-        text = '''
-/remove_CHAT_NAME - stop reposting from/to this chat
-'''
-    )
-
-
-def from_source_chat_name_to(
-    _,
-    msg: types.Message,
-):
-    msg.reply(
-        text = '''
-**source chat** is a chat from which messages are reposted
-**target chat** is a chat in which messages are reposted
-
-/from_SOURCE_CHAT_NAME_to **TARGET_CHAT_NAME** - add new target chat
-'''
-    )
-
-
-def repost(
-    _,
-    msg: types.Message,
-):
-    pass
-
-
 def applying(
     msg: types.Message
 ) -> types.Message:
@@ -554,12 +564,79 @@ def applying(
     )
 
 
+def add_target(
+    _,
+    msg: types.Message,
+):
+    splitted = msg.text.split()
+    match len(splitted):
+        case 1:
+            msg.reply(
+                text = '''
+**source chat** is a chat from which messages are reposted
+**target chat** is a chat in which messages are reposted
+
+/add_target SOURCE TARGET - add new target chat',
+    ''',
+                quote = True,
+            )
+            return
+        case 2:
+            msg.reply(
+                text = '''
+**source chat** is a chat from which messages are reposted
+**target chat** is a chat in which messages are reposted
+
+you must paste at least 2 links after /add_target - source chat link and target chat link
+'''
+            )
+            return
+
+    answer = applying(msg)
+    sources = splitted[1:-1]
+    target = splitted[-1]
+    # print(
+    #     'sources:',
+    #     sources
+    # )
+    # print(
+    #     'target:',
+    #     target
+    # )
+    dict_to_add = config.chats_tree
+    for source in sources[1:-1]:
+        dict_to_add = dict_to_add[source]
+    dict_to_add[sources[-1]][target] = {}
+    config.to_file()
+    answer.edit(
+        text = f'''
+successfully added target chat:
+
+{sources} -> {target}
+'''
+    )
+    # pp(
+    #     dict_to_add,
+    #     expand_all = True,
+    # )
+    # pp(
+    #     config.chats_tree,
+    #     expand_all = True,
+    # )
+
+
 def remove(
     _,
     msg: types.Message,
 ):
+    splitted = msg.text.split()
+    if len(splitted) == 1:
+        msg.reply(
+            '/remove CHAT_NAME - stop reposting from this chat and to this chat',
+            quote = True,
+        )
+        return
     answer = applying(msg)
-    splitted = msg.text.split('_')
     chat_link = splitted[-1]
     print(
         splitted
@@ -642,25 +719,16 @@ def refresh_handlers():
             'show_acceptable_link_formats',
         set_logs_chat:
             'set_logs_chat',
-        add_source_chat:
-            'add_source_chat',
-        remove_chat_name:
-            'remove_chat_name',
-        from_source_chat_name_to:
-            'from_source_chat_name_to',
+        add_source:
+            'add_source',
+        add_target:
+            'add_target',
+        remove:
+            'remove',
     }.items():
         new_handler(
             func = func,
             commands = commands,
-        )
-    for source, target in config.chats_tree.items():
-        new_handler(
-            func = repost,
-            commands = f'from_{source}_to',
-        )
-        new_handler(
-            func = remove,
-            commands = f'remove_{source}',
         )
 
 
@@ -758,4 +826,7 @@ Please create new empty group chat and send here clickable link to it. This chat
         pg.idle()
 
 
-main()
+# main()
+
+init_config()
+build_chat_tree()
