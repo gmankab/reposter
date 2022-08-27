@@ -10,6 +10,7 @@ from rich import (
     traceback,
 )
 from pathlib import Path
+from rich.tree import Tree
 from betterdata import Data
 from easyselect import Selection
 from dataclasses import dataclass
@@ -326,49 +327,57 @@ def set_logs_chat(
         )
 
 
-def build_chat_tree(
-    chats_tree: dict = None,
+def recursive_add(
+    local_tree: Tree,
+    local_tree_dict: dict,
+    previous: list
 ):
-    level += 1
-    if not chats_tree:
-        chats_tree = config.chats_tree
-    items = chats_tree.items()
-    chat_index = len(chats_tree)
-
-    for source, target in items:
-        chat_index -= 1
-        if chat_index:
-            empty_indent = '│  ' * level
-            right = '├'
-        else:
-            empty_indent = '   '
-            right = '╰'
-        match level:
-            case 0:
-                full_indent = ''
-            case 1:
-                full_indent = f'''\
-│
-{right}──\
-'''
-            case _:
-                full_indent = f'''\
-{empty_indent * (level - 1)}│
-{empty_indent * (level - 1)}{right}──\
-'''
-        yield f'`{full_indent}` {source}\n'
-        yield f'`{empty_indent * level}├──` `/add_target {source} `TARGET\n'
-        if target:
-            target_list = list(
-                build_chat_tree(
-                    chats_tree = target,
-                    level = level,
-                )
+    for chat_link, child_tree_dict in local_tree_dict.items():
+        child_previous = previous.copy()
+        child_previous.append(
+            chat_link
+        )
+        child_tree = local_tree.add(
+            label = f'`{chat_link}'
+        )
+        previous_str = " -> ".join(
+            child_previous
+        )
+        if child_tree_dict:
+            recursive_add(
+                local_tree = child_tree,
+                local_tree_dict = child_tree_dict,
+                previous = child_previous,
             )
-            for i in target_list:
-                yield i
         else:
-            yield f'`{empty_indent * level}╰──` `/remove {source}`\n'
+            remove_command = f'``/remove {previous_str}`'
+            child_tree.add(
+                remove_command
+            )
+        add_command = f'``/add_target {previous_str} -> TARGET`'
+        child_tree.add(
+            add_command
+        )
+
+
+def build_chat_tree():
+    tree_dict = config.chats_tree
+    tree = Tree(label = 'chats tree')
+    recursive_add(
+        local_tree = tree,
+        local_tree_dict = tree_dict,
+        previous = []
+    )
+    with c.capture() as capture:
+        for child in tree.children:
+            print(child)
+    return '`' + capture.get().replace(
+        '\n',
+        '\n`'
+    ).replace(
+        '└',
+        '╰'
+    )[:-1]
 
 
 def help(
@@ -410,19 +419,18 @@ you can see acceptable link formats via this command:
     )
 
     text = '''\
-**source chat** is a chat from which messages are reposted
-**target chat** is a chat in which messages are reposted
+**source chat** is a chat from which messages reposted
+**target chat** is a chat in which messages reposted
 '''
 
     if config.chats_tree:
         text += '''
 /remove CHAT_NAME - stop reposting from this chat and to this chat
-/add_target SOURCE TARGET - add new target chat
+/add_target SOURCE -> TARGET - add new target chat
 
 chats tree:
 '''
-        for i in build_chat_tree():
-            text += i
+        text += build_chat_tree()
     else:
         text += '''
 there is no source chat now, you can add add it via this command:
@@ -573,8 +581,8 @@ def add_target(
         case 1:
             msg.reply(
                 text = '''
-**source chat** is a chat from which messages are reposted
-**target chat** is a chat in which messages are reposted
+**source chat** is a chat from which messages reposted
+**target chat** is a chat in which messages reposted
 
 /add_target SOURCE TARGET - add new target chat',
     ''',
@@ -584,8 +592,8 @@ def add_target(
         case 2:
             msg.reply(
                 text = '''
-**source chat** is a chat from which messages are reposted
-**target chat** is a chat in which messages are reposted
+**source chat** is a chat from which messages reposted
+**target chat** is a chat in which messages reposted
 
 you must paste at least 2 links after /add_target - source chat link and target chat link
 '''
@@ -826,7 +834,4 @@ Please create new empty group chat and send here clickable link to it. This chat
         pg.idle()
 
 
-# main()
-
-init_config()
-build_chat_tree()
+main()
