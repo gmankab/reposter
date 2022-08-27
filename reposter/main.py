@@ -235,7 +235,7 @@ def init_config() -> None:
     temp_data['handlers'] = []
 
 
-def self_username():
+def self_username() -> None:
     self_chat = get_chat('me')
     if self_chat.username:
         return 'https://t.me/' + self_chat.username
@@ -256,7 +256,7 @@ def self_username():
 def init_set_logs_chat(
     _,
     msg: types.Message
-):
+) -> None:
     answer = applying(msg)
     chat_link = str(
         msg.text
@@ -296,7 +296,7 @@ def init_set_logs_chat(
 def set_logs_chat(
     _,
     msg: types.Message
-):
+) -> None:
     chat_link = split_message(msg)
     if not chat_link:
         return
@@ -331,7 +331,7 @@ def recursive_add(
     local_tree: Tree,
     local_tree_dict: dict,
     previous: list
-):
+) -> None:
     for chat_link, child_tree_dict in local_tree_dict.items():
         child_previous = previous.copy()
         child_previous.append(
@@ -360,7 +360,7 @@ def recursive_add(
         )
 
 
-def build_chat_tree():
+def build_chat_tree() -> None:
     tree_dict = config.chats_tree
     tree = Tree(label = 'chats tree')
     recursive_add(
@@ -406,7 +406,7 @@ can be changed via this commands:
 logs_chat = {config.logs_chat}
 
 can be changed via this command:
-/set_logs_chat PUT_LINK_TO_LOGS_CHAT_HERE
+`/set_logs_chat PUT_LINK_TO_LOGS_CHAT_HERE`
 
 example:
 /set_logs_chat {config.logs_chat}
@@ -431,10 +431,11 @@ you can see acceptable link formats via this command:
 chats tree:
 '''
         text += build_chat_tree()
+        text += '`/add_source SOURCE`'
     else:
         text += '''
 there is no source chat now, you can add add it via this command:
-/add_source PUT_SOURCE_CHAT_LINK_HERE
+`/add_source PUT_SOURCE_CHAT_LINK_HERE`
 '''
 
     send_msg(
@@ -447,7 +448,7 @@ there is no source chat now, you can add add it via this command:
 def add_source(
     _,
     msg: types.Message,
-):
+) -> None:
     chat_link = split_message(msg)
     if not chat_link:
         return
@@ -476,7 +477,11 @@ def add_source(
         config.chats_tree[chat_link] = {}
         config.to_file()
         answer.edit_text(
-            f'successfully set {chat_link} as source chat',
+            f'''
+successfully set {chat_link} as source chat
+
+use /help to configure reposter
+''',
             disable_web_page_preview = True,
         )
 
@@ -518,7 +523,7 @@ examples:
 def set_can_configure_all_members_of_this_chat(
     _,
     msg: types.Message,
-):
+) -> None:
     answer: types.Message = msg.reply(
         'applying...',
         quote = True,
@@ -537,7 +542,7 @@ use /help to configure reposter
 def set_can_configure_only_me(
     _,
     msg: types.Message,
-):
+) -> None:
     answer: types.Message = msg.reply(
         'applying...',
         quote = True,
@@ -556,7 +561,7 @@ use /help to configure reposter
 def show_acceptable_link_formats(
     _,
     msg: types.Message,
-):
+) -> None:
     msg.reply(
         text = acceptable_link_formats,
         quote = True,
@@ -575,7 +580,7 @@ def applying(
 def add_target(
     _,
     msg: types.Message,
-):
+) -> None:
     chats_str = msg.text.split(
         maxsplit = 1
     )
@@ -593,7 +598,6 @@ def add_target(
         )
         return
 
-    answer = applying(msg)
     chats = chats_str[-1].split(
         ' -> '
     )
@@ -610,6 +614,7 @@ you must paste at least 2 links after /add_target - source chat link and target 
         )
         return
 
+    answer = applying(msg)
     chats_tree = config.chats_tree
     for chat in chats[:-1]:
         if chat in chats_tree:
@@ -623,22 +628,47 @@ use /help to see chats tree
 '''
             )
             return
-    chats_tree[
-        chats[-1]
-    ] = {}
-    answer.edit_text(
-        f'''
+
+    chat_link = chats[-1]
+
+    chat = parse_chat_link(
+        chat_link
+    )
+
+    if isinstance(
+        chat,
+        str,
+    ):
+        answer.edit_text(
+            chat,
+            disable_web_page_preview = True,
+        )
+    else:
+        if chat_link in chats_tree:
+            answer.edit_text(
+                text = f'{chat_link} already in chats tree',
+                disable_web_page_preview = True,
+            )
+            return
+
+        chats_tree[
+            chat_link
+        ] = {}
+        config.chats_tree[chat_link] = {}
+        # config.to_file()
+        answer.edit_text(
+            f'''
 successfully added {chats[-1]} to chats tree
 
 use /help to see updated chats tree
 '''
-    )
+        )
 
 
 def remove(
     _,
     msg: types.Message,
-):
+) -> None:
     chats_str = msg.text.split(
         maxsplit = 1
     )
@@ -691,7 +721,7 @@ use /help to see updated chats tree
         )
 
 
-def refresh_handlers():
+def refresh_handlers() -> None:
     logs_chat = temp_data['logs_chat']
     if not logs_chat:
         raise TypeError(
@@ -703,7 +733,7 @@ def refresh_handlers():
 
     def blank_filter(
         commands: list[str] | str,
-    ):
+    ) -> None:
         match config.can_configure:
             case 'only_me':
                 return filters.chat(
@@ -723,7 +753,7 @@ def refresh_handlers():
     def new_handler(
         func,
         commands: list[str] | str,
-    ):
+    ) -> None:
         temp_data.handlers.append(
             bot.add_handler(
                 MessageHandler(
@@ -759,7 +789,7 @@ def refresh_handlers():
         )
 
 
-def init_logs_chat_handler():
+def init_logs_chat_handler() -> None:
     logs_chat = temp_data['logs_chat']
     if not logs_chat:
         logs_chat = get_chat_from_link(
