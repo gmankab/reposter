@@ -232,7 +232,9 @@ def init_config() -> None:
     if not config['can_configure']:
         config['can_configure'] = 'only_me'
 
-    temp_data['handlers'] = []
+    temp_data['config_handlers'] = []
+    temp_data['reposter_handlers'] = []
+    temp_data['chats_tree'] = {}
 
 
 def self_username() -> None:
@@ -257,7 +259,7 @@ def init_set_logs_chat(
     _,
     msg: types.Message
 ) -> None:
-    answer = applying(msg)
+    reply = applying(msg)
     chat_link = str(
         msg.text
     ).replace(
@@ -279,15 +281,15 @@ def init_set_logs_chat(
         chat,
         str,
     ):
-        answer.edit_text(
+        reply.edit_text(
             chat,
             disable_web_page_preview = True,
         )
     else:
         temp_data['logs_chat'] = chat
         config['logs_chat'] = chat_link
-        init_logs_chat_handler()
-        answer.edit_text(
+        init_handlers()
+        reply.edit_text(
             f'successfully set {chat_link} as chat for settings and logs, please open it',
             disable_web_page_preview = True,
         )
@@ -301,7 +303,7 @@ def set_logs_chat(
     if not chat_link:
         return
 
-    answer = applying(msg)
+    reply = applying(msg)
     chat = is_group_owner(
         parse_chat_link(
             chat_link
@@ -313,21 +315,21 @@ def set_logs_chat(
         chat,
         str,
     ):
-        answer.edit_text(
+        reply.edit_text(
             chat,
             disable_web_page_preview = True,
         )
     else:
         temp_data['logs_chat'] = chat
         config['logs_chat'] = chat_link
-        init_logs_chat_handler()
-        answer.edit_text(
+        init_handlers()
+        reply.edit_text(
             f'successfully set {chat_link} as chat for settings and logs, please open it',
             disable_web_page_preview = True,
         )
 
 
-def recursive_add(
+def recursive_tree_builder(
     local_tree: Tree,
     local_tree_dict: dict,
     previous: list
@@ -344,7 +346,7 @@ def recursive_add(
             child_previous
         )
         if child_tree_dict:
-            recursive_add(
+            recursive_tree_builder(
                 local_tree = child_tree,
                 local_tree_dict = child_tree_dict,
                 previous = child_previous,
@@ -363,7 +365,7 @@ def recursive_add(
 def build_chat_tree() -> None:
     tree_dict = config.chats_tree
     tree = Tree(label = 'chats tree')
-    recursive_add(
+    recursive_tree_builder(
         local_tree = tree,
         local_tree_dict = tree_dict,
         previous = []
@@ -453,7 +455,7 @@ def add_source(
     if not chat_link:
         return
 
-    answer = applying(msg)
+    reply = applying(msg)
     chat = parse_chat_link(
         chat_link
     )
@@ -462,13 +464,13 @@ def add_source(
         chat,
         str,
     ):
-        answer.edit_text(
+        reply.edit_text(
             chat,
             disable_web_page_preview = True,
         )
     else:
         if chat_link in config.chats_tree:
-            answer.edit_text(
+            reply.edit_text(
                 text = f'{chat_link} already in chats tree',
                 disable_web_page_preview = True,
             )
@@ -476,11 +478,11 @@ def add_source(
 
         config.chats_tree[chat_link] = {}
         config.to_file()
-        answer.edit_text(
+        reply.edit_text(
             f'''
-successfully set {chat_link} as source chat
+successfully added {chat_link} to chats tree
 
-use /help to configure reposter
+use /help to see updated chats tree
 ''',
             disable_web_page_preview = True,
         )
@@ -524,16 +526,17 @@ def set_can_configure_all_members_of_this_chat(
     _,
     msg: types.Message,
 ) -> None:
-    answer: types.Message = msg.reply(
+    reply: types.Message = msg.reply(
         'applying...',
         quote = True,
     )
 
     config['can_configure'] = 'all_members'
-    refresh_handlers()
-    answer.edit_text(
+    refresh_config_handlers()
+    reply.edit_text(
         f'''\
 successfully set **can_configure** to **{config.can_configure}**
+
 use /help to configure reposter
 '''
     )
@@ -543,16 +546,17 @@ def set_can_configure_only_me(
     _,
     msg: types.Message,
 ) -> None:
-    answer: types.Message = msg.reply(
+    reply: types.Message = msg.reply(
         'applying...',
         quote = True,
     )
 
     config['can_configure'] = 'only_me'
-    refresh_handlers()
-    answer.edit_text(
+    refresh_config_handlers()
+    reply.edit_text(
         f'''\
 successfully set **can_configure** to **{config.can_configure}**
+
 use /help to configure reposter
 '''
     )
@@ -614,13 +618,13 @@ you must paste at least 2 links after /add_target - source chat link and target 
         )
         return
 
-    answer = applying(msg)
+    reply = applying(msg)
     chats_tree = config.chats_tree
     for chat in chats[:-1]:
         if chat in chats_tree:
             chats_tree = chats_tree[chat]
         else:
-            answer.edit_text(
+            reply.edit_text(
                 text = f'''\
 can\'t find {chat} in chats tree
 
@@ -639,13 +643,13 @@ use /help to see chats tree
         chat,
         str,
     ):
-        answer.edit_text(
+        reply.edit_text(
             chat,
             disable_web_page_preview = True,
         )
     else:
         if chat_link in chats_tree:
-            answer.edit_text(
+            reply.edit_text(
                 text = f'{chat_link} already in chats tree',
                 disable_web_page_preview = True,
             )
@@ -654,9 +658,9 @@ use /help to see chats tree
         chats_tree[
             chat_link
         ] = {}
-        config.chats_tree[chat_link] = {}
-        # config.to_file()
-        answer.edit_text(
+        config.to_file()
+        refresh_reposter_handlers()
+        reply.edit_text(
             f'''
 successfully added {chats[-1]} to chats tree
 
@@ -679,7 +683,7 @@ def remove(
         )
         return
 
-    answer = applying(msg)
+    reply = applying(msg)
     chats = chats_str[-1].split(
         ' -> '
     )
@@ -689,7 +693,7 @@ def remove(
         if chat in chats_tree:
             chats_tree = chats_tree[chat]
         else:
-            answer.edit_text(
+            reply.edit_text(
                 text = f'''\
 can\'t find {chat} in chats tree
 
@@ -702,9 +706,8 @@ use /help to see chats tree
         chats[-1],
         None,
     )
-    # config.to_file()
     if result is None:
-        answer.edit_text(
+        reply.edit_text(
             f'''\
 can't find {chats[-1]} in chats tree
 
@@ -712,7 +715,9 @@ use /help to see chats tree
 '''
         )
     else:
-        answer.edit_text(
+        config.to_file()
+        refresh_reposter_handlers()
+        reply.edit_text(
             f'''
 successfully removed {chats[-1]} from chats tree
 
@@ -721,15 +726,91 @@ use /help to see updated chats tree
         )
 
 
-def refresh_handlers() -> None:
-    logs_chat = temp_data['logs_chat']
-    if not logs_chat:
-        raise TypeError(
-            'logs chat must be "types.Chat"'
+def forward(
+    msg: types.Message,
+    target: int,
+) -> types.Message:
+    print(msg)
+    new_msg = bot.send_message(
+        text = msg.text,
+        chat_id = target,
+    )
+    return new_msg
+
+
+def resend(
+    msg: types.Message,
+    target: int,
+) -> types.Message:
+    pass
+
+
+def recursive_repost(
+    msg: types.Message,
+    targets: dict,
+) -> None:
+    if not targets:
+        return
+    for key, val in targets.items():
+        if msg.from_user.is_restricted:
+            new_msg = resend(
+                msg = msg,
+                target = get_chat_from_link(
+                    key,
+                ).id,
+            )
+        else:
+            new_msg = forward(
+                msg = msg,
+                target = get_chat_from_link(
+                    key,
+                ).id,
+            )
+        recursive_repost(
+            msg = new_msg,
+            targets = val
         )
-    for handler in temp_data.handlers:
+
+
+def init_recursive_repost(
+    _,
+    msg: types.Message,
+) -> None:
+    targets: dict = temp_data.chats_tree[msg.chat.id]
+    recursive_repost(
+        msg = msg,
+        targets = targets,
+    )
+
+
+
+def refresh_reposter_handlers() -> None:
+    for handler in temp_data.reposter_handlers:
         bot.remove_handler(*handler)
-    temp_data['handlers'] = []
+    temp_data['reposter_handlers'] = []
+    temp_data['chats_tree'] = {}
+
+    for source_link, target in config.chats_tree.items():
+        source = get_chat_from_link(source_link)
+        temp_data.chats_tree[source.id] = target
+
+        temp_data.reposter_handlers.append(
+            bot.add_handler(
+                MessageHandler(
+                    init_recursive_repost,
+                    filters = filters.chat(
+                        source.id
+                    )
+                )
+            )
+        )
+
+
+def refresh_config_handlers() -> None:
+    logs_chat = temp_data['logs_chat']
+    for handler in temp_data.config_handlers:
+        bot.remove_handler(*handler)
+    temp_data['config_handlers'] = []
 
     def blank_filter(
         commands: list[str] | str,
@@ -754,7 +835,7 @@ def refresh_handlers() -> None:
         func,
         commands: list[str] | str,
     ) -> None:
-        temp_data.handlers.append(
+        temp_data.config_handlers.append(
             bot.add_handler(
                 MessageHandler(
                     func,
@@ -789,7 +870,7 @@ def refresh_handlers() -> None:
         )
 
 
-def init_logs_chat_handler() -> None:
+def init_handlers() -> None:
     logs_chat = temp_data['logs_chat']
     if not logs_chat:
         logs_chat = get_chat_from_link(
@@ -816,7 +897,8 @@ def init_logs_chat_handler() -> None:
         text = start_message + '\n\nuse /help to configure reposter',
         chat_id = logs_chat.id,
     )
-    refresh_handlers()
+    refresh_config_handlers()
+    refresh_reposter_handlers()
 
 
 def main() -> None:
@@ -868,7 +950,7 @@ Please create new empty group chat and send here clickable link to it. This chat
 '''
             )
 
-            temp_data.handlers.append(
+            temp_data.config_handlers.append(
                 bot.add_handler(
                     MessageHandler(
                         init_set_logs_chat,
@@ -878,7 +960,7 @@ Please create new empty group chat and send here clickable link to it. This chat
             )
         else:
             print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
-            init_logs_chat_handler()
+            init_handlers()
 
         pg.idle()
 
