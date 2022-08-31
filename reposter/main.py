@@ -235,6 +235,8 @@ def init_config() -> None:
     temp_data['config_handlers'] = []
     temp_data['reposter_handlers'] = []
     temp_data['chats_tree'] = {}
+    temp_data['links'] = {}
+    temp_data['media_groups'] = {}
 
 
 def self_username() -> None:
@@ -260,14 +262,8 @@ def init_set_logs_chat(
     msg: types.Message
 ) -> None:
     reply = applying(msg)
-    chat_link = str(
+    chat_link = clean_link(
         msg.text
-    ).replace(
-        'https://',
-        '',
-    ).replace(
-        'http://',
-        '',
     )
 
     chat = is_group_owner(
@@ -455,6 +451,8 @@ def add_source(
     if not chat_link:
         return
 
+    chat_link = clean_link(chat_link)
+
     reply = applying(msg)
     chat = parse_chat_link(
         chat_link
@@ -506,14 +504,8 @@ examples:
                 disable_web_page_preview = True,
             )
         case 2:
-            return str(
+            return clean_link(
                 msg_words[-1]
-            ).replace(
-                'https://',
-                '',
-            ).replace(
-                'http://',
-                '',
             )
         case _:
             msg.reply(
@@ -585,11 +577,11 @@ def add_target(
     _,
     msg: types.Message,
 ) -> None:
-    chats_str = msg.text.split(
+    splitted_msg = msg.text.split(
         maxsplit = 1
     )
     if len(
-        chats_str
+        splitted_msg
     ) == 1:
         msg.reply(
             text = '''
@@ -602,7 +594,7 @@ def add_target(
         )
         return
 
-    chats = chats_str[-1].split(
+    chats = splitted_msg[-1].split(
         ' -> '
     )
     if len(
@@ -618,6 +610,7 @@ you must paste at least 2 links after /add_target - source chat link and target 
         )
         return
 
+    chats[-1] = clean_link(chats[-1])
     reply = applying(msg)
     chats_tree = config.chats_tree
     for chat in chats[:-1]:
@@ -730,10 +723,8 @@ def forward(
     msg: types.Message,
     target: int,
 ) -> types.Message:
-    print(msg)
-    new_msg = bot.send_message(
-        text = msg.text,
-        chat_id = target,
+    new_msg = msg.copy(
+        chat_id = target
     )
     return new_msg
 
@@ -742,46 +733,119 @@ def resend(
     msg: types.Message,
     target: int,
 ) -> types.Message:
-    pass
+    return msg
 
 
 def recursive_repost(
     msg: types.Message,
     targets: dict,
+    log_msg: types.Message,
 ) -> None:
     if not targets:
         return
-    for key, val in targets.items():
-        if msg.from_user.is_restricted:
+    for target_link, local_chats_tree in targets.items():
+        target = get_chat_from_link(
+            target_link,
+        ).id
+        if msg.sender_chat and msg.sender_chat.has_protected_content:
             new_msg = resend(
                 msg = msg,
-                target = get_chat_from_link(
-                    key,
-                ).id,
+                target = target,
             )
         else:
             new_msg = forward(
                 msg = msg,
-                target = get_chat_from_link(
-                    key,
-                ).id,
+                target = target,
             )
+
+        link = get_msg_link(new_msg)
+        if not link:
+            link = target_link
+        new_log_msg = log_msg.reply(
+            text = f'reposted to {link}',
+            quote = True,
+        )
+
         recursive_repost(
             msg = new_msg,
-            targets = val
+            targets = local_chats_tree,
+            log_msg = new_log_msg,
         )
+
+
+def get_msg_link(
+    msg: types.Message,
+) -> str | None:
+    if (
+        not msg.link
+    ) or (
+        msg.link[15] == '-'
+    ):
+        return None
+    else:
+        return clean_link(msg.link)
 
 
 def init_recursive_repost(
     _,
     msg: types.Message,
 ) -> None:
-    targets: dict = temp_data.chats_tree[msg.chat.id]
-    recursive_repost(
-        msg = msg,
-        targets = targets,
-    )
+    chat_link = temp_data.links[msg.chat.id]
+    msg_link = get_msg_link(msg)
+    if msg.media_group_id:
+        if msg_link:
+            text = 'got media_group ' + chat_link
+        else:
+            text = 'got media group in ' + chat_link
+        log_msg: types.Message = bot.send_message(
+            text = text,
+            chat_id = temp_data.logs_chat.id,
+        )
+        temp_data.media_groups[
+            msg.media_group_id
+        ] = []
+        for sub_msg in msg.get_media_group():
+            temp_data.media_groups[
+                msg.media_group_id
+            ].append(
+                clean_link(sub_msg.link)
+            )
+        log_msg.reply(
+            text = yml.to_str(
+                temp_data.media_groups,
+            ),
+            quote = True,
+        )
+    else:
+        if msg_link:
+            text = 'got message ' + msg_link
+        else:
+            text = 'got message in ' + chat_link
 
+        log_msg = bot.send_message(
+            chat_id = temp_data.logs_chat.id,
+            text = text
+        )
+        targets: dict = temp_data.chats_tree[msg.chat.id]
+        recursive_repost(
+            msg = msg,
+            targets = targets,
+            log_msg = log_msg,
+        )
+
+
+def clean_link(
+    link: str,
+) -> str:
+    return str(
+        link.replace(
+            'https://',
+            '',
+        ).replace(
+            'http://',
+            '',
+        )
+    )
 
 
 def refresh_reposter_handlers() -> None:
@@ -789,10 +853,12 @@ def refresh_reposter_handlers() -> None:
         bot.remove_handler(*handler)
     temp_data['reposter_handlers'] = []
     temp_data['chats_tree'] = {}
+    temp_data['links'] = {}
 
     for source_link, target in config.chats_tree.items():
         source = get_chat_from_link(source_link)
         temp_data.chats_tree[source.id] = target
+        temp_data.links[source.id] = source_link
 
         temp_data.reposter_handlers.append(
             bot.add_handler(
