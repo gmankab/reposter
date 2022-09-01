@@ -740,24 +740,36 @@ def recursive_repost(
     msg: types.Message,
     targets: dict,
     log_msg: types.Message,
+    is_media_group: True,
 ) -> None:
     if not targets:
         return
     for target_link, local_chats_tree in targets.items():
-        target = get_chat_from_link(
+        target: int = get_chat_from_link(
             target_link,
         ).id
         if msg.sender_chat and msg.sender_chat.has_protected_content:
-            new_msg = resend(
-                msg = msg,
-                target = target,
-            )
+            if is_media_group:
+                new_msg = resend_media_group(
+                    msg = msg,
+                    target = target,
+                )
+            else:
+                new_msg = resend(
+                    msg = msg,
+                    target = target,
+                )
         else:
-            new_msg = forward(
-                msg = msg,
-                target = target,
-            )
-
+            if is_media_group:
+                new_msg = forward_media_group(
+                    msg = msg,
+                    target = target,
+                )
+            else:
+                new_msg = forward(
+                    msg = msg,
+                    target = target,
+                )
         link = get_msg_link(new_msg)
         if not link:
             link = target_link
@@ -770,6 +782,7 @@ def recursive_repost(
             msg = new_msg,
             targets = local_chats_tree,
             log_msg = new_log_msg,
+            is_media_group = is_media_group,
         )
 
 
@@ -786,52 +799,139 @@ def get_msg_link(
         return clean_link(msg.link)
 
 
+def get_media_group(
+    msg: types.Message
+) -> None:
+    local_dict = {
+        'msgs': []
+    }
+    temp_data.media_groups[
+        msg.media_group_id
+    ] = local_dict
+    chat_link = temp_data.links[msg.chat.id]
+    msg_link = get_msg_link(msg)
+    if msg_link:
+        text = f'got media_group {msg.media_group_id} in {msg_link}'
+    else:
+        text = f'got media group {msg.media_group_id} in {chat_link}'
+
+    local_dict['log_msg'] = bot.send_message(
+        text = text,
+        chat_id = temp_data.logs_chat.id,
+    )
+
+    local_media_group = msg.get_media_group()
+    for sub_msg in local_media_group:
+        local_dict['msgs'].append(
+            clean_link(sub_msg.link)
+        )
+
+    local_dict['count'] = len(
+        local_dict['msgs']
+    )
+
+    for __media_group__ in temp_data.media_groups.values():
+        local_dict['log_msg'].reply(
+            text = yml.to_str(__media_group__['msgs']),
+            quote = True,
+        )
+    return local_dict['log_msg']
+
+
+def clean_media_group(
+    msg
+) -> None:
+    msg_link = get_msg_link(msg)
+    local_dict = temp_data.media_groups[msg.media_group_id]
+    if msg_link in local_dict['msgs']:
+        local_dict['msgs'].remove(
+            clean_link(msg.link),
+        )
+        local_dict['log_msg'].reply(
+            text = f'''
+{local_dict["count"] - len(local_dict['msgs'])}\
+/\
+{local_dict["count"]}
+''',
+            quote = True
+        )
+    else:
+        local_dict['log_msg'].reply(
+            text = f'''
+error:
+{clean_link(msg.link)} not in
+{yml.to_str(local_dict['msgs'])}
+''',
+            quote = True
+        )
+    if not local_dict['msgs']:
+        excluded = temp_data.media_groups.pop(
+            msg.media_group_id,
+            None
+        )
+        if not excluded:
+            local_dict['log_msg'].reply(
+                text = f'''
+error:
+{msg.media_group_id} not in
+{yml.to_str(temp_data.media_groups)}
+'''
+            )
+
+
+def resend_media_group(
+    msg: types.Message,
+    target: int,
+):
+    return msg
+
+
+def forward_media_group(
+    msg: types.Message,
+    target: int,
+):
+    return bot.copy_media_group(
+        chat_id = target,
+        from_chat_id = msg.chat.id,
+        message_id = msg.id,
+    )[0]
+
+
 def init_recursive_repost(
     _,
     msg: types.Message,
 ) -> None:
+    targets: dict = temp_data.chats_tree[msg.chat.id]
     chat_link = temp_data.links[msg.chat.id]
     msg_link = get_msg_link(msg)
     if msg.media_group_id:
-        if msg_link:
-            text = 'got media_group ' + chat_link
-        else:
-            text = 'got media group in ' + chat_link
-        log_msg: types.Message = bot.send_message(
-            text = text,
-            chat_id = temp_data.logs_chat.id,
-        )
-        temp_data.media_groups[
-            msg.media_group_id
-        ] = []
-        for sub_msg in msg.get_media_group():
-            temp_data.media_groups[
-                msg.media_group_id
-            ].append(
-                clean_link(sub_msg.link)
+        if msg.media_group_id not in temp_data.media_groups:
+            log_msg = get_media_group(msg)
+            recursive_repost(
+                msg = msg,
+                targets = targets,
+                log_msg = log_msg,
+                is_media_group = True,
             )
-        log_msg.reply(
-            text = yml.to_str(
-                temp_data.media_groups,
-            ),
-            quote = True,
-        )
-    else:
-        if msg_link:
-            text = 'got message ' + msg_link
-        else:
-            text = 'got message in ' + chat_link
 
-        log_msg = bot.send_message(
-            chat_id = temp_data.logs_chat.id,
-            text = text
-        )
-        targets: dict = temp_data.chats_tree[msg.chat.id]
-        recursive_repost(
-            msg = msg,
-            targets = targets,
-            log_msg = log_msg,
-        )
+        time.sleep(2)
+        clean_media_group(msg)
+        return
+    if msg_link:
+        text = 'got message ' + msg_link
+    else:
+        text = 'got message in ' + chat_link
+
+    log_msg = bot.send_message(
+        chat_id = temp_data.logs_chat.id,
+        text = text
+    )
+    recursive_repost(
+        msg = msg,
+        targets = targets,
+        log_msg = log_msg,
+        is_media_group = False,
+    )
 
 
 def clean_link(
