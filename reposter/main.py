@@ -723,10 +723,9 @@ def forward(
     msg: types.Message,
     target: int,
 ) -> types.Message:
-    new_msg = msg.copy(
+    return msg.forward(
         chat_id = target
     )
-    return new_msg
 
 
 def resend(
@@ -811,7 +810,7 @@ def get_media_group(
     chat_link = temp_data.links[msg.chat.id]
     msg_link = get_msg_link(msg)
     if msg_link:
-        text = f'got media_group {msg.media_group_id} in {msg_link}'
+        text = f'got media group {msg.media_group_id} in {msg_link}'
     else:
         text = f'got media group {msg.media_group_id} in {chat_link}'
 
@@ -913,7 +912,6 @@ def init_recursive_repost(
                 log_msg = log_msg,
                 is_media_group = True,
             )
-
         time.sleep(2)
         clean_media_group(msg)
         return
