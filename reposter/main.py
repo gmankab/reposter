@@ -977,7 +977,7 @@ def recursive_repost(
                         target_link = target_link,
                     )
             except PollException:
-                success = False
+                success = False,
                 new_msg = msg,
                 new_log_msg = log_msg,
                 print_poll_exception(
