@@ -19,11 +19,17 @@ from pyrogram import filters, types
 import gmanka_yml as yml
 import pyrogram as pg
 import subprocess
+import humanize
 import platform
 import asyncio
 import rich
 import time
 import os
+
+
+class PollException(Exception):
+    pass
+
 
 pretty.install()
 traceback.install(
@@ -45,8 +51,6 @@ config = Data(
 
 temp_data = Data()
 bot: pg.client.Client = None
-
-
 os_name = platform.system()
 if os_name == 'Linux':
     os_name = platform.freedesktop_os_release()['PRETTY_NAME']
@@ -765,14 +769,18 @@ def resend_file(
     target: int,
     log_msg: types.Message,
     file: types.Document,
+    send_method,
 ):
+    latest_percent = None
+    downloaded_file_path = None
+    humanized_size = humanize.naturalsize(
+        file.file_size
+    )
     progress_action = 'downloading'
     progress_msg: types.Message = log_msg.reply(
-        text = 'downloading file...',
+        text = f'downloading {humanized_size} file...',
         quote = True,
     )
-
-    latest_percent = None
 
     def progress(
         current: int,
@@ -782,22 +790,37 @@ def resend_file(
         percent = round(current / total * 100)
         if latest_percent != percent:
             latest_percent = percent
+            if downloaded_file_path:
+                text = f'{progress_action} {humanized_size} file `{downloaded_file_path}`:\n{percent}%'
+            else:
+                text = f'{progress_action} {humanized_size} file:\n{percent}%'
             progress_msg = progress_msg.edit_text(
-                text = f'{progress_action} file:\n{percent}%'
+                text = text
             )
 
-    mb = 1024 * 1024
-    if file.file_size < mb:
-        document = msg.download(
+    hundred_mb = 1024 * 1024 * 100
+    if file.file_size < hundred_mb:
+        downloaded_file = msg.download(
             in_memory = True,
             progress = progress,
         )
     else:
-        pass
+        cache_path.mkdir(
+            exist_ok = True,
+            parents = True,
+        )
+        downloaded_file_path = Path(
+            f'{cache_path}/{msg.chat.id}_{msg.id}_{file.file_name}'
+        )
+        downloaded_file = msg.download(
+            in_memory = False,
+            progress = progress,
+            file_name = downloaded_file_path,
+        )
 
     progress_action = 'uploading'
     progress_msg: types.Message = log_msg.reply(
-        text = 'uploading file...',
+        text = f'uploading {humanized_size} file...',
         quote = True,
     )
 
@@ -806,48 +829,123 @@ def resend_file(
             msg.caption
         )
     )
-
-    main_message: types.Message = bot.send_document(
-        caption = captions[0],
-        chat_id = target,
-        document = document,
+    if captions[0]:
+        kwargs = {
+            'caption': captions[0]
+        }
+    else:
+        kwargs = {}
+    reposted_message: types.Message = send_method(
+        target,
+        downloaded_file,
         progress = progress,
+        **kwargs,
     )
 
     for caption in captions[1:]:
-        main_message.reply(
+        reposted_message.reply(
             text = caption,
             quote = True,
         )
-    return main_message
+
+    if downloaded_file_path:
+        downloaded_file_path.unlink(
+            missing_ok = True,
+        )
+    return reposted_message
 
 
 def resend(
     msg: types.Message,
     target: int,
-    log_msg: types.Message
+    log_msg: types.Message,
+    target_link: str,
 ) -> types.Message:
     print(msg)
+    kwargs = {
+        'msg': msg,
+        'target': target,
+        'log_msg': log_msg,
+    }
+    if msg.poll:
+        try:
+            options = []
+            for option in msg.poll.options:
+                options.append(
+                    option.text
+                )
+            return bot.send_poll(
+                chat_id = target,
+                question = msg.poll.question,
+                options = options,
+            )
+        except Exception as exc:
+            raise PollException from exc
     if msg.document:
         return resend_file(
-            msg = msg,
-            target = target,
-            log_msg = log_msg,
+            **kwargs,
             file = msg.document,
+            send_method = bot.send_document,
         )
-
-    # elif msg.photo:
-    #     return bot.send_photo(
-    #         caption = None,
-    #         chat_id = target,
-    #         photo = msg.photo.file_id
+    elif msg.photo:
+        return resend_file(
+            **kwargs,
+            file = msg.photo,
+            send_method = bot.send_photo,
+        )
+    elif msg.video:
+        return resend_file(
+            **kwargs,
+            file = msg.video,
+            send_method = bot.send_video,
+        )
+    elif msg.video_note:
+        return resend_file(
+            **kwargs,
+            file = msg.video_note,
+            send_method = bot.send_video_note,
+        )
+    elif msg.voice:
+        return resend_file(
+            **kwargs,
+            file = msg.voice,
+            send_method = bot.send_voice,
+        )
+    # elif msg.animation:
+    #     return resend_file(
+    #         **kwargs,
+    #         file = msg.animation,
+    #         send_method = bot.send_animation,
     #     )
-
-    else:
+    elif msg.text:
         return bot.send_message(
             text = msg.text,
             chat_id = target,
         )
+    else:
+        raise Exception(
+            'this media type unsupported by reposter'
+        )
+
+
+def print_poll_exception(
+    source_link,
+    target_link,
+    local_chats_tree,
+    log_msg,
+):
+    text = f'''
+reposter can't repost polls from restricted chat to private chats
+
+unfortunately, {source_link} is a restricted chat, and {target_link} is a private chat
+
+skipping this step, trying repost from {source_link} to {", ".join(local_chats_tree.keys())}
+'''
+    return log_msg.reply(
+        text = text,
+        quote = True,
+        disable_web_page_preview = True,
+    )
 
 
 def recursive_repost(
@@ -855,24 +953,38 @@ def recursive_repost(
     targets: dict,
     log_msg: types.Message,
     is_media_group: True,
+    source_link: str
 ) -> None:
     if not targets:
         return
+    success = True
     for target_link, local_chats_tree in targets.items():
         target: int = get_chat_from_link(
             target_link,
         ).id
         if msg.sender_chat and msg.sender_chat.has_protected_content:
-            if is_media_group:
-                new_msg = resend_media_group(
-                    msg = msg,
-                    target = target,
-                )
-            else:
-                new_msg = resend(
-                    msg = msg,
-                    target = target,
-                    log_msg = log_msg,
+            try:
+                if is_media_group:
+                    new_msg = resend_media_group(
+                        msg = msg,
+                        target = target,
+                    )
+                else:
+                    new_msg = resend(
+                        msg = msg,
+                        target = target,
+                        log_msg = log_msg,
+                        target_link = target_link,
+                    )
+            except PollException:
+                success = False
+                new_msg = msg,
+                new_log_msg = log_msg,
+                print_poll_exception(
+                    source_link,
+                    target_link,
+                    local_chats_tree,
+                    log_msg,
                 )
         else:
             if is_media_group:
@@ -885,19 +997,22 @@ def recursive_repost(
                     msg = msg,
                     target = target,
                 )
-        link = get_msg_link(new_msg)
-        if not link:
-            link = target_link
-        new_log_msg = log_msg.reply(
-            text = f'reposted to {link}',
-            quote = True,
-        )
+
+        if success:
+            link = get_msg_link(new_msg)
+            if not link:
+                link = target_link
+            new_log_msg = log_msg.reply(
+                text = f'reposted to {link}',
+                quote = True,
+            )
 
         recursive_repost(
             msg = new_msg,
             targets = local_chats_tree,
             log_msg = new_log_msg,
             is_media_group = is_media_group,
+            source_link = source_link,
         )
 
 
@@ -1014,27 +1129,28 @@ def forward_media_group(
 
 def init_recursive_repost(
     _,
-    msg: types.Message,
+    source_msg: types.Message,
 ) -> None:
-    targets: dict = temp_data.chats_tree[msg.chat.id]
-    chat_link = temp_data.links[msg.chat.id]
-    msg_link = get_msg_link(msg)
-    if msg.media_group_id:
-        if msg.media_group_id not in temp_data.media_groups:
-            log_msg = get_media_group(msg)
+    targets: dict = temp_data.chats_tree[source_msg.chat.id]
+    source_link = temp_data.links[source_msg.chat.id]
+    msg_link = get_msg_link(source_msg)
+    if source_msg.media_group_id:
+        if source_msg.media_group_id not in temp_data.media_groups:
+            log_msg = get_media_group(source_msg)
             recursive_repost(
-                msg = msg,
+                msg = source_msg,
                 targets = targets,
                 log_msg = log_msg,
                 is_media_group = True,
+                source_link = source_link,
             )
         time.sleep(2)
-        clean_media_group(msg)
+        clean_media_group(source_msg)
         return
     if msg_link:
         text = 'got message ' + msg_link
     else:
-        text = 'got message in ' + chat_link
+        text = 'got message in ' + source_link
 
     log_msg = bot.send_message(
         chat_id = temp_data.logs_chat.id,
@@ -1042,10 +1158,11 @@ def init_recursive_repost(
     )
 
     recursive_repost(
-        msg = msg,
+        msg = source_msg,
         targets = targets,
         log_msg = log_msg,
         is_media_group = False,
+        source_link = source_link
     )
 
 
