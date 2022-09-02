@@ -36,14 +36,16 @@ run_st = subprocess.getstatusoutput
 config_path = Path(
     f'{proj_path}/config.yml'
 )
+cache_path = Path(
+    f'{proj_path}/cache'
+)
 config = Data(
     file_path = config_path
 )
 
 temp_data = Data()
 bot: pg.client.Client = None
-get_chat: pg.client.Client.get_chat = None
-send_msg: pg.client.Client.send_message = None
+
 
 os_name = platform.system()
 if os_name == 'Linux':
@@ -87,7 +89,7 @@ def is_chat_exist(
     chat_id: str | int,
 ) -> types.Chat | bool:
     try:
-        return get_chat(chat_id)
+        return bot.get_chat(chat_id)
     except Exception as exception:
         return False
 
@@ -136,7 +138,7 @@ def get_chat_from_link(
         if chat:
             return chat
         else:
-            return get_chat(
+            return bot.get_chat(
                 int(
                     chat_id.replace(
                         '-',
@@ -145,7 +147,7 @@ def get_chat_from_link(
                 )
             )
     else:
-        return get_chat(chat_link)
+        return bot.get_chat(chat_link)
 
 
 def parse_chat_link(
@@ -240,7 +242,7 @@ def init_config() -> None:
 
 
 def self_username() -> None:
-    self_chat = get_chat('me')
+    self_chat = bot.get_chat('me')
     if self_chat.username:
         return 'https://t.me/' + self_chat.username
     else:
@@ -366,16 +368,22 @@ def build_chat_tree() -> None:
         local_tree_dict = tree_dict,
         previous = []
     )
-    with c.capture() as capture:
-        for child in tree.children:
-            print(child)
-    return '`' + capture.get().replace(
-        '\n',
-        '\n`'
-    ).replace(
-        '└',
-        '╰'
-    )[:-1]
+
+    # with c.capture() as capture:
+    # for child in tree.children:
+    #     c.print(
+    #         child,
+    #         # soft_wrap = True,
+    #         overflow = 'ignore',
+    #         crop = False,
+    #     )
+    # return '`' + capture.get().replace(
+    #     '\n',
+    #     '\n`'
+    # ).replace(
+    #     '└',
+    #     '╰'
+    # )[:-1]
 
 
 def help(
@@ -389,7 +397,7 @@ def help(
     else:
         reply_msg_id = None
 
-    send_msg(
+    bot.send_message(
         text = f'''
 your config file path:
 **{config_path}**
@@ -414,6 +422,7 @@ you can see acceptable link formats via this command:
 ''',
         reply_to_message_id = reply_msg_id,
         chat_id = chat_id,
+        disable_web_page_preview = True
     )
 
     text = '''\
@@ -436,10 +445,11 @@ there is no source chat now, you can add add it via this command:
 `/add_source PUT_SOURCE_CHAT_LINK_HERE`
 '''
 
-    send_msg(
+    bot.send_message(
         text = text,
         reply_to_message_id = reply_msg_id,
         chat_id = chat_id,
+        disable_web_page_preview = True,
     )
 
 
@@ -723,16 +733,121 @@ def forward(
     msg: types.Message,
     target: int,
 ) -> types.Message:
-    return msg.forward(
-        chat_id = target
+    try:
+        return msg.copy(
+            chat_id = target
+        )
+    except pg.errors.exceptions.bad_request_400.MediaInvalid:
+        return msg.forward(
+            chat_id = target
+        )
+
+
+def text_wrap(
+    text: str,
+    chunk_size: int = 1024,
+):
+    if text:
+        for chunk_start in range(
+            0,
+            len(text),
+            chunk_size
+        ):
+            yield text[
+                chunk_start:chunk_start + chunk_size
+            ]
+    else:
+        yield None
+
+
+def resend_file(
+    msg: types.Message,
+    target: int,
+    log_msg: types.Message,
+    file: types.Document,
+):
+    progress_action = 'downloading'
+    progress_msg: types.Message = log_msg.reply(
+        text = 'downloading file...',
+        quote = True,
     )
+
+    latest_percent = None
+
+    def progress(
+        current: int,
+        total: int,
+    ):
+        nonlocal progress_msg, latest_percent, progress_action
+        percent = round(current / total * 100)
+        if latest_percent != percent:
+            latest_percent = percent
+            progress_msg = progress_msg.edit_text(
+                text = f'{progress_action} file:\n{percent}%'
+            )
+
+    mb = 1024 * 1024
+    if file.file_size < mb:
+        document = msg.download(
+            in_memory = True,
+            progress = progress,
+        )
+    else:
+        pass
+
+    progress_action = 'uploading'
+    progress_msg: types.Message = log_msg.reply(
+        text = 'uploading file...',
+        quote = True,
+    )
+
+    captions = list(
+        text_wrap(
+            msg.caption
+        )
+    )
+
+    main_message: types.Message = bot.send_document(
+        caption = captions[0],
+        chat_id = target,
+        document = document,
+        progress = progress,
+    )
+
+    for caption in captions[1:]:
+        main_message.reply(
+            text = caption,
+            quote = True,
+        )
+    return main_message
 
 
 def resend(
     msg: types.Message,
     target: int,
+    log_msg: types.Message
 ) -> types.Message:
-    return msg
+    print(msg)
+    if msg.document:
+        return resend_file(
+            msg = msg,
+            target = target,
+            log_msg = log_msg,
+            file = msg.document,
+        )
+
+    # elif msg.photo:
+    #     return bot.send_photo(
+    #         caption = None,
+    #         chat_id = target,
+    #         photo = msg.photo.file_id
+    #     )
+
+    else:
+        return bot.send_message(
+            text = msg.text,
+            chat_id = target,
+        )
 
 
 def recursive_repost(
@@ -757,6 +872,7 @@ def recursive_repost(
                 new_msg = resend(
                     msg = msg,
                     target = target,
+                    log_msg = log_msg,
                 )
         else:
             if is_media_group:
@@ -881,14 +997,14 @@ error:
 def resend_media_group(
     msg: types.Message,
     target: int,
-):
+) -> list[types.Message]:
     return msg
 
 
 def forward_media_group(
     msg: types.Message,
     target: int,
-):
+) -> list[types.Message]:
     return bot.copy_media_group(
         chat_id = target,
         from_chat_id = msg.chat.id,
@@ -924,6 +1040,7 @@ def init_recursive_repost(
         chat_id = temp_data.logs_chat.id,
         text = text
     )
+
     recursive_repost(
         msg = msg,
         targets = targets,
@@ -1052,12 +1169,12 @@ def init_handlers() -> None:
             user_ids = 'gmanka_bot',
             forward_limit = 0,
         )
-        send_msg(
+        bot.send_message(
             text = 'invited @gmanka_bot just for make commands like /help clickable, he is not needed for anything else',
             chat_id = logs_chat.id,
         )
 
-    send_msg(
+    bot.send_message(
         text = start_message + '\n\nuse /help to configure reposter',
         chat_id = logs_chat.id,
     )
@@ -1068,8 +1185,6 @@ def init_handlers() -> None:
 def main() -> None:
     init_config()
     global bot
-    global send_msg
-    global get_chat
     if config['tg_session']:
         bot = pg.client.Client(
             name = app_name,
@@ -1093,16 +1208,13 @@ def main() -> None:
         )
         first_start = True
 
-    send_msg = bot.send_message
-    get_chat = bot.get_chat
-
     with bot:
         if first_start:
             config['tg_session'] = bot.export_session_string()
         if not config['logs_chat']:
             print(f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
 
-            send_msg(
+            bot.send_message(
                 chat_id = 'me',
                 disable_web_page_preview = True,
                 text = f'''\
@@ -1126,7 +1238,17 @@ Please create new empty group chat and send here clickable link to it. This chat
             print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
             init_handlers()
 
+        with open('members.txt', 'w+') as file:
+            for i in bot.get_chat_members(
+                -1001695114602
+            ):
+                file.write(f'{i.user.id} @{i.user.username} {i.status} {i.custom_title} {i.privileges}\n\n')
+
         pg.idle()
 
+
+c = rich.console.Console(
+    width=50
+)
 
 main()
