@@ -372,22 +372,21 @@ def build_chat_tree() -> None:
         local_tree_dict = tree_dict,
         previous = []
     )
-
-    # with c.capture() as capture:
-    # for child in tree.children:
-    #     c.print(
-    #         child,
-    #         # soft_wrap = True,
-    #         overflow = 'ignore',
-    #         crop = False,
-    #     )
-    # return '`' + capture.get().replace(
-    #     '\n',
-    #     '\n`'
-    # ).replace(
-    #     '└',
-    #     '╰'
-    # )[:-1]
+    with c.capture() as capture:
+        for child in tree.children:
+            c.print(
+                child,
+                # soft_wrap = True,
+                overflow = 'ignore',
+                crop = False,
+            )
+    return '`' + capture.get().replace(
+        '\n',
+        '\n`'
+    ).replace(
+        '└',
+        '╰'
+    )[:-1]
 
 
 def help(
@@ -770,6 +769,8 @@ def resend_file(
     log_msg: types.Message,
     file: types.Document,
     send_method,
+    width: int = None,
+    height: int = None,
 ):
     latest_percent = None
     downloaded_file_path = None
@@ -829,12 +830,14 @@ def resend_file(
             msg.caption
         )
     )
+    kwargs = {}
     if captions[0]:
-        kwargs = {
-            'caption': captions[0]
-        }
-    else:
-        kwargs = {}
+        kwargs['caption'] = captions[0]
+    if width:
+        kwargs['width'] = width
+    if height:
+        kwargs['height'] = height
+
     reposted_message: types.Message = send_method(
         target,
         downloaded_file,
@@ -859,9 +862,7 @@ def resend(
     msg: types.Message,
     target: int,
     log_msg: types.Message,
-    target_link: str,
 ) -> types.Message:
-    print(msg)
     kwargs = {
         'msg': msg,
         'target': target,
@@ -898,6 +899,8 @@ def resend(
             **kwargs,
             file = msg.video,
             send_method = bot.send_video,
+            width = msg.video.width,
+            height = msg.video.height,
         )
     elif msg.video_note:
         return resend_file(
@@ -911,12 +914,14 @@ def resend(
             file = msg.voice,
             send_method = bot.send_voice,
         )
-    # elif msg.animation:
-    #     return resend_file(
-    #         **kwargs,
-    #         file = msg.animation,
-    #         send_method = bot.send_animation,
-    #     )
+    elif msg.animation:
+        return resend_file(
+            **kwargs,
+            file = msg.animation,
+            send_method = bot.send_animation,
+            width = msg.animation.width,
+            height = msg.animation.height,
+        )
     elif msg.text:
         return bot.send_message(
             text = msg.text,
@@ -924,12 +929,12 @@ def resend(
         )
     else:
         raise Exception(
-            'this media type unsupported by reposter'
+            f'media type {msg.media} is unsupported by reposter'
         )
 
 
 def print_poll_exception(
-    source_link,
+    src_link,
     target_link,
     local_chats_tree,
     log_msg,
@@ -937,9 +942,9 @@ def print_poll_exception(
     text = f'''
 reposter can't repost polls from restricted chat to private chats
 
-unfortunately, {source_link} is a restricted chat, and {target_link} is a private chat
+unfortunately, {src_link} is a restricted chat, and {target_link} is a private chat
 
-skipping this step, trying repost from {source_link} to {", ".join(local_chats_tree.keys())}
+skipping this step, trying repost from {src_link} to {", ".join(local_chats_tree.keys())}
 '''
     return log_msg.reply(
         text = text,
@@ -949,11 +954,11 @@ skipping this step, trying repost from {source_link} to {", ".join(local_chats_t
 
 
 def recursive_repost(
-    msg: types.Message,
+    src_msg: types.Message,
     targets: dict,
     log_msg: types.Message,
     is_media_group: True,
-    source_link: str
+    src_link: str
 ) -> None:
     if not targets:
         return
@@ -962,26 +967,29 @@ def recursive_repost(
         target: int = get_chat_from_link(
             target_link,
         ).id
-        if msg.sender_chat and msg.sender_chat.has_protected_content:
+        if (
+            src_msg.sender_chat
+        ) and (
+            src_msg.sender_chat.has_protected_content
+        ):
             try:
                 if is_media_group:
                     new_msg = resend_media_group(
-                        msg = msg,
+                        msg = src_msg,
                         target = target,
                     )
                 else:
                     new_msg = resend(
-                        msg = msg,
+                        msg = src_msg,
                         target = target,
                         log_msg = log_msg,
-                        target_link = target_link,
                     )
             except PollException:
                 success = False
-                new_msg = msg
+                new_msg = src_msg
                 new_log_msg = log_msg
                 print_poll_exception(
-                    source_link,
+                    src_link,
                     target_link,
                     local_chats_tree,
                     log_msg,
@@ -989,30 +997,32 @@ def recursive_repost(
         else:
             if is_media_group:
                 new_msg = forward_media_group(
-                    msg = msg,
+                    msg = src_msg,
                     target = target,
                 )
             else:
                 new_msg = forward(
-                    msg = msg,
+                    msg = src_msg,
                     target = target,
                 )
 
         if success:
             link = get_msg_link(new_msg)
-            if not link:
-                link = target_link
+            if link:
+                text = f'reposted to {link}'
+            else:
+                text = f'reposted to {target_link} id=`{new_msg.id}`'
             new_log_msg = log_msg.reply(
-                text = f'reposted to {link}',
+                text = text,
                 quote = True,
             )
 
         recursive_repost(
-            msg = new_msg,
+            src_msg = new_msg,
             targets = local_chats_tree,
             log_msg = new_log_msg,
             is_media_group = is_media_group,
-            source_link = source_link,
+            src_link = src_link,
         )
 
 
@@ -1041,9 +1051,9 @@ def get_media_group(
     chat_link = temp_data.links[msg.chat.id]
     msg_link = get_msg_link(msg)
     if msg_link:
-        text = f'got media group {msg.media_group_id} in {msg_link}'
+        text = f'got media group `{msg.media_group_id}` in {msg_link}'
     else:
-        text = f'got media group {msg.media_group_id} in {chat_link}'
+        text = f'got media group `{msg.media_group_id}` in {chat_link}'
 
     local_dict['log_msg'] = bot.send_message(
         text = text,
@@ -1129,40 +1139,41 @@ def forward_media_group(
 
 def init_recursive_repost(
     _,
-    source_msg: types.Message,
+    src_msg: types.Message,
 ) -> None:
-    targets: dict = temp_data.chats_tree[source_msg.chat.id]
-    source_link = temp_data.links[source_msg.chat.id]
-    msg_link = get_msg_link(source_msg)
-    if source_msg.media_group_id:
-        if source_msg.media_group_id not in temp_data.media_groups:
-            log_msg = get_media_group(source_msg)
+    print(src_msg)
+    targets: dict = temp_data.chats_tree[src_msg.chat.id]
+    src_link = temp_data.links[src_msg.chat.id]
+    msg_link = get_msg_link(src_msg)
+    if src_msg.media_group_id:
+        if src_msg.media_group_id not in temp_data.media_groups:
+            log_msg = get_media_group(src_msg)
             recursive_repost(
-                msg = source_msg,
+                src_msg = src_msg,
                 targets = targets,
                 log_msg = log_msg,
                 is_media_group = True,
-                source_link = source_link,
+                src_link = src_link,
             )
         time.sleep(2)
-        clean_media_group(source_msg)
+        clean_media_group(src_msg)
         return
     if msg_link:
-        text = 'got message ' + msg_link
+        text = f'got message {msg_link}'
     else:
-        text = 'got message in ' + source_link
-
+        text = f'got message {src_msg.id} in {src_link}'
+    c.log(text)
     log_msg = bot.send_message(
         chat_id = temp_data.logs_chat.id,
         text = text
     )
 
     recursive_repost(
-        msg = source_msg,
+        src_msg = src_msg,
         targets = targets,
         log_msg = log_msg,
         is_media_group = False,
-        source_link = source_link
+        src_link = src_link
     )
 
 
@@ -1187,10 +1198,10 @@ def refresh_reposter_handlers() -> None:
     temp_data['chats_tree'] = {}
     temp_data['links'] = {}
 
-    for source_link, target in config.chats_tree.items():
-        source = get_chat_from_link(source_link)
+    for src_link, target in config.chats_tree.items():
+        source = get_chat_from_link(src_link)
         temp_data.chats_tree[source.id] = target
-        temp_data.links[source.id] = source_link
+        temp_data.links[source.id] = src_link
 
         temp_data.reposter_handlers.append(
             bot.add_handler(
@@ -1363,9 +1374,5 @@ Please create new empty group chat and send here clickable link to it. This chat
 
         pg.idle()
 
-
-c = rich.console.Console(
-    width=50
-)
 
 main()
