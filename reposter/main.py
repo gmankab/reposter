@@ -1366,12 +1366,6 @@ Please create new empty group chat and send here clickable link to it. This chat
             print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
             init_handlers()
 
-        with open('members.txt', 'w+') as file:
-            for i in bot.get_chat_members(
-                -1001695114602
-            ):
-                file.write(f'{i.user.id} @{i.user.username} {i.status} {i.custom_title} {i.privileges}\n\n')
-
         pg.idle()
 
 
