@@ -1,5 +1,17 @@
 # changelog
 
+## todo list
+
+- restreaming
+
+- recording streams
+
+- support of editing and deleting messages
+
+- chunk by chunk downloading and uploading very big files without saving them on disk
+
+- the ability to specify which messages will not be reposted using pyrogram filters
+
 ## 22.0
 
 - [backupper](https://github.com/gmankab/backupper) - legacy version of this script, no longer supported
@@ -8,10 +20,20 @@
 
 - all code fully rewritten
 
-- added support of messages with links
-
 - all settings can be changed directly in telegram, no need to edit `config.yml` manually anymore
 
-- fixed bug with square videos on ios client
+- logs are readable now
+
+- logs are only in telegram now, not in terminal
+
+- downloading or uploading progress now printing in logs
 
 - telegram session data now stored in config.yml
+
+- added support of messages with links, locations, stickers, venues
+
+- added support of messages with captions longer than 1024 symbols
+
+- now reposter on pypi.org
+
+- fixed bug with square videos on ios client

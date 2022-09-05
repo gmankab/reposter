@@ -12,8 +12,6 @@ from rich import (
 from pathlib import Path
 from rich.tree import Tree
 from betterdata import Data
-from easyselect import Selection
-from dataclasses import dataclass
 from pyrogram.handlers import MessageHandler
 from pyrogram import filters, types
 import gmanka_yml as yml
@@ -21,13 +19,16 @@ import pyrogram as pg
 import subprocess
 import humanize
 import platform
-import asyncio
 import rich
 import time
 import os
 
 
 class PollException(Exception):
+    pass
+
+
+class UnsupportedException(Exception):
     pass
 
 
@@ -735,32 +736,44 @@ use /help to see updated chats tree
 def forward(
     msg: types.Message,
     target: int,
+    log_msg: types.Message,
 ) -> types.Message:
+    if msg.venue:
+        # pyrogram can't copy venue, so reposter resending it
+        return resend(
+            msg = msg,
+            target = target,
+            log_msg = log_msg,
+        )
     try:
         return msg.copy(
             chat_id = target
         )
     except pg.errors.exceptions.bad_request_400.MediaInvalid:
-        return msg.forward(
-            chat_id = target
-        )
+        if msg.poll:
+            log_msg.reply(
+                text = 'pyrogram can\'t copy and send polls to private chats, so reposter forwarding it',
+                quote = True,
+            )
+            return msg.forward(
+                chat_id = target
+            )
+        else:
+            raise
 
 
 def text_wrap(
     text: str,
     chunk_size: int = 1024,
 ):
-    if text:
-        for chunk_start in range(
-            0,
-            len(text),
-            chunk_size
-        ):
-            yield text[
-                chunk_start:chunk_start + chunk_size
-            ]
-    else:
-        yield None
+    for chunk_start in range(
+        0,
+        len(text),
+        chunk_size
+    ):
+        yield text[
+            chunk_start:chunk_start + chunk_size
+        ]
 
 
 def resend_file(
@@ -768,9 +781,12 @@ def resend_file(
     target: int,
     log_msg: types.Message,
     file: types.Document,
-    send_method,
+    caption: str,
+    send_method = None,
+    input_media_method = None,
     width: int = None,
     height: int = None,
+    max_size = 1024 * 1024 * 100,
 ):
     latest_percent = None
     downloaded_file_path = None
@@ -799,8 +815,7 @@ def resend_file(
                 text = text
             )
 
-    hundred_mb = 1024 * 1024 * 100
-    if file.file_size < hundred_mb:
+    if file.file_size < max_size:
         downloaded_file = msg.download(
             in_memory = True,
             progress = progress,
@@ -825,37 +840,38 @@ def resend_file(
         quote = True,
     )
 
-    captions = list(
-        text_wrap(
-            msg.caption
-        )
-    )
     kwargs = {}
-    if captions[0]:
-        kwargs['caption'] = captions[0]
+    if caption:
+        kwargs['caption'] = caption
     if width:
         kwargs['width'] = width
     if height:
         kwargs['height'] = height
 
-    reposted_message: types.Message = send_method(
-        target,
-        downloaded_file,
-        progress = progress,
-        **kwargs,
-    )
+    if send_method:
+        new_msg: types.Message = send_method(
+            target,
+            downloaded_file,
+            progress = progress,
+            **kwargs,
+        )
+    elif input_media_method:
+        file = bot.save_file(
 
-    for caption in captions[1:]:
-        reposted_message.reply(
-            text = caption,
-            quote = True,
+        )
+        new_msg = input_media_method(
+            media = downloaded_file,
+        )
+    else:
+        raise AttributeError(
+            'send_method or input_media_method must be specified'
         )
 
     if downloaded_file_path:
         downloaded_file_path.unlink(
             missing_ok = True,
         )
-    return reposted_message
+    return new_msg
 
 
 def resend(
@@ -863,10 +879,23 @@ def resend(
     target: int,
     log_msg: types.Message,
 ) -> types.Message:
+    if msg.caption:
+        captions = list(
+            text_wrap(
+                msg.caption
+            )
+        )
+        first_caption = captions[0]
+        other_captions = captions[1:]
+    else:
+        first_caption = None
+        other_captions = []
+
     kwargs = {
         'msg': msg,
         'target': target,
         'log_msg': log_msg,
+        'caption': first_caption,
     }
     if msg.poll:
         try:
@@ -875,27 +904,28 @@ def resend(
                 options.append(
                     option.text
                 )
-            return bot.send_poll(
+            new_msg = bot.send_poll(
                 chat_id = target,
                 question = msg.poll.question,
                 options = options,
+                allows_multiple_answers = msg.poll.allows_multiple_answers,
             )
         except Exception as exc:
             raise PollException from exc
     if msg.document:
-        return resend_file(
+        new_msg = resend_file(
             **kwargs,
             file = msg.document,
             send_method = bot.send_document,
         )
     elif msg.photo:
-        return resend_file(
+        new_msg = resend_file(
             **kwargs,
             file = msg.photo,
             send_method = bot.send_photo,
         )
     elif msg.video:
-        return resend_file(
+        new_msg = resend_file(
             **kwargs,
             file = msg.video,
             send_method = bot.send_video,
@@ -903,34 +933,79 @@ def resend(
             height = msg.video.height,
         )
     elif msg.video_note:
-        return resend_file(
+        new_msg = resend_file(
             **kwargs,
             file = msg.video_note,
             send_method = bot.send_video_note,
         )
     elif msg.voice:
-        return resend_file(
+        new_msg = resend_file(
             **kwargs,
             file = msg.voice,
             send_method = bot.send_voice,
         )
     elif msg.animation:
-        return resend_file(
+        new_msg = resend_file(
             **kwargs,
             file = msg.animation,
             send_method = bot.send_animation,
             width = msg.animation.width,
             height = msg.animation.height,
         )
+    elif msg.location:
+        new_msg = bot.send_location(
+            chat_id = target,
+            latitude = msg.location.latitude,
+            longitude = msg.location.longitude,
+        )
+    elif msg.venue:
+        foursquare_id = msg.venue.foursquare_id or ""
+        foursquare_type = msg.venue.foursquare_type or ""
+
+        print(foursquare_id)
+        print(foursquare_type)
+
+        new_msg = bot.send_venue(
+            chat_id = target,
+            latitude = msg.venue.location.latitude,
+            longitude = msg.venue.location.longitude,
+            title = msg.venue.title,
+            address = msg.venue.address,
+            foursquare_id = foursquare_id,
+            foursquare_type = foursquare_type,
+        )
+    elif msg.contact:
+        new_msg = bot.send_contact(
+            chat_id = target,
+            phone_number = msg.contact.phone_number,
+            first_name = msg.contact.first_name,
+            last_name = msg.contact.last_name,
+            vcard = msg.contact.vcard,
+        )
+    elif msg.sticker:
+        new_msg = bot.send_sticker(
+            chat_id = target,
+            sticker = msg.sticker.file_id,
+        )
     elif msg.text:
-        return bot.send_message(
+        new_msg = bot.send_message(
             text = msg.text,
             chat_id = target,
         )
-    else:
-        raise Exception(
+    elif msg.media:
+        raise UnsupportedException(
             f'media type {msg.media} is unsupported by reposter'
         )
+    else:
+        raise UnsupportedException(
+            'this message is unsupported by reposter'
+        )
+    for caption in other_captions:
+        new_msg.reply(
+            text = caption,
+            quote = True,
+        )
+    return new_msg
 
 
 def print_poll_exception(
@@ -975,7 +1050,7 @@ def recursive_repost(
             try:
                 if is_media_group:
                     new_msg = resend_media_group(
-                        msg = src_msg,
+                        src_media = src_msg.get_media_group(),
                         target = target,
                     )
                 else:
@@ -1004,6 +1079,7 @@ def recursive_repost(
                 new_msg = forward(
                     msg = src_msg,
                     target = target,
+                    log_msg = log_msg,
                 )
 
         if success:
@@ -1089,6 +1165,7 @@ def clean_media_group(
         )
         local_dict['log_msg'].reply(
             text = f'''
+got \
 {local_dict["count"] - len(local_dict['msgs'])}\
 /\
 {local_dict["count"]}
@@ -1120,10 +1197,17 @@ error:
 
 
 def resend_media_group(
-    msg: types.Message,
+    src_media: types.Message,
     target: int,
 ) -> list[types.Message]:
-    return msg
+    msg: types.Message = None
+    new_media = []
+    for msg in src_media:
+        pass
+    return bot.send_media_group(
+        chat_id = target,
+        media = new_media,
+    )
 
 
 def forward_media_group(
@@ -1145,6 +1229,11 @@ def init_recursive_repost(
     targets: dict = temp_data.chats_tree[src_msg.chat.id]
     src_link = temp_data.links[src_msg.chat.id]
     msg_link = get_msg_link(src_msg)
+    if msg_link:
+        text = f'got message https://{msg_link}'
+    else:
+        text = f'got message https://{src_msg.id} in {src_link}'
+    c.log(text)
     if src_msg.media_group_id:
         if src_msg.media_group_id not in temp_data.media_groups:
             log_msg = get_media_group(src_msg)
@@ -1158,11 +1247,6 @@ def init_recursive_repost(
         time.sleep(2)
         clean_media_group(src_msg)
         return
-    if msg_link:
-        text = f'got message {msg_link}'
-    else:
-        text = f'got message {src_msg.id} in {src_link}'
-    c.log(text)
     log_msg = bot.send_message(
         chat_id = temp_data.logs_chat.id,
         text = text
