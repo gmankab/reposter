@@ -778,16 +778,15 @@ def text_wrap(
 
 def resend_file(
     msg: types.Message,
-    target: int,
     log_msg: types.Message,
     file: types.Document,
-    caption: str,
-    send_method = None,
-    input_media_method = None,
+    send_method,
+    caption: str = None,
+    target: int = None,
     width: int = None,
     height: int = None,
     max_size = 1024 * 1024 * 100,
-):
+) -> types.Message | types.Document:
     latest_percent = None
     downloaded_file_path = None
     humanized_size = humanize.naturalsize(
@@ -841,31 +840,24 @@ def resend_file(
     )
 
     kwargs = {}
+    args = []
     if caption:
         kwargs['caption'] = caption
     if width:
         kwargs['width'] = width
     if height:
         kwargs['height'] = height
-
-    if send_method:
-        new_msg: types.Message = send_method(
-            target,
-            downloaded_file,
-            progress = progress,
-            **kwargs,
-        )
-    elif input_media_method:
-        file = bot.save_file(
-
-        )
-        new_msg = input_media_method(
-            media = downloaded_file,
-        )
+    if target:
+        args.append(target)
     else:
-        raise AttributeError(
-            'send_method or input_media_method must be specified'
-        )
+        kwargs['quote'] = True
+
+    new_msg: types.Message = send_method(
+        *args,
+        downloaded_file,
+        progress = progress,
+        **kwargs,
+    )
 
     if downloaded_file_path:
         downloaded_file_path.unlink(
@@ -897,6 +889,7 @@ def resend(
         'log_msg': log_msg,
         'caption': first_caption,
     }
+
     if msg.poll:
         try:
             options = []
@@ -944,6 +937,12 @@ def resend(
             file = msg.voice,
             send_method = bot.send_voice,
         )
+    elif msg.audio:
+        new_msg = resend_file(
+            **kwargs,
+            file = msg.audio,
+            send_method = bot.send_audio,
+        )
     elif msg.animation:
         new_msg = resend_file(
             **kwargs,
@@ -961,10 +960,6 @@ def resend(
     elif msg.venue:
         foursquare_id = msg.venue.foursquare_id or ""
         foursquare_type = msg.venue.foursquare_type or ""
-
-        print(foursquare_id)
-        print(foursquare_type)
-
         new_msg = bot.send_venue(
             chat_id = target,
             latitude = msg.venue.location.latitude,
@@ -1052,6 +1047,7 @@ def recursive_repost(
                     new_msg = resend_media_group(
                         src_media = src_msg.get_media_group(),
                         target = target,
+                        log_msg = log_msg,
                     )
                 else:
                     new_msg = resend(
@@ -1197,17 +1193,81 @@ error:
 
 
 def resend_media_group(
-    src_media: types.Message,
+    src_media: list[types.Message],
     target: int,
+    log_msg: types.Message,
 ) -> list[types.Message]:
     msg: types.Message = None
     new_media = []
+    other_captions = []
     for msg in src_media:
-        pass
+        if msg.caption:
+            captions = list(
+                text_wrap(
+                    msg.caption
+                )
+            )
+            first_caption = captions[0]
+            other_captions += captions[1:]
+        else:
+            first_caption = None
+
+        kwargs = {
+            'msg': msg,
+            'log_msg': log_msg,
+        }
+        if msg.photo:
+            temp_msg: types.Message = resend_file(
+                **kwargs,
+                file = msg.photo,
+                send_method = log_msg.reply_photo,
+            )
+            new_media.append(
+                types.InputMediaPhoto(
+                    media = temp_msg.photo.file_id,
+                    caption = first_caption,
+                )
+            )
+        elif msg.video:
+            temp_msg: types.Message = resend_file(
+                **kwargs,
+                file = msg.video,
+                send_method = log_msg.reply_video,
+            )
+            new_media.append(
+                types.InputMediaVideo(
+                    media = temp_msg.video.file_id,
+                    caption = first_caption,
+                )
+            )
+        elif msg.audio:
+            temp_msg: types.Message = resend_file(
+                **kwargs,
+                file = msg.audio,
+                send_method = log_msg.reply_audio,
+            )
+            new_media.append(
+                types.InputMediaAudio(
+                    media = temp_msg.audio.file_id,
+                    caption = first_caption,
+                )
+            )
+        elif msg.document:
+            temp_msg: types.Message = resend_file(
+                **kwargs,
+                file = msg.document,
+                send_method = log_msg.reply_document,
+            )
+            new_media.append(
+                types.InputMediaDocument(
+                    media = temp_msg.document.file_id,
+                    caption = first_caption,
+                )
+            )
     return bot.send_media_group(
         chat_id = target,
         media = new_media,
-    )
+    )[0]
 
 
 def forward_media_group(
