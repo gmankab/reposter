@@ -355,11 +355,11 @@ def recursive_tree_builder(
                 previous = child_previous,
             )
         else:
-            remove_command = f'``/remove {previous_str}`'
+            remove_command = f'`[/remove {previous_str}]'
             child_tree.add(
                 remove_command
             )
-        add_command = f'``/add_target {previous_str} -> TARGET`'
+        add_command = f'`[/add_target {previous_str} -> TARGET]'
         child_tree.add(
             add_command
         )
@@ -367,21 +367,55 @@ def recursive_tree_builder(
 
 def build_chat_tree() -> None:
     tree_dict = config.chats_tree
-    tree = Tree(label = 'chats tree')
+    tree = Tree(label = 'chats tree', hide_root = True)
     recursive_tree_builder(
         local_tree = tree,
         local_tree_dict = tree_dict,
         previous = []
     )
     with c.capture() as capture:
-        for child in tree.children:
-            c.print(
-                child,
-                # soft_wrap = True,
-                overflow = 'ignore',
-                crop = False,
+        c.print(
+            tree,
+            markup = False,
+        )
+
+    tree = capture.get()
+
+    print(
+        tree,
+        markup = False,
+        soft_wrap = True,
+    )
+
+    while '[' in tree:
+        start = tree.find('[')
+        end = tree.find(']')
+        peace = tree[start:end + 1]
+
+        new_peace = peace
+        for i in (
+            '\n',
+            '│       ',
+            '│   ',
+        ):
+            while i in new_peace:
+                new_peace = new_peace.replace(
+                    i,
+                    ''
+                )
+
+        tree = tree.replace(
+            peace,
+            new_peace.replace(
+                '[',
+                '`',
+            ).replace(
+                ']',
+                '`',
             )
-    return '`' + capture.get().replace(
+        )
+
+    return '`' + tree.replace(
         '\n',
         '\n`'
     ).replace(
