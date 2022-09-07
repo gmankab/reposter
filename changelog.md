@@ -37,3 +37,5 @@
 - now reposter on pypi.org
 
 - fixed bug with square videos on ios client
+
+- recursive reposts support: source -> target1 -> target2 -> target3
