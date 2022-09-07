@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+dependencies = [
+  "rich",
+  "betterdata",
+  "easyselect",
+  "pyrogram",
+  "gmanka_yml",
+  "humanize",
+]
+name = "reposter"
+version = "version"
+authors = [
+  { name="gmanka", email="gmankab@gmail.com" },
+]
+description = "python script for reposting messages from telegram channels"
+readme = "readme.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/gmankab/reposter"
+"Documentation" = "https://github.com/gmankab/reposter"
+"Bug Tracker" = "https://github.com/gmankab/reposter/issues"

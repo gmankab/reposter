@@ -1,6 +1,12 @@
 # changelog
 
-## todo list
+## known bugs
+
+- looped start with non-english folder names on windows
+
+- edited or deleted messages are ignored
+
+## future plans
 
 - restreaming
 

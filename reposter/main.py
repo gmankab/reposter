@@ -1,4 +1,8 @@
 #!/bin/python
+
+# license: gnu gpl 3 https://gnu.org/licenses/gpl-3.0.en.html
+# sources: https://github.com/gmankab/reposter
+
 from setup import (
     app_version,
     app_name,
@@ -214,6 +218,8 @@ def run(
 
 
 def init_config() -> None:
+    if config['app_version'] != app_version:
+        config['app_version'] = app_version
     for item in (
         'api_id',
         'api_hash',
