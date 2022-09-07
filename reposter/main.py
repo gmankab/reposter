@@ -170,6 +170,8 @@ def get_chat_from_link(
 def parse_chat_link(
     chat_link: str
 ) -> types.Chat | str:
+    if not chat_link:
+        return chat_link
     chat_id = None
     if chat_link[:6] == 't.me/+':
         pass
@@ -261,7 +263,7 @@ def init_config() -> None:
 
 
 def self_username() -> None:
-    self_chat = bot.get_chat('me')
+    self_chat = temp_data.me
     if self_chat.username:
         return 'https://t.me/' + self_chat.username
     else:
@@ -282,6 +284,8 @@ def init_set_logs_chat(
     _,
     msg: types.Message
 ) -> None:
+    if msg.chat.id != temp_data.me.id:
+        return
     reply = applying(msg)
     chat_link = clean_link(
         msg.text
@@ -1372,6 +1376,8 @@ def init_recursive_repost(
 def clean_link(
     link: str,
 ) -> str:
+    if not link:
+        return
     return str(
         link.replace(
             'https://',
@@ -1529,6 +1535,7 @@ def main() -> None:
         first_start = True
 
     with bot:
+        temp_data['me'] = bot.get_chat('me')
         if first_start:
             config['tg_session'] = bot.export_session_string()
         if not config['logs_chat']:

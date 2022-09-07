@@ -18,6 +18,10 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.0.3
+
+- fixed crash when logs chan not specified and you trying to kick any member from any chat
+
 ## 22.0.2
 
 - fixed start on windows
