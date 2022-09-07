@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/gmankab/reposter/main/reposter/icon.ico" width="128"/>
+  <img src="https://raw.githubusercontent.com/gmankab/reposter/main/reposter/icon.png" />
 </p>
 
 # reposter
