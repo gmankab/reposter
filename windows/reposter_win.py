@@ -96,16 +96,16 @@ import site
         ignore_errors=True
     )
 
-    for file_name in os.listdir(proj_path):
-        if (
-            len(file_name) > 10
-        ) and (
-            file_name[-10:] == '.dist-info'
-        ):
-            sh.rmtree(
-                f'{proj_path}/{file_name}',
-                ignore_errors=True,
-            )
+    # for file_name in os.listdir(proj_path):
+    #     if (
+    #         len(file_name) > 10
+    #     ) and (
+    #         file_name[-10:] == '.dist-info'
+    #     ):
+    #         sh.rmtree(
+    #             f'{proj_path}/{file_name}',
+    #             ignore_errors=True,
+    #         )
 
     restart_script = f'{sys.executable} {" ".join(sys.argv)}'
     print(f'restarting script with command:\n{restart_script}')

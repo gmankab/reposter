@@ -11,7 +11,6 @@ import os
 app_version = '22.0.0'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
-icon_ico_source = f'{proj_path}/icon.ico'
 c = rich.console.Console()
 print = c.print
 portable = 'portable' in sys.argv
@@ -67,7 +66,7 @@ Exec=/bin/python -m {app_name}
 '''
         )
 
-    icon_source = Path(f'{proj_path}/icon.svg')
+    icon_source = Path(f'{proj_path}/icons/icon.svg')
     icon_target = Path(f'{share}/icons/{app_name}.svg')
     icon_target.parent.mkdir(
         parents=True,
@@ -117,7 +116,7 @@ def windows():
         return
 
     icon_source = Path(
-        f'{proj_path}/icon.ico'
+        f'{proj_path}/icons/icon.ico'
     )
 
     home = os.environ["USERPROFILE"]
