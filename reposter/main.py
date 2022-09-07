@@ -3,12 +3,20 @@
 # license: gnu gpl 3 https://gnu.org/licenses/gpl-3.0.en.html
 # sources: https://github.com/gmankab/reposter
 
-from setup import (
-    app_version,
-    app_name,
-    proj_path,
-    portable,
-)
+try:
+    from setup import (
+        app_version,
+        app_name,
+        proj_path,
+        portable,
+    )
+except ModuleNotFoundError:
+    from reposter.setup import (
+        app_version,
+        app_name,
+        proj_path,
+        portable,
+    )
 from rich import (
     pretty,
     traceback,

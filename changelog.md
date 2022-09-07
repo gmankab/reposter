@@ -18,9 +18,11 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
-## 22.0.1
+## 22.0.2
 
 - fixed start on windows
+
+- fixed tgcrypto missing error
 
 ## 22.0
 
