@@ -42,7 +42,7 @@
 
 - logs are only in telegram now, not in terminal
 
-- downloading or uploading progress now printing in logs
+- progress of file downloading/uploading now printed in logs
 
 - telegram session data now stored in config.yml
 
