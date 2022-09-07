@@ -18,6 +18,10 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.0.1
+
+- fixed start on windows
+
 ## 22.0
 
 - [backupper](https://github.com/gmankab/backupper) - legacy version of this script, no longer supported
