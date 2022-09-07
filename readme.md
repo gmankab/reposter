@@ -1,8 +1,6 @@
 # reposter
 
-<p align="center">
-  <img src="reposter/icon.svg" width="128" height="128">
-</p>
+<img src="reposter/icon.svg" width="256" height="256">
 
 python script for reposting messages from telegram channels
 
