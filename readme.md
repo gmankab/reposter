@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/f1JlUbI.png" />
+  <img src="https://i.imgur.com/8aQf6On.png" />
 </p>
 
 # reposter
