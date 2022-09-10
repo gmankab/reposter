@@ -6,16 +6,18 @@
 try:
     from setup import (
         app_version,
-        app_name,
+        yes_or_no,
         proj_path,
+        app_name,
         portable,
         run,
     )
 except ModuleNotFoundError:
     from reposter.setup import (
         app_version,
-        app_name,
+        yes_or_no,
         proj_path,
+        app_name,
         portable,
         run,
     )
@@ -38,7 +40,6 @@ import rich
 import time
 import sys
 import os
-
 
 class PollException(Exception):
     pass
@@ -72,6 +73,8 @@ if os_name == 'Linux':
     os_name = platform.freedesktop_os_release()['PRETTY_NAME']
 os_name = f'{os_name} {platform.release()}'
 python_imp = f'{platform.python_implementation()} {platform.python_version()}'
+pip = f'{sys.executable} -m pip'
+
 
 app_full_name = f'''\
 gmanka {app_name} {app_version},
@@ -223,6 +226,21 @@ def parse_chat_link(
 
 
 def init_config() -> None:
+    if (
+        not portable
+    ) and (
+        'not found' in run(
+            f'{pip} show reposter'
+        )
+    ):
+        config['check_updates'] = False
+    if 'check_updates' not in config:
+        print('[deep_sky_blue1]do you want to check app updates on start?')
+        if yes_or_no.choose() == 'yes':
+            config['check_updates'] = True
+        else:
+            config['check_updates'] = False
+
     if config['app_version'] != app_version:
         config['app_version'] = app_version
     for item in (
@@ -839,7 +857,7 @@ def resend_file(
         quote = True,
     )
 
-    def progress(
+    def bot_progress(
         current: int,
         total: int,
     ):
@@ -858,7 +876,7 @@ def resend_file(
     if file.file_size < max_size:
         downloaded_file = msg.download(
             in_memory = True,
-            progress = progress,
+            progress = bot_progress,
         )
     else:
         cache_path.mkdir(
@@ -1499,40 +1517,28 @@ def init_handlers() -> None:
 
 
 def update_app():
-    if (
-        not portable
-    ) and (
-        '-m' not in sys.argv
-    ):
-        print(
-            '[red]app runned not as python module'
-        )
+    if not config.check_updates:
         return
     print('[deep_sky_blue1]checking for updates')
     with progress.Progress(
         transient=True
     ) as progr:
-        updating = progr.add_task(
+        progr.add_task(
             total = None,
             description = ''
         )
-        pip = f'{sys.executable} -m pip'
-        command = f'{pip} install {app_name} -t {proj_path.parent.resolve()} --no-warn-script-location'
+        command = f'{pip} install --upgrade {app_name} --no-warn-script-location'
+        if portable:
+            command += f' -t {proj_path.parent.resolve()}'
         output = run(
             command
         )
-        print(output)
+        progr.stop()
+        # print(output)
         if 'Successfully installed' in output:
             print(output)
         else:
             print('updates not found')
-        time.sleep(2)
-        progr.stop()
-
-    print(sys.argv)
-
-
-update_app()
 
 
 def main() -> None:
@@ -1593,3 +1599,7 @@ Please create new empty group chat and send here clickable link to it. This chat
             init_handlers()
 
         pg.idle()
+
+
+init_config()
+update_app()
