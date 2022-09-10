@@ -1,19 +1,22 @@
-from rich import traceback
 from pathlib import Path
 from easyselect import Selection
 import shutil as sh
+import subprocess as sp
 import platform
+import json
 import rich
+import time
 import sys
 import os
 
 
-app_version = '22.0.3'
+app_version = '22.1.1 beta'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 c = rich.console.Console()
 print = c.print
 portable = 'portable' in sys.argv
+run_st = sp.getstatusoutput
 
 
 yes_or_no = Selection(
@@ -34,6 +37,14 @@ def main():
             linux()
         case 'Windows':
             windows()
+
+
+def run(
+    command: str
+) -> str:
+    return run_st(
+        command
+    )[-1]
 
 
 def linux():

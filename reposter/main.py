@@ -9,6 +9,7 @@ try:
         app_name,
         proj_path,
         portable,
+        run,
     )
 except ModuleNotFoundError:
     from reposter.setup import (
@@ -16,23 +17,26 @@ except ModuleNotFoundError:
         app_name,
         proj_path,
         portable,
+        run,
     )
 from rich import (
     pretty,
     traceback,
+    progress,
 )
 from pathlib import Path
 from rich.tree import Tree
 from betterdata import Data
 from pyrogram.handlers import MessageHandler
+from concurrent.futures import ThreadPoolExecutor
 from pyrogram import filters, types
 import gmanka_yml as yml
 import pyrogram as pg
-import subprocess
 import humanize
 import platform
 import rich
 import time
+import sys
 import os
 
 
@@ -51,7 +55,6 @@ traceback.install(
 c = rich.console.Console()
 print = c.print
 pp = pretty.pprint
-run_st = subprocess.getstatusoutput
 config_path = Path(
     f'{proj_path}/config.yml'
 )
@@ -70,7 +73,7 @@ if os_name == 'Linux':
 os_name = f'{os_name} {platform.release()}'
 python_imp = f'{platform.python_implementation()} {platform.python_version()}'
 
-app_full_name = f'''
+app_full_name = f'''\
 gmanka {app_name} {app_version},
 pyrogram {pg.__version__},
 {python_imp}\
@@ -83,7 +86,7 @@ t.me/chat_name
 t.me/+6XqO65TrfatjNGU6
 webz.telegram.org/#-1657778608
 '''
-acceptable_links_list = [
+acceptable_links_examples = [
     '@chat_name',
     't.me/chat_name',
     't.me/+6XqO65TrfatjNGU6',
@@ -96,7 +99,7 @@ if portable:
 start_message = f'{app_full_name},\n{os_name}'
 
 
-print(
+c.log(
     start_message,
     highlight = False,
 )
@@ -217,14 +220,6 @@ def parse_chat_link(
         return chat
     else:
         return f'{chat_link} is a bad link'
-
-
-def run(
-    command: str
-) -> str:
-    return run_st(
-        command
-    )[-1]
 
 
 def init_config() -> None:
@@ -399,12 +394,6 @@ def build_chat_tree() -> None:
 
     tree = capture.get()
 
-    print(
-        tree,
-        markup = False,
-        soft_wrap = True,
-    )
-
     while '[' in tree:
         start = tree.find('[')
         end = tree.find(']')
@@ -563,7 +552,7 @@ you must paste link to chat after "{msg.text}"
 
 examples:
 '''
-            for link in acceptable_links_list:
+            for link in acceptable_links_examples:
                 text += f'{msg.text} {link}\n'
             msg.reply(
                 text,
@@ -1489,6 +1478,7 @@ def init_handlers() -> None:
         bot.get_chat_member(
             logs_chat.id, 'gmanka_bot'
         )
+
     except pg.errors.exceptions.bad_request_400.UserNotParticipant:
         bot.add_chat_members(
             chat_id = logs_chat.id,
@@ -1506,6 +1496,43 @@ def init_handlers() -> None:
     )
     refresh_config_handlers()
     refresh_reposter_handlers()
+
+
+def update_app():
+    if (
+        not portable
+    ) and (
+        '-m' not in sys.argv
+    ):
+        print(
+            '[red]app runned not as python module'
+        )
+        return
+    print('[deep_sky_blue1]checking for updates')
+    with progress.Progress(
+        transient=True
+    ) as progr:
+        updating = progr.add_task(
+            total = None,
+            description = ''
+        )
+        pip = f'{sys.executable} -m pip'
+        command = f'{pip} install {app_name} -t {proj_path.parent.resolve()} --no-warn-script-location'
+        output = run(
+            command
+        )
+        print(output)
+        if 'Successfully installed' in output:
+            print(output)
+        else:
+            print('updates not found')
+        time.sleep(2)
+        progr.stop()
+
+    print(sys.argv)
+
+
+update_app()
 
 
 def main() -> None:
@@ -1566,6 +1593,3 @@ Please create new empty group chat and send here clickable link to it. This chat
             init_handlers()
 
         pg.idle()
-
-
-main()

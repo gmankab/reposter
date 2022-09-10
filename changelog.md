@@ -18,6 +18,12 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.0
+
+- python version updated from 3.10.6 to 3.10.7 for windows launcher
+
+- removed useless prints in chat
+
 ## 22.0.3
 
 - fixed crash when logs chan not specified and you trying to kick any member from any chat
@@ -28,7 +34,7 @@
 
 - fixed tgcrypto missing error
 
-## 22.0
+## 22.0.0
 
 - [backupper](https://github.com/gmankab/backupper) - legacy version of this script, no longer supported
 
@@ -43,6 +49,8 @@
 - logs are only in telegram now, not in terminal
 
 - progress of file downloading/uploading now printed in logs
+
+- added support of in memory downloading/uploading for files up to 100 mb
 
 - telegram session data now stored in config.yml
 

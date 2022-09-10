@@ -88,8 +88,6 @@ import site
     else:
         print(upgrade_pip)
 
-    os.system(f'{pip} config set global.no-warn-script-location true')
-
     os.system(f'{pip} install --upgrade {proj_name} -t {proj_path} --cache-dir {pip_cache_path}')
     sh.rmtree(
         pip_cache_path,
