@@ -20,9 +20,11 @@
 
 ## 22.1.0
 
-- added ability to check updates on start
+- fixed app restart method in windows launcher
 
-- python version updated from 3.10.6 to 3.10.7 for windows launcher
+- added ability to check updates on start and to update app using pip
+
+- python version updated from 3.10.6 to 3.10.7 in windows launcher
 
 - removed useless prints in chat
 
