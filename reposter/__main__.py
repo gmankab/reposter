@@ -1,4 +1,7 @@
 import sys
 
 if '-m' not in sys.argv:
-    from reposter import main
+    try:
+        from reposter import main
+    except ImportError:
+        import main

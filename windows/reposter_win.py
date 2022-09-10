@@ -88,7 +88,11 @@ import site
 
     os.system(f'{pip} install --upgrade {proj_name} -t {proj_path} --no-cache-dir')
 
-    restart_script = f'taskkill /f /pid {os.getpid()} && timeout /t 1 && {sys.executable} {" ".join(sys.argv)}'
+    restart_script = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{sys.executable} {" ".join(sys.argv)}\
+'''
     print(f'restarting script with command:\n{restart_script}')
     os.system(
         restart_script

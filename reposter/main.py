@@ -5,6 +5,7 @@
 
 try:
     from setup import (
+        modules_path,
         app_version,
         yes_or_no,
         proj_path,
@@ -14,6 +15,7 @@ try:
     )
 except ModuleNotFoundError:
     from reposter.setup import (
+        modules_path,
         app_version,
         yes_or_no,
         proj_path,
@@ -38,6 +40,7 @@ import humanize
 import platform
 import rich
 import time
+import json
 import sys
 import os
 
@@ -227,14 +230,6 @@ def parse_chat_link(
 
 
 def init_config() -> None:
-    if (
-        not portable
-    ) and (
-        'not found' in run(
-            f'{pip} show reposter'
-        )
-    ):
-        config['check_updates'] = False
     if 'check_updates' not in config:
         print('[deep_sky_blue1]do you want to check updates on start?')
         if yes_or_no.choose() == 'yes':
@@ -1518,8 +1513,8 @@ def init_handlers() -> None:
 
 
 def update_app():
-    if not config.check_updates:
-        return
+    # if not config.check_updates:
+    #     return
     print('[deep_sky_blue1]checking for updates')
     with progress.Progress(
         transient=True
@@ -1528,18 +1523,42 @@ def update_app():
             total = None,
             description = ''
         )
-        command = f'{pip} install --upgrade {app_name} --no-warn-script-location'
-        if portable:
-            command += f' -t {proj_path.parent.resolve()}'
-        output = run(
-            command
+        packages = []
+        for package in json.loads(
+            run(
+                'pip list --format=json'
+            )
+        ):
+            if package['name'] != app_name:
+                packages.append(
+                    package['name']
+                )
+
+        command = f'pip list --outdated --format=json --path {modules_path}'
+        for package in packages:
+            command += f' --exclude {package}'
+        updates_found = json.loads(
+            run(command)
         )
         progr.stop()
-        if 'Successfully installed' in output:
-            print('[bold green]updates found')
-            print(output)
-        else:
-            print('updates not found')
+
+    if not updates_found:
+        print('updates not found')
+        return
+    print(f'[green]found updates, do you want to update {app_name}?')
+    if yes_or_no.choose() == 'no':
+        return
+    update = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{pip} install --upgrade {app_name} \
+--no-warn-script-location --path {modules_path}' &&\
+{sys.executable} {proj_path}
+'''
+    print(f'restarting and updating {app_name} with command:\n{update}')
+    os.system(
+        command
+    )
 
 
 def main() -> None:
