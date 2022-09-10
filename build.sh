@@ -1,7 +1,8 @@
 #!/bin/bash
 
-rm .dist/*
+rm -r ./dist
 python -m hatchling build
-pip install ./dist/reposter*.whl --force-reinstall --no-warn-script-location
+pip uninstall reposter
+pip install ./dist/reposter*.whl --no-warn-script-location
 cd ~ || echo 'error'
 python -m reposter

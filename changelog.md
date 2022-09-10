@@ -20,6 +20,8 @@
 
 ## 22.1.0
 
+- added ability to check updates on start
+
 - python version updated from 3.10.6 to 3.10.7 for windows launcher
 
 - removed useless prints in chat

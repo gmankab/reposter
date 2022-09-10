@@ -41,6 +41,7 @@ import time
 import sys
 import os
 
+
 class PollException(Exception):
     pass
 
@@ -235,7 +236,7 @@ def init_config() -> None:
     ):
         config['check_updates'] = False
     if 'check_updates' not in config:
-        print('[deep_sky_blue1]do you want to check app updates on start?')
+        print('[deep_sky_blue1]do you want to check updates on start?')
         if yes_or_no.choose() == 'yes':
             config['check_updates'] = True
         else:
@@ -1534,8 +1535,8 @@ def update_app():
             command
         )
         progr.stop()
-        # print(output)
         if 'Successfully installed' in output:
+            print('[bold green]updates found')
             print(output)
         else:
             print('updates not found')
