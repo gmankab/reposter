@@ -61,10 +61,10 @@ c = rich.console.Console()
 print = c.print
 pp = pretty.pprint
 config_path = Path(
-    f'{proj_path}/config.yml'
+    f'{modules_path}/reposter.yml'
 )
 cache_path = Path(
-    f'{proj_path}/cache'
+    f'{modules_path}/reposter_tg_chache'
 )
 config = Data(
     file_path = config_path
@@ -103,7 +103,11 @@ acceptable_links_examples = [
 if portable:
     app_full_name = f'portable {app_full_name}'
 
-start_message = f'{app_full_name},\n{os_name}'
+start_message = f'''\
+{app_full_name},
+{os_name},
+config path - {config_path}
+'''
 
 
 c.log(
@@ -1524,23 +1528,34 @@ def update_app():
             description = ''
         )
         packages = []
-        for package in json.loads(
-            run(
-                'pip list --format=json'
+        pip_list = f'{pip} list --format=json --path {modules_path}'
+        all_packages_str = run(pip_list)
+        try:
+            all_packages = json.loads(all_packages_str)
+        except json.JSONDecodeError:
+            progr.stop()
+            print(
+                f'''
+{pip_list} command returned non-json output:
+
+{all_packages_str}
+'''
             )
-        ):
+            return
+        for package in all_packages:
             if package['name'] != app_name:
                 packages.append(
                     package['name']
                 )
 
-        command = f'pip list --outdated --format=json --path {modules_path}'
+        command = f'{pip} list --outdated --format=json --path {modules_path}'
         for package in packages:
             command += f' --exclude {package}'
-        updates_found = json.loads(
-            run(command)
-        )
+
+        updates_found_str = run(command)
+        updates_found = 'reposter' in updates_found_str
         progr.stop()
+        print(updates_found_str)
 
     if not updates_found:
         print('updates not found')
@@ -1548,16 +1563,27 @@ def update_app():
     print(f'[green]found updates, do you want to update {app_name}?')
     if yes_or_no.choose() == 'no':
         return
-    update = f'''\
+
+    match platform.system():
+        case 'Linux':
+            update = f'''\
+kill -2 {os.getpid()} && \
+sleep 1 && \
+{pip} install --upgrade {app_name} \
+--no-warn-script-location -t {modules_path} && \
+{sys.executable} {proj_path}\
+'''
+        case 'Windows':
+            update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade {app_name} \
---no-warn-script-location --path {modules_path}' &&\
-{sys.executable} {proj_path}
+--no-warn-script-location -t {modules_path} && \
+{sys.executable} {proj_path}\
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')
     os.system(
-        command
+        update
     )
 
 
@@ -1618,8 +1644,8 @@ Please create new empty group chat and send here clickable link to it. This chat
             print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
             init_handlers()
 
+        update_app()
         pg.idle()
 
 
-init_config()
-update_app()
+main()

@@ -20,9 +20,11 @@
 
 ## 22.1.0
 
-- fixed app restart method in windows launcher
+- added ability to check updates on start and ability to update app using pip
 
-- added ability to check updates on start and to update app using pip
+- default config path and cache path changed so that files are not deleted during app update
+
+- fixed app restart method in windows launcher
 
 - python version updated from 3.10.6 to 3.10.7 in windows launcher
 
