@@ -1,18 +1,10 @@
 # changelog
 
-## known bugs
-
-- looped start with non-english folder names on windows
-
-- edited or deleted messages are ignored
-
 ## future plans
 
 - restreaming
 
 - recording streams
-
-- support of editing and deleting messages
 
 - chunk by chunk downloading and uploading very big files without saving them on disk
 
@@ -22,7 +14,11 @@
 
 - added ability to check updates on start and ability to update app using pip
 
+- reposter no longer reacts to a message about a person joining a chat, changing the name of the chat, etc.
+
 - default config path and cache path changed so that files are not deleted during app update
+
+- fixed looped start with non-english folder names in windows launcher
 
 - fixed app restart method in windows launcher
 
