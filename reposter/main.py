@@ -1381,7 +1381,7 @@ def recursive_repost(
             if edited:
                 text = f'updated message {new_msg.link}'
             elif deleted:
-                text = f'deleted message {new_msg.link}'
+                text = f'marked message as deleted {new_msg.link}'
             else:
                 text = f'reposted message {new_msg.link}'
             new_log_msg = log_msg.reply(

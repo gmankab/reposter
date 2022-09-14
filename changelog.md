@@ -10,6 +10,10 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.2
+
+- typo fix
+
 ## 22.1.1
 
 - now can edit and mark as deleted 100 latest messages instead 5
