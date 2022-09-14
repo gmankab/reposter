@@ -3,14 +3,12 @@ from easyselect import Selection
 import shutil as sh
 import subprocess as sp
 import platform
-import json
 import rich
-import time
 import sys
 import os
 
 
-app_version = '22.1.0'
+app_version = '22.1.1'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()

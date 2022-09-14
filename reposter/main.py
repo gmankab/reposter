@@ -1649,7 +1649,7 @@ def init_recursive_repost(
                     'edited_times': 1,
                     'text': text,
                 }
-        while len(history[src_msg.chat.id]) > 5:
+        while len(history[src_msg.chat.id]) > 100:
             history[src_msg.chat.id].pop(
                 min(history[src_msg.chat.id].keys()),
                 None,
