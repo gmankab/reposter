@@ -23,11 +23,10 @@ except ModuleNotFoundError:
         portable,
         run,
     )
-from rich import (
-    pretty,
-    traceback,
-    progress,
-)
+
+import rich.pretty
+import rich.progress
+import rich.traceback
 from pathlib import Path
 from rich.tree import Tree
 from betterdata import Data
@@ -53,13 +52,13 @@ class UnsupportedException(Exception):
     pass
 
 
-pretty.install()
-traceback.install(
+rich.pretty.install()
+rich.traceback.install(
     show_locals=True
 )
 c = rich.console.Console()
 print = c.print
-pp = pretty.pprint
+pp = rich.pretty.pprint
 
 cache_path = Path(
     f'{modules_path}/reposter_tg_chache'
@@ -857,8 +856,7 @@ def resend_file(
     target: int = None,
     width: int = None,
     height: int = None,
-    max_size = 0,
-    # max_size = 1024 * 1024 * 100,
+    max_size = 1024 * 1024 * 100,
 ) -> types.Message | types.Document:
     latest_percent = None
     downloaded_file_path = None
@@ -879,36 +877,34 @@ def resend_file(
         percent = round(current / total * 100)
         if latest_percent != percent:
             latest_percent = percent
-            if downloaded_file_path:
-                text = f'{progress_action} {humanized_size} file `{downloaded_file_path}`:\n{percent}%'
-            else:
-                text = f'{progress_action} {humanized_size} file:\n{percent}%'
             progress_msg = progress_msg.edit_text(
-                text = text
+                text = f'{progress_action} {humanized_size} file:\n{percent}%'
             )
 
     if file.file_size < max_size:
         downloaded_file = msg.download(
             in_memory = True,
             progress = bot_progress,
+            block = True,
         )
     else:
         cache_path.mkdir(
             exist_ok = True,
             parents = True,
         )
-        if file.file_name:
-            downloaded_file_path = Path(
-                f'{cache_path}/{msg.chat.id}_{msg.id}_{file.file_name}'
-            )
-        else:
-            downloaded_file_path = Path(
-                f'{cache_path}/{msg.chat.id}_{msg.id}'
-            )
+
+        downloaded_file_path = f'{cache_path}/{msg.chat.id}_{msg.id}'
+        if msg.photo:
+            downloaded_file_path += '.jpg'
+        elif 'file_name' in file.__dict__.keys():
+            downloaded_file_path += f'_{file.file_name}'
+        downloaded_file_path = Path(downloaded_file_path)
+
         downloaded_file = msg.download(
-            in_memory = False,
-            progress = progress,
+            progress = bot_progress,
             file_name = downloaded_file_path,
+            in_memory = False,
+            block = True,
         )
 
     progress_action = 'uploading'
@@ -916,7 +912,6 @@ def resend_file(
         text = f'uploading {humanized_size} file...',
         quote = True,
     )
-    print(downloaded_file)
     kwargs = {}
     args = []
     if caption:
@@ -933,7 +928,7 @@ def resend_file(
     new_msg: types.Message = send_method(
         *args,
         downloaded_file,
-        progress = progress,
+        progress = bot_progress,
         **kwargs,
     )
 
@@ -1088,7 +1083,7 @@ def print_poll_exception(
     target_link,
     local_chats_tree,
     log_msg,
-):
+) -> types.Message:
     text = f'''
 reposter can't repost polls from restricted chat to private chats
 
@@ -1103,116 +1098,181 @@ skipping this step, trying repost from {src_link} to {", ".join(local_chats_tree
     )
 
 
+def edit(
+    target_id,
+    msg_in_history,
+    src_msg,
+) -> bool | types.Message:
+    target_msg: types.Message = bot.get_messages(
+        chat_id = target_id,
+        message_ids = msg_in_history[target_id],
+    )
+    if src_msg.text != target_msg.text:
+        new_msg = target_msg.edit_text(
+            src_msg.text
+        )
+    elif src_msg.caption != target_msg.caption:
+        new_msg = target_msg.edit_caption(
+            src_msg.caption
+        )
+    else:
+        return False
+    return new_msg
+
+
+def resend_all(
+    is_media_group,
+    src_msg,
+    target_id,
+    log_msg,
+    orig,
+    msg_in_history,
+) -> bool | types.Message:
+    try:
+        if is_media_group:
+            new_msg = resend_media_group(
+                src_media = src_msg.get_media_group(),
+                target = target_id,
+                log_msg = log_msg,
+            )
+            new_media_group = new_msg.get_media_group()
+            orig_media_group = orig.get_media_group()
+            for i in range(len(orig)):
+                _orig_msg = orig_media_group[i]
+                _new_msg = new_media_group[i]
+                history[_orig_msg.chat.id][_orig_msg.id][
+                    target_id
+                ] = _new_msg.id
+            history.to_file()
+            return new_msg
+        else:
+            new_msg = resend(
+                msg = src_msg,
+                target = target_id,
+                log_msg = log_msg,
+            )
+            msg_in_history[
+                target_id
+            ] = new_msg.id
+            history.to_file()
+            return new_msg
+    except PollException:
+        return False
+
+
+def save_history(
+    target_id,
+    msg_in_history,
+    new_msg,
+    src_msg,
+    forward_func,
+) -> str:
+    try:
+        chat_msg: types.Message = bot.get_discussion_message(
+            chat_id = target_id,
+            message_id = msg_in_history[target_id],
+        )
+    except Exception:
+        # if not a channel or if has not linked chat
+        return clean_link(
+            new_msg.link
+        )
+    else:
+        info_msg: types.Message = chat_msg.reply(
+            f'{humanize.ordinal(msg_in_history["edited_times"])} message version:'
+        )
+        return clean_link(
+            forward_func(
+                msg = src_msg,
+                target = info_msg.chat.id,
+                reply_to_msg = info_msg.id,
+            ).link
+        )
+
+
 def recursive_repost(
     src_msg: types.Message,
-    targets: dict,
+    orig: types.Message,
+    targets: list[dict],
     log_msg: types.Message,
     is_media_group: bool,
     src_link: str,
-    msg_in_history: dict,
     edited: bool,
 ) -> None:
     if not targets:
         return
 
-    success = True
-    for target_link, local_chats_tree in targets.items():
-        target: int = get_chat_from_link(
-            target_link,
-        ).id
-        if (
+    if is_media_group:
+        forward_func = forward_media_group
+    else:
+        forward_func = forward
+    restricted = bool(
+        (
             src_msg.sender_chat
         ) and (
             src_msg.sender_chat.has_protected_content
-        ):
-            try:
-                if is_media_group:
-                    new_msg = resend_media_group(
-                        src_media = src_msg.get_media_group(),
-                        target = target,
-                        log_msg = log_msg,
-                    )
-                else:
-                    new_msg = resend(
-                        msg = src_msg,
-                        target = target,
-                        log_msg = log_msg,
-                    )
-                msg_in_history[
-                    target
-                ] = new_msg.id
-                history.to_file()
-
-            except PollException:
+        )
+    )
+    success = True
+    msg_in_history = history[orig.chat.id][orig.id]
+    for target in targets:
+        target_link = target['link']
+        next_chats_tree = target['next_chats_tree']
+        target_id: int = target['chat'].id
+        if edited:
+            new_msg = edit(
+                target_id,
+                msg_in_history,
+                src_msg,
+            )
+            if not new_msg:
                 success = False
+                log_msg.reply(
+                    'don\'t know what to edit'
+                )
                 new_msg = src_msg
                 new_log_msg = log_msg
-                print_poll_exception(
-                    src_link,
-                    target_link,
-                    local_chats_tree,
+        if not edited:
+            if restricted:
+                new_msg = resend_all(
+                    is_media_group,
+                    src_msg,
+                    target_id,
                     log_msg,
+                    orig,
+                    msg_in_history,
                 )
-        else:
-            if edited:
-                target_msg: types.Message = bot.get_messages(
-                    chat_id = target,
-                    message_ids = msg_in_history[target],
-                )
-                if src_msg.text != target_msg.text:
-                    new_msg = target_msg.edit_text(
-                        src_msg.text
+                if not new_msg:
+                    print_poll_exception(
+                        src_link,
+                        target_link,
+                        next_chats_tree,
+                        log_msg,
                     )
-                elif src_msg.caption != target_msg.caption:
-                    new_msg = target_msg.edit_caption(
-                        src_msg.caption
-                    )
-                else:
-                    log_msg.reply(
-                        'don\'t know what to edit'
-                    )
-                    success = False
-                    new_msg = src_link
+                    new_msg = src_msg
                     new_log_msg = log_msg
-            if not edited:
-                if is_media_group:
-                    new_msg = forward_media_group(
-                        msg = src_msg,
-                        target = target,
-                    )
-                else:
-                    new_msg: types.Message = forward(
-                        msg = src_msg,
-                        target = target,
-                        log_msg = log_msg,
-                    )
+            if not restricted:
+                new_msg: types.Message = forward_func(
+                    msg = src_msg,
+                    target = target_id,
+                    log_msg = log_msg,
+                )
                 msg_in_history[
-                    target
+                    target_id
                 ] = new_msg.id
                 history.to_file()
-        if success:
-            try:
-                chat_msg: types.Message = bot.get_discussion_message(
-                    chat_id = target,
-                    message_id = msg_in_history[target],
-                )
-            except Exception:
-                # if not a channel or if has not linked chat
-                updated_link = clean_link(
-                    new_msg.link
-                )
-            else:
-                info_msg: types.Message = chat_msg.reply(
-                    f'{humanize.ordinal(msg_in_history["edited_times"])} message version:'
-                )
-                updated_link = clean_link(
-                    forward(
-                        msg = src_msg,
-                        target = info_msg.chat.id,
-                        reply_to_msg = info_msg.id,
-                    ).link
-                )
 
+        if success and not restricted:
+            updated_link = save_history(
+                target_id,
+                msg_in_history,
+                new_msg,
+                src_msg,
+                forward_func,
+            )
+        elif success:
+            updated_link = new_msg.link
+        if success:
             if edited:
                 text = f'updated message {updated_link}'
             else:
@@ -1227,11 +1287,11 @@ def recursive_repost(
             )
         recursive_repost(
             src_msg = new_msg,
-            targets = local_chats_tree,
+            orig = orig,
+            targets = next_chats_tree,
             log_msg = new_log_msg,
             is_media_group = is_media_group,
             src_link = src_link,
-            msg_in_history = msg_in_history,
             edited = edited,
         )
 
@@ -1411,6 +1471,7 @@ def resend_media_group(
 def forward_media_group(
     msg: types.Message,
     target: int,
+    _,
 ) -> list[types.Message]:
     return bot.copy_media_group(
         chat_id = target,
@@ -1424,10 +1485,9 @@ def init_recursive_repost(
     src_msg: types.Message,
 ) -> None:
     try:
-        print(src_msg)
         if src_msg.service:
             return
-        targets: dict = temp_data.chats_tree[src_msg.chat.id]
+        targets: list = temp_data.chats_tree[src_msg.chat.id]
         src_link = temp_data.links[src_msg.chat.id]
         msg_link = get_msg_link(src_msg)
         edited = bool(src_msg.edit_date)
@@ -1472,7 +1532,6 @@ def init_recursive_repost(
                 None,
             )
         history.to_file()
-        msg_in_history = history[src_msg.chat.id][src_msg.id]
         if edited:
             if msg_link:
                 text = f'got edited message {msg_link}'
@@ -1484,35 +1543,37 @@ def init_recursive_repost(
             else:
                 text = f'got message id={src_msg.id} in {src_link}'
         c.log(text)
-        if src_msg.media_group_id:
-            if src_msg.media_group_id not in temp_data.media_groups:
-                log_msg = get_media_group(src_msg)
-                recursive_repost(
-                    src_msg = src_msg,
-                    targets = targets,
-                    log_msg = log_msg,
-                    is_media_group = True,
-                    src_link = src_link,
-                    msg_in_history = msg_in_history,
-                    edited = edited,
-                )
-            time.sleep(2)
-            clean_media_group(src_msg)
-        else:
+        if edited or not src_msg.media_group_id:
             log_msg = bot.send_message(
                 chat_id = temp_data.logs_chat.id,
                 text = text
             )
+            if edited:
+                time.sleep(4)
 
             recursive_repost(
                 src_msg = src_msg,
+                orig = src_msg,
                 targets = targets,
                 log_msg = log_msg,
                 is_media_group = False,
                 src_link = src_link,
-                msg_in_history = msg_in_history,
                 edited = edited,
             )
+        else:
+            if src_msg.media_group_id not in temp_data.media_groups:
+                log_msg = get_media_group(src_msg)
+                recursive_repost(
+                    src_msg = src_msg,
+                    orig = src_msg,
+                    targets = targets,
+                    log_msg = log_msg,
+                    is_media_group = True,
+                    src_link = src_link,
+                    edited = edited,
+                )
+            time.sleep(2)
+            clean_media_group(src_msg)
     except Exception:
         c2 = rich.console.Console(
             record = True,
@@ -1553,6 +1614,23 @@ def clean_link(
     )
 
 
+def get_chats_from_links(
+    local_chats_tree: dict
+) -> list[dict]:
+    if not local_chats_tree:
+        return {}
+    answer = []
+    for source, target in local_chats_tree.items():
+        answer.append(
+            {
+                'link': source,
+                'chat': get_chat_from_link(source),
+                'next_chats_tree': get_chats_from_links(target),
+            }
+        )
+    return answer
+
+
 def refresh_reposter_handlers() -> None:
     for handler in temp_data.reposter_handlers:
         bot.remove_handler(*handler)
@@ -1560,10 +1638,10 @@ def refresh_reposter_handlers() -> None:
     temp_data['chats_tree'] = {}
     temp_data['links'] = {}
 
-    for src_link, target in config.chats_tree.items():
-        source = get_chat_from_link(src_link)
-        temp_data.chats_tree[source.id] = target
-        temp_data.links[source.id] = src_link
+    for src_link, targets in config.chats_tree.items():
+        src_chat = get_chat_from_link(src_link)
+        temp_data.chats_tree[src_chat.id] = get_chats_from_links(targets)
+        temp_data.links[src_chat.id] = src_link
 
         for Handler in (
             MessageHandler,
@@ -1574,7 +1652,7 @@ def refresh_reposter_handlers() -> None:
                     Handler(
                         init_recursive_repost,
                         filters = filters.chat(
-                            source.id
+                            src_chat.id
                         )
                     )
                 )
@@ -1681,7 +1759,7 @@ def update_app():
     if not config.check_updates:
         return
     print('[deep_sky_blue1]checking for updates')
-    with progress.Progress(
+    with rich.progress.Progress(
         transient=True
     ) as progr:
         progr.add_task(

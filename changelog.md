@@ -12,11 +12,17 @@
 
 ## 22.1.0
 
+- added message editing history but when source chat is not restricted and target chat is a chanel and has linked chat
+
 - added ability to check updates on start and ability to update app using pip
 
 - reposter no longer reacts to a message about a person joining a chat, changing the name of the chat, etc.
 
 - default config path and cache path changed so that files are not deleted during app update
+
+- now all errors writing to error.txt file and sending to logs chat
+
+- fixed error FloodWait: Telegram says: [420 FLOOD_WAIT_X] - A wait of X seconds is required (caused by "messages.CheckChatInvite")
 
 - fixed looped start with non-english folder names in windows launcher
 
