@@ -30,7 +30,11 @@ import rich.traceback
 from pathlib import Path
 from rich.tree import Tree
 from betterdata import Data
-from pyrogram.handlers import MessageHandler, EditedMessageHandler
+from pyrogram.handlers import (
+    MessageHandler,
+    EditedMessageHandler,
+    DeletedMessagesHandler,
+)
 from concurrent.futures import ThreadPoolExecutor
 from pyrogram import filters, types
 import gmanka_yml as yml
@@ -1137,7 +1141,7 @@ def resend_all(
             )
             new_media_group = new_msg.get_media_group()
             orig_media_group = orig.get_media_group()
-            for i in range(len(orig)):
+            for i in range(len(orig_media_group)):
                 _orig_msg = orig_media_group[i]
                 _new_msg = new_media_group[i]
                 history[_orig_msg.chat.id][_orig_msg.id][
@@ -1166,14 +1170,26 @@ def save_history(
     new_msg,
     src_msg,
     forward_func,
+    log_msg,
+    is_media_group,
 ) -> str:
+    target_msg = msg_in_history[target_id]
+    if is_media_group:
+        target_msg = bot.get_messages(
+            chat_id = target_id,
+            message_ids = target_msg
+        ).get_media_group()[0].id
     try:
         chat_msg: types.Message = bot.get_discussion_message(
             chat_id = target_id,
-            message_id = msg_in_history[target_id],
+            message_id = target_msg,
         )
-    except Exception:
+    except Exception as exc:
         # if not a channel or if has not linked chat
+        log_msg.reply(
+            text = f'can\'t get linked chat message:\n\n {exc}',
+            quote = True,
+        )
         return clean_link(
             new_msg.link
         )
@@ -1190,18 +1206,95 @@ def save_history(
         )
 
 
+def forward_all(
+    src_msg,
+    target_id,
+    log_msg,
+    msg_in_history,
+    is_media_group,
+    orig,
+) -> types.Message:
+    if is_media_group:
+        new_msg: types.Message = forward_media_group(
+            msg = src_msg,
+            target = target_id,
+            log_msg = log_msg,
+        )
+        new_media_group = new_msg.get_media_group()
+        orig_media_group = orig.get_media_group()
+        for i in range(len(orig_media_group)):
+            _orig_msg = orig_media_group[i]
+            _new_msg = new_media_group[i]
+            history[_orig_msg.chat.id][_orig_msg.id][
+                target_id
+            ] = _new_msg.id
+        history.to_file()
+    if not is_media_group:
+        new_msg: types.Message = forward(
+            msg = src_msg,
+            target = target_id,
+            log_msg = log_msg,
+        )
+        msg_in_history[
+            target_id
+        ] = new_msg.id
+        history.to_file()
+    return new_msg
+
+
+def mark_deleted(
+    target_id,
+    msg_in_history,
+    log_msg,
+    is_media_group,
+) -> str:
+    target_msg = msg_in_history[target_id]
+    if is_media_group:
+        target_msg = bot.get_messages(
+            chat_id = target_id,
+            message_ids = target_msg
+        ).get_media_group()[0].id
+    text = 'message deleted'
+    new_msg = bot.send_message(
+        chat_id = target_id,
+        text = text,
+        reply_to_message_id = target_msg,
+    )
+    try:
+        chat_msg: types.Message = bot.get_discussion_message(
+            chat_id = target_id,
+            message_id = target_msg,
+        )
+    except Exception as exc:
+        # if not a channel or if has not linked chat
+        log_msg.reply(
+            text = f'can\'t get linked chat message:\n\n {exc}',
+            quote = True,
+        )
+        return new_msg
+    else:
+        chat_msg.reply(
+            text = text,
+            quote = True,
+        )
+        return new_msg
+
+
 def recursive_repost(
     src_msg: types.Message,
     orig: types.Message,
     targets: list[dict],
     log_msg: types.Message,
-    is_media_group: bool,
     src_link: str,
     edited: bool,
+    deleted: bool,
 ) -> None:
+    updated_link = None
     if not targets:
         return
-
+    is_media_group = bool(
+        src_msg.media_group_id
+    )
     if is_media_group:
         forward_func = forward_media_group
     else:
@@ -1228,11 +1321,19 @@ def recursive_repost(
             if not new_msg:
                 success = False
                 log_msg.reply(
-                    'don\'t know what to edit'
+                    'don\'t know what to edit',
+                    quote = True,
                 )
                 new_msg = src_msg
                 new_log_msg = log_msg
-        if not edited:
+        elif deleted:
+            new_msg = mark_deleted(
+                target_id,
+                msg_in_history,
+                log_msg,
+                is_media_group,
+            )
+        else:
             if restricted:
                 new_msg = resend_all(
                     is_media_group,
@@ -1252,35 +1353,37 @@ def recursive_repost(
                     new_msg = src_msg
                     new_log_msg = log_msg
             if not restricted:
-                new_msg: types.Message = forward_func(
-                    msg = src_msg,
-                    target = target_id,
-                    log_msg = log_msg,
+                new_msg = forward_all(
+                    src_msg,
+                    target_id,
+                    log_msg,
+                    msg_in_history,
+                    is_media_group,
+                    orig,
                 )
-                msg_in_history[
-                    target_id
-                ] = new_msg.id
-                history.to_file()
-
-        if success and not restricted:
-            updated_link = save_history(
+        if (
+            success
+        ) and (
+            not restricted
+        ) and (
+            not deleted
+        ):
+            save_history(
                 target_id,
                 msg_in_history,
                 new_msg,
                 src_msg,
                 forward_func,
+                log_msg,
+                is_media_group,
             )
-        elif success:
-            updated_link = new_msg.link
         if success:
             if edited:
-                text = f'updated message {updated_link}'
+                text = f'updated message {new_msg.link}'
+            elif deleted:
+                text = f'deleted message {new_msg.link}'
             else:
-                link = get_msg_link(new_msg)
-                if link:
-                    text = f'reposted to {link}'
-                else:
-                    text = f'reposted to {target_link} id=`{new_msg.id}`'
+                text = f'reposted message {new_msg.link}'
             new_log_msg = log_msg.reply(
                 text = text,
                 quote = True,
@@ -1290,9 +1393,9 @@ def recursive_repost(
             orig = orig,
             targets = next_chats_tree,
             log_msg = new_log_msg,
-            is_media_group = is_media_group,
             src_link = src_link,
             edited = edited,
+            deleted = deleted,
         )
 
 
@@ -1471,20 +1574,34 @@ def resend_media_group(
 def forward_media_group(
     msg: types.Message,
     target: int,
-    _,
+    reply_to_msg = None,
+    log_msg = None
 ) -> list[types.Message]:
     return bot.copy_media_group(
         chat_id = target,
         from_chat_id = msg.chat.id,
         message_id = msg.id,
+        reply_to_message_id = reply_to_msg,
     )[0]
 
 
 def init_recursive_repost(
     _,
     src_msg: types.Message,
+    deleted = False,
 ) -> None:
     try:
+        if isinstance(
+            src_msg,
+            list,
+        ):
+            for msg in src_msg:
+                init_recursive_repost(
+                    None,
+                    msg,
+                    deleted = True,
+                )
+            return
         if src_msg.service:
             return
         targets: list = temp_data.chats_tree[src_msg.chat.id]
@@ -1512,9 +1629,15 @@ def init_recursive_repost(
                 'text'
             ] == text:
                 return
-            history[src_msg.chat.id][src_msg.id][
-                'edited_times'
-            ] += 1
+            if src_msg.media_group_id:
+                for msg in src_msg.get_media_group():
+                    history[src_msg.chat.id][msg.id][
+                        'edited_times'
+                    ] += 1
+            else:
+                history[src_msg.chat.id][src_msg.id][
+                    'edited_times'
+                ] += 1
             history[src_msg.chat.id][src_msg.id][
                 'text'
             ] = text
@@ -1537,6 +1660,8 @@ def init_recursive_repost(
                 text = f'got edited message {msg_link}'
             else:
                 text = f'got edited message id={src_msg.id} in {src_link}'
+        elif deleted:
+            text = f'got deleted message {src_msg.link}'
         else:
             if msg_link:
                 text = f'got message {msg_link}'
@@ -1556,9 +1681,9 @@ def init_recursive_repost(
                 orig = src_msg,
                 targets = targets,
                 log_msg = log_msg,
-                is_media_group = False,
                 src_link = src_link,
                 edited = edited,
+                deleted = deleted,
             )
         else:
             if src_msg.media_group_id not in temp_data.media_groups:
@@ -1568,9 +1693,9 @@ def init_recursive_repost(
                     orig = src_msg,
                     targets = targets,
                     log_msg = log_msg,
-                    is_media_group = True,
                     src_link = src_link,
                     edited = edited,
+                    deleted = deleted,
                 )
             time.sleep(2)
             clean_media_group(src_msg)
@@ -1646,6 +1771,7 @@ def refresh_reposter_handlers() -> None:
         for Handler in (
             MessageHandler,
             EditedMessageHandler,
+            DeletedMessagesHandler,
         ):
             temp_data.reposter_handlers.append(
                 bot.add_handler(

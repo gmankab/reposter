@@ -12,11 +12,13 @@
 
 ## 22.1.0
 
+- deleted massages now marked as deleted but not deleting
+
 - added message editing history but when source chat is not restricted and target chat is a chanel and has linked chat
 
 - added ability to check updates on start and ability to update app using pip
 
-- reposter no longer reacts to a message about a person joining a chat, changing the name of the chat, etc.
+- reposter no longer reacts to a message about a person joining a chat, changing the name of the chat, etc
 
 - default config path and cache path changed so that files are not deleted during app update
 
