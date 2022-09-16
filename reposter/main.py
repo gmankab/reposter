@@ -246,6 +246,8 @@ def parse_chat_link(
 
 
 def init_config() -> None:
+    if 'edited_history' not in config:
+        config['edited_history'] = True
     if 'check_updates' not in config:
         print('[deep_sky_blue1]do you want to check updates on start?')
         if yes_or_no.choose() == 'yes':
@@ -484,6 +486,12 @@ can be changed via this commands:
 /set_can_configure_only_me
 /set_can_configure_all_members_of_this_chat
 
+save_edited_messages_history = **{config.edited_history}**
+
+can be changed via this commands:
+/save_edited_messages_history
+/do_not_save_edited_messages_history
+
 logs_chat = {config.logs_chat}
 
 can be changed via this command:
@@ -633,6 +641,46 @@ def set_can_configure_only_me(
     reply.edit_text(
         f'''\
 successfully set **can_configure** to **{config.can_configure}**
+
+use /help to configure reposter
+'''
+    )
+
+
+def set_save_edited_messages_history(
+    _,
+    msg: types.Message,
+) -> None:
+    reply: types.Message = msg.reply(
+        'applying...',
+        quote = True,
+    )
+
+    config['edited_history'] = True
+    refresh_config_handlers()
+    reply.edit_text(
+        f'''\
+successfully set **save_edited_messages_history** to **{config.edited_history}**
+
+use /help to configure reposter
+'''
+    )
+
+
+def set_do_not_save_edited_messages_history(
+    _,
+    msg: types.Message,
+) -> None:
+    reply: types.Message = msg.reply(
+        'applying...',
+        quote = True,
+    )
+
+    config['edited_history'] = False
+    refresh_config_handlers()
+    reply.edit_text(
+        f'''\
+successfully set **save_edited_messages_history** to **{config.edited_history}**
 
 use /help to configure reposter
 '''
@@ -1164,7 +1212,7 @@ def resend_all(
         return False
 
 
-def save_history(
+def save_edited_history(
     target_id,
     msg_in_history,
     new_msg,
@@ -1289,7 +1337,6 @@ def recursive_repost(
     edited: bool,
     deleted: bool,
 ) -> None:
-    updated_link = None
     if not targets:
         return
     is_media_group = bool(
@@ -1367,8 +1414,10 @@ def recursive_repost(
             not restricted
         ) and (
             not deleted
+        ) and (
+            config.edited_history
         ):
-            save_history(
+            save_edited_history(
                 target_id,
                 msg_in_history,
                 new_msg,
@@ -1832,6 +1881,10 @@ def refresh_config_handlers() -> None:
             'set_can_configure_all_members_of_this_chat',
         set_can_configure_only_me:
             'set_can_configure_only_me',
+        set_save_edited_messages_history:
+            'save_edited_messages_history',
+        set_do_not_save_edited_messages_history:
+            'do_not_save_edited_messages_history',
         show_acceptable_link_formats:
             'show_acceptable_link_formats',
         set_logs_chat:
