@@ -1,6 +1,6 @@
 # reposter
 
-<img src="reposter/icons/wide.png">
+<img src="https://github.com/gmankab/reposter/raw/main/reposter/icons/wide.png">
 
 python script for reposting messages from telegram channels
 

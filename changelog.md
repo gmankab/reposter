@@ -10,6 +10,14 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.4
+
+- updated wide logo on pypi and github
+
+## 22.1.3
+
+- added ability to disable saving edited messages history
+
 ## 22.1.2
 
 - typo fix
