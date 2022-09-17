@@ -1954,7 +1954,7 @@ def update_app():
         except json.JSONDecodeError:
             progr.stop()
             print(
-                f'''
+f'''
 {pip_list} command returned non-json output:
 
 {all_packages_str}
@@ -1978,10 +1978,18 @@ def update_app():
     if not updates_found:
         print('updates not found')
         return
-    print(f'''\
+    print(
+f'''\
 [green]found updates, do you want to update {app_name}?'
 changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
 '''
+    )
+    bot.send_message(
+        chat_id = temp_data.logs_chat.id,
+        text = f'''\
+please open console to update app
+changelog - github.com/gmankab/reposter/blob/main/changelog.md
+''',
     )
     if yes_or_no.choose() == 'no':
         return

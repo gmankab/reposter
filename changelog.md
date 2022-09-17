@@ -10,9 +10,13 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.6
+
+- link to changelog sends in logs chat if update found
+
 ## 22.1.5
 
-- now shows link to changelog id update found
+- now shows link to changelog if update found
 
 - links in logs are cleaner, just t.me instead of https://t.me
 
