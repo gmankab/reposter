@@ -10,6 +10,12 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.5
+
+- now shows link to changelog id update found
+
+- links in logs are cleaner, just t.me instead of https://t.me
+
 ## 22.1.4
 
 - updated wide logo on pypi and github

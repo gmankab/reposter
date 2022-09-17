@@ -1427,12 +1427,13 @@ def recursive_repost(
                 is_media_group,
             )
         if success:
+            link = clean_link(new_msg.link)
             if edited:
-                text = f'updated message {new_msg.link}'
+                text = f'updated message {link}'
             elif deleted:
-                text = f'marked message as deleted {new_msg.link}'
+                text = f'marked message as deleted {link}'
             else:
-                text = f'reposted message {new_msg.link}'
+                text = f'reposted message {link}'
             new_log_msg = log_msg.reply(
                 text = text,
                 quote = True,
@@ -1977,7 +1978,11 @@ def update_app():
     if not updates_found:
         print('updates not found')
         return
-    print(f'[green]found updates, do you want to update {app_name}?')
+    print(f'''\
+[green]found updates, do you want to update {app_name}?'
+changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
+'''
+    )
     if yes_or_no.choose() == 'no':
         return
 
