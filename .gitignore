@@ -3,5 +3,6 @@ __pycache__
 error.txt
 *config.*
 *.yml
+*.log
 test*
 dist

@@ -12,6 +12,10 @@
 
 ## 22.1.6
 
+- now all console logs sending in logs chat after restart
+
+## 22.1.6
+
 - link to changelog sends in logs chat if update found
 
 ## 22.1.5

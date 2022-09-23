@@ -14,7 +14,7 @@ try:
         run,
     )
 except ModuleNotFoundError:
-    from reposter.setup import (
+    from reposter.setup import (  # type: ignore
         modules_path,
         app_version,
         yes_or_no,
@@ -35,8 +35,12 @@ from pyrogram.handlers import (
     EditedMessageHandler,
     DeletedMessagesHandler,
 )
+from pyrogram import (
+    filters,
+    types,
+    errors,
+)
 from concurrent.futures import ThreadPoolExecutor
-from pyrogram import filters, types
 import gmanka_yml as yml
 import pyrogram as pg
 import humanize
@@ -60,9 +64,6 @@ rich.pretty.install()
 rich.traceback.install(
     show_locals=True
 )
-c = rich.console.Console()
-print = c.print
-pp = rich.pretty.pprint
 
 cache_path = Path(
     f'{modules_path}/reposter_tg_chache'
@@ -75,6 +76,10 @@ history_path = Path(
     f'{modules_path}/msg_history.yml'
 )
 
+log_path = Path(
+    f'{modules_path}/reposter.log'
+)
+
 config = Data(
     file_path = config_path
 )
@@ -83,6 +88,11 @@ history = Data(
 )
 temp_data = Data()
 
+c = rich.console.Console(
+    width = 80
+)
+print = c.print
+pp = rich.pretty.pprint
 bot: pg.client.Client = None
 os_name = platform.system()
 if os_name == 'Linux':
@@ -871,18 +881,25 @@ def forward(
             chat_id = target,
             reply_to_message_id = reply_to_msg,
         )
-    except pg.errors.exceptions.bad_request_400.MediaInvalid:
+    except errors.exceptions.bad_request_400.MediaInvalid:
         if msg.poll:
             log_msg.reply(
-                text = 'pyrogram can\'t copy and send polls to private chats, so reposter forwarding it',
+                text = 'pyrogram can\'t copy and send polls to private chats, so reposter will forward it',
                 quote = True,
             )
             return msg.forward(
                 chat_id = target,
-                reply_to_msg = reply_to_msg,
             )
         else:
             raise
+    # except errors.exceptions.bad_request_400.MediaCaptionTooLong:
+    #     log_msg.reply(
+    #         text = 'pyrogram can\'t forward without author long messages, so reposter forward it',
+    #         quote = True,
+    #     )
+    #     return msg.forward(
+    #         chat_id = target,
+    #     )
 
 
 def text_wrap(
@@ -1986,7 +2003,7 @@ changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
     )
     bot.send_message(
         chat_id = temp_data.logs_chat.id,
-        text = f'''\
+        text = '''\
 please open console to update app
 changelog - github.com/gmankab/reposter/blob/main/changelog.md
 ''',
@@ -2018,8 +2035,10 @@ timeout /t 1 && \
 
 
 def main() -> None:
-    init_config()
+    global print
     global bot
+    global c
+    init_config()
     if config['tg_session']:
         bot = pg.client.Client(
             name = app_name,
@@ -2069,14 +2088,29 @@ Please create new empty group chat and send here clickable link to it. This chat
                         filters = filters.chat('me'),
                     )
                 )
+
             )
         else:
             print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
             init_handlers()
+            if log_path.exists() and log_path.stat().st_size:
+                bot.send_document(
+                    document = log_path,
+                    chat_id = temp_data.logs_chat.id,
+                )
+                log_path.unlink()
 
         update_app()
-
-        pg.idle()
+        with open(
+            log_path,
+            'a'
+        ) as log:
+            c = rich.console.Console(
+                file = log,
+                width = 80,
+            )
+            print = c.print
+            pg.idle()
 
 
 main()
