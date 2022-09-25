@@ -12,6 +12,10 @@
 
 ## 22.1.6
 
+- fixed printing and logging errors
+
+## 22.1.6
+
 - now all console logs sending in logs chat after restart
 
 ## 22.1.6
