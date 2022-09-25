@@ -895,14 +895,14 @@ def forward(
             )
         else:
             raise
-    # except errors.exceptions.bad_request_400.MediaCaptionTooLong:
-    #     log_msg.reply(
-    #         text = 'pyrogram can\'t forward without author long messages, so reposter forward it',
-    #         quote = True,
-    #     )
-    #     return msg.forward(
-    #         chat_id = target,
-    #     )
+    except errors.exceptions.bad_request_400.MediaCaptionTooLong:
+        log_msg.reply(
+            text = 'pyrogram can\'t forward without author long messages, so reposter forward it',
+            quote = True,
+        )
+        return msg.forward(
+            chat_id = target,
+        )
 
 
 def text_wrap(

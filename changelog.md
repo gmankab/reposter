@@ -10,11 +10,16 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
-## 22.1.6
+## 22.1.9
+
+- fixed forwarding posts with long captions
+
+
+## 22.1.8
 
 - fixed printing and logging errors
 
-## 22.1.6
+## 22.1.7
 
 - now all console logs sending in logs chat after restart
 
