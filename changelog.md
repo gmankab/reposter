@@ -10,6 +10,10 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.10
+
+- fixed typo
+
 ## 22.1.9
 
 - fixed forwarding posts with long captions

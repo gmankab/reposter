@@ -887,7 +887,7 @@ def forward(
     except errors.exceptions.bad_request_400.MediaInvalid:
         if msg.poll:
             log_msg.reply(
-                text = 'pyrogram can\'t copy and send polls to private chats, so reposter will forward it',
+                text = 'pyrogram lib can\'t copy and send polls to private chats, so reposter will forward it',
                 quote = True,
             )
             return msg.forward(
@@ -897,7 +897,7 @@ def forward(
             raise
     except errors.exceptions.bad_request_400.MediaCaptionTooLong:
         log_msg.reply(
-            text = 'pyrogram can\'t forward without author long messages, so reposter forward it',
+            text = 'pyrogram lib can\'t forward long messages without author, so reposter forward it',
             quote = True,
         )
         return msg.forward(
