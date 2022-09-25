@@ -91,7 +91,10 @@ temp_data = Data()
 c = rich.console.Console(
     width = 80
 )
+
+c_file = None
 print = c.print
+log = c.log
 pp = rich.pretty.pprint
 bot: pg.client.Client = None
 os_name = platform.system()
@@ -132,7 +135,7 @@ config path - {config_path}
 '''
 
 
-c.log(
+log(
     start_message,
     highlight = False,
 )
@@ -1734,7 +1737,7 @@ def init_recursive_repost(
                 text = f'got message {msg_link}'
             else:
                 text = f'got message id={src_msg.id} in {src_link}'
-        c.log(text)
+        log(text)
         if edited or not src_msg.media_group_id:
             log_msg = bot.send_message(
                 chat_id = temp_data.logs_chat.id,
@@ -1767,26 +1770,27 @@ def init_recursive_repost(
             time.sleep(2)
             clean_media_group(src_msg)
     except Exception:
-        c2 = rich.console.Console(
-            record = True,
-            width = 80,
-        )
-        c2.print_exception(
-            show_locals = True,
-        )
-        error = c2.export_text()
-
         error_path = f'{proj_path}/error.txt'
         with open(
-            f'{proj_path}/error.txt',
+            error_path,
             'w',
         ) as file:
-            file.write(
-                str(error)
+            c_error = rich.console.Console(
+                width = 80,
+                file = file,
             )
+            c_error.print_exception(
+                show_locals = True
+            )
+        c.print_exception(
+            show_locals = True
+        )
+        c_file.print_exception(
+            show_locals = True
+        )
         bot.send_document(
             chat_id = temp_data.logs_chat.id,
-            document = error_path
+            document = error_path,
         )
 
 
@@ -2035,9 +2039,10 @@ timeout /t 1 && \
 
 
 def main() -> None:
+    global c_file
     global print
+    global log
     global bot
-    global c
     init_config()
     if config['tg_session']:
         bot = pg.client.Client(
@@ -2104,12 +2109,20 @@ Please create new empty group chat and send here clickable link to it. This chat
         with open(
             log_path,
             'a'
-        ) as log:
-            c = rich.console.Console(
-                file = log,
+        ) as log_file:
+            c_file = rich.console.Console(
+                file = log_file,
                 width = 80,
             )
-            print = c.print
+
+            def print(*args, **kwargs):
+                c.print(*args, **kwargs)
+                c_file.print(*args, **kwargs)
+
+            def log(*args, **kwargs):
+                c.log(*args, **kwargs)
+                c_file.log(*args, **kwargs)
+
             pg.idle()
 
 
