@@ -10,6 +10,14 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.11
+
+- now intead of text of a message reposter saving text hash in `msg_hystory.yml`
+
+- 
+
+- fixed error when message deleted but was not reposter and was not saved in `msg_hystory.yml`
+
 ## 22.1.10
 
 - fixed typo

@@ -45,6 +45,7 @@ import gmanka_yml as yml
 import pyrogram as pg
 import humanize
 import platform
+import hashlib
 import rich
 import time
 import json
@@ -204,6 +205,16 @@ def get_chat_from_link(
             )
     else:
         return bot.get_chat(chat_link)
+
+
+def get_hash(
+    string: str
+):
+    hash = hashlib.new('sha256')
+    hash.update(
+        string.encode()
+    )
+    return hash.hexdigest()
 
 
 def parse_chat_link(
@@ -1680,9 +1691,20 @@ def init_recursive_repost(
         edited = bool(src_msg.edit_date)
 
         if src_msg.caption:
-            text = str(src_msg.caption)
+            text_hash = get_hash(str(src_msg.caption))
         else:
-            text = str(src_msg.text)
+            text_hash = get_hash(str(src_msg.text))
+
+        if deleted:
+            if (
+                src_msg.chat.id not in history
+            ) or (
+                src_msg.id not in history[src_msg.chat.id]
+            ):
+                bot.send_message(
+                    chat_id = temp_data.logs_chat.id,
+                    text = f'{clean_link(src_msg.link)} message deleted but was not reposted and was not saved in {history_path}',
+                )
 
         if edited:
             if (
@@ -1692,13 +1714,15 @@ def init_recursive_repost(
             ):
                 bot.send_message(
                     chat_id = temp_data.logs_chat.id,
-                    text = f'{clean_link(src_msg.link)} edited but not in messages history',
+                    text = f'{clean_link(src_msg.link)} edited but was not reposted and was not saved in {history_path}',
                 )
                 return
+
             if history[src_msg.chat.id][src_msg.id][
-                'text'
-            ] == text:
+                'text_hash'
+            ] == text_hash:
                 return
+
             if src_msg.media_group_id:
                 for msg in src_msg.get_media_group():
                     history[src_msg.chat.id][msg.id][
@@ -1709,15 +1733,15 @@ def init_recursive_repost(
                     'edited_times'
                 ] += 1
             history[src_msg.chat.id][src_msg.id][
-                'text'
-            ] = text
+                'text_hash'
+            ] = text_hash
         else:
             if src_msg.chat.id not in history:
                 history[src_msg.chat.id] = {}
             if src_msg.id not in history[src_msg.chat.id]:
                 history[src_msg.chat.id][src_msg.id] = {
                     'edited_times': 1,
-                    'text': text,
+                    'text_hash': text_hash,
                 }
         while len(history[src_msg.chat.id]) > 100:
             history[src_msg.chat.id].pop(
