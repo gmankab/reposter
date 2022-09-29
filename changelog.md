@@ -10,13 +10,15 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.12
+
+- another time fixed error when message deleted but was not reposter and was not saved in `msg_history.yml`
+
 ## 22.1.11
 
-- now intead of text of a message reposter saving text hash in `msg_hystory.yml`
+- now intead of text of a message reposter saving text hash in `msg_history.yml`
 
-- 
-
-- fixed error when message deleted but was not reposter and was not saved in `msg_hystory.yml`
+- fixed error when message deleted but was not reposter and was not saved in `msg_history.yml`
 
 ## 22.1.10
 
@@ -25,7 +27,6 @@
 ## 22.1.9
 
 - fixed forwarding posts with long captions
-
 
 ## 22.1.8
 

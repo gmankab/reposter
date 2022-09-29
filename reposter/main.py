@@ -1696,6 +1696,7 @@ def init_recursive_repost(
             text_hash = get_hash(str(src_msg.text))
 
         if deleted:
+            time.sleep(4)
             if (
                 src_msg.chat.id not in history
             ) or (
@@ -1703,10 +1704,12 @@ def init_recursive_repost(
             ):
                 bot.send_message(
                     chat_id = temp_data.logs_chat.id,
-                    text = f'{clean_link(src_msg.link)} message deleted but was not reposted and was not saved in {history_path}',
+                    text = f'{clean_link(src_msg.link)} message deleted but was not reposted and was not saved in `{history_path}`',
                 )
+                return
 
         if edited:
+            time.sleep(4)
             if (
                 src_msg.chat.id not in history
             ) or (
@@ -1714,7 +1717,7 @@ def init_recursive_repost(
             ):
                 bot.send_message(
                     chat_id = temp_data.logs_chat.id,
-                    text = f'{clean_link(src_msg.link)} edited but was not reposted and was not saved in {history_path}',
+                    text = f'{clean_link(src_msg.link)} edited but was not reposted and was not saved in `{history_path}`',
                 )
                 return
 
@@ -1767,8 +1770,6 @@ def init_recursive_repost(
                 chat_id = temp_data.logs_chat.id,
                 text = text
             )
-            if edited:
-                time.sleep(4)
 
             recursive_repost(
                 src_msg = src_msg,
