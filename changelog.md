@@ -10,13 +10,17 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.13
+
+- updated easyselect lib
+
 ## 22.1.12
 
 - another time fixed error when message deleted but was not reposter and was not saved in `msg_history.yml`
 
 ## 22.1.11
 
-- now intead of text of a message reposter saving text hash in `msg_history.yml`
+- now instead of text of a message reposter saving text hash in `msg_history.yml`
 
 - fixed error when message deleted but was not reposter and was not saved in `msg_history.yml`
 

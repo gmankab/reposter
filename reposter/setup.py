@@ -1,5 +1,5 @@
 from pathlib import Path
-from easyselect import Selection
+from easyselect import Sel
 import shutil as sh
 import subprocess as sp
 import platform
@@ -8,7 +8,7 @@ import sys
 import os
 
 
-app_version = '22.1.12'
+app_version = '22.1.13'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
@@ -18,7 +18,7 @@ portable = 'portable' in sys.argv
 run_st = sp.getstatusoutput
 
 
-yes_or_no = Selection(
+yes_or_no = Sel(
     items = [
         'yes',
         'no',
