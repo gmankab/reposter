@@ -172,7 +172,7 @@ def is_group_owner(
         )
         if user.status != pg.enums.ChatMemberStatus.OWNER:
             return f'you are not an owner of {chat_link}'
-    except pg.errors.exceptions.bad_request_400.UserNotParticipant:
+    except errors.exceptions.bad_request_400.UserNotParticipant:
         return f'you are not a member of {chat_link}'
     return chat
 
@@ -1962,7 +1962,7 @@ def init_handlers() -> None:
             logs_chat.id, 'gmanka_bot'
         )
 
-    except pg.errors.exceptions.bad_request_400.UserNotParticipant:
+    except errors.exceptions.bad_request_400.UserNotParticipant:
         bot.add_chat_members(
             chat_id = logs_chat.id,
             user_ids = 'gmanka_bot',
@@ -2091,64 +2091,67 @@ def main() -> None:
             workers = 1,
         )
         first_start = True
+    try:
+        with bot:
+            temp_data['me'] = bot.get_chat('me')
+            if first_start:
+                config['tg_session'] = bot.export_session_string()
+            if not config['logs_chat']:
+                print(f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
 
-    with bot:
-        temp_data['me'] = bot.get_chat('me')
-        if first_start:
-            config['tg_session'] = bot.export_session_string()
-        if not config['logs_chat']:
-            print(f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
-
-            bot.send_message(
-                chat_id = 'me',
-                disable_web_page_preview = True,
-                text = f'''\
+                bot.send_message(
+                    chat_id = 'me',
+                    disable_web_page_preview = True,
+                    text = f'''\
 {start_message}
 
 Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring reposter. You must be an owner, and nobody except you must have access to this chat.
 
 {acceptable_link_formats}
 '''
-            )
+                )
 
-            temp_data.config_handlers.append(
-                bot.add_handler(
-                    MessageHandler(
-                        init_set_logs_chat,
-                        filters = filters.chat('me'),
+                temp_data.config_handlers.append(
+                    bot.add_handler(
+                        MessageHandler(
+                            init_set_logs_chat,
+                            filters = filters.chat('me'),
+                        )
                     )
+
+                )
+            else:
+                print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
+                init_handlers()
+                if log_path.exists() and log_path.stat().st_size:
+                    bot.send_document(
+                        document = log_path,
+                        chat_id = temp_data.logs_chat.id,
+                    )
+                    log_path.unlink()
+
+            update_app()
+            with open(
+                log_path,
+                'a'
+            ) as log_file:
+                c_file = rich.console.Console(
+                    file = log_file,
+                    width = 80,
                 )
 
-            )
-        else:
-            print(f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
-            init_handlers()
-            if log_path.exists() and log_path.stat().st_size:
-                bot.send_document(
-                    document = log_path,
-                    chat_id = temp_data.logs_chat.id,
-                )
-                log_path.unlink()
+                def print(*args, **kwargs):
+                    c.print(*args, **kwargs)
+                    c_file.print(*args, **kwargs)
 
-        update_app()
-        with open(
-            log_path,
-            'a'
-        ) as log_file:
-            c_file = rich.console.Console(
-                file = log_file,
-                width = 80,
-            )
+                def log(*args, **kwargs):
+                    c.log(*args, **kwargs)
+                    c_file.log(*args, **kwargs)
 
-            def print(*args, **kwargs):
-                c.print(*args, **kwargs)
-                c_file.print(*args, **kwargs)
-
-            def log(*args, **kwargs):
-                c.log(*args, **kwargs)
-                c_file.log(*args, **kwargs)
-
-            pg.idle()
+                pg.idle()
+    except errors.AuthKeyUnregistered:
+        config['tg_session'] = None
+        main()
 
 
 main()

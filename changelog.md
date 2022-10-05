@@ -10,6 +10,10 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.15
+
+- fixed crash when session expired
+
 ## 22.1.14
 
 - fixed reposting polls
