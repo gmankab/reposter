@@ -1062,7 +1062,7 @@ def resend(
             )
         except Exception as exc:
             raise PollException from exc
-    if msg.document:
+    elif msg.document:
         new_msg = resend_file(
             **kwargs,
             file = msg.document,

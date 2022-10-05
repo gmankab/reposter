@@ -10,6 +10,10 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## 22.1.14
+
+- fixed reposting polls
+
 ## 22.1.13
 
 - updated easyselect lib
