@@ -2055,7 +2055,7 @@ f'''
             update = f'''\
 kill -2 {os.getpid()} && \
 sleep 1 && \
-{pip} install --upgrade {app_name} {dependencies} \
+{pip} install --upgrade --force-reinstall {app_name} {dependencies} \
 --no-warn-script-location -t {modules_path} && \
 {sys.executable} {proj_path}\
 '''
@@ -2063,7 +2063,7 @@ sleep 1 && \
             update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{pip} install --upgrade {app_name} {dependencies} \
+{pip} install --upgrade --force-reinstall {app_name} {dependencies} \
 --no-warn-script-location -t {modules_path} && \
 {sys.executable} {proj_path}\
 '''

@@ -14,6 +14,10 @@
 
 - hyperlinks not supported
 
+## 22.1.19
+
+- another time fixed bug with updating
+
 ## 22.1.18
 
 - fixed bug with app updating
