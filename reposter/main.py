@@ -2040,12 +2040,14 @@ changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
     ) == 'no':
         return
 
+    dependencies = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
+
     match platform.system():
         case 'Linux':
             update = f'''\
 kill -2 {os.getpid()} && \
 sleep 1 && \
-{pip} install --upgrade {app_name} \
+{pip} install --upgrade {app_name} {dependencies} \
 --no-warn-script-location -t {modules_path} && \
 {sys.executable} {proj_path}\
 '''
@@ -2053,7 +2055,7 @@ sleep 1 && \
             update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{pip} install --upgrade {app_name} \
+{pip} install --upgrade {app_name} {dependencies} \
 --no-warn-script-location -t {modules_path} && \
 {sys.executable} {proj_path}\
 '''
