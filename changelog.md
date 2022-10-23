@@ -14,6 +14,10 @@
 
 - hyperlinks not supported
 
+## 22.1.18
+
+- fixed bug with app updating
+
 ## 22.1.17
 
 - now updating all libs with apps

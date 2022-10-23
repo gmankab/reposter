@@ -270,6 +270,11 @@ def parse_chat_link(
 
 
 def init_config() -> None:
+    if config['app_version'] < '22.1.18':
+        # update forced because of very important bugfix
+        update_app(
+            forced = True
+            )
     if 'edited_history' not in config:
         config['edited_history'] = True
     if 'check_updates' not in config:
@@ -1982,7 +1987,9 @@ def init_handlers() -> None:
     refresh_reposter_handlers()
 
 
-def update_app():
+def update_app(
+    forced = False
+):
     if not config.check_updates:
         return
     print('[deep_sky_blue1]checking for updates')
@@ -2025,20 +2032,21 @@ f'''
     if not updates_found:
         print('updates not found')
         return
-    bot.send_message(
-        chat_id = temp_data.logs_chat.id,
-        text = '''\
-please open console to update app
-changelog - github.com/gmankab/reposter/blob/main/changelog.md
-''',
-    )
-    if yes_or_no.choose(
-        text = f'''\
-[green]found updates, do you want to update {app_name}?'
-changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
-'''
-    ) == 'no':
-        return
+    if not forced:
+        bot.send_message(
+            chat_id = temp_data.logs_chat.id,
+            text = '''\
+    please open console to update app
+    changelog - github.com/gmankab/reposter/blob/main/changelog.md
+    ''',
+        )
+        if yes_or_no.choose(
+            text = f'''\
+    [green]found updates, do you want to update {app_name}?'
+    changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
+    '''
+        ) == 'no':
+            return
 
     dependencies = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 
