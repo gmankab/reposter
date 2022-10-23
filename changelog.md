@@ -14,6 +14,10 @@
 
 - hyperlinks not supported
 
+## 22.1.17
+
+- now updating all libs with apps
+
 ## 22.1.16
 
 - now using [curses](https://docs.python.org/3/howto/curses.html) instead of [pynput](https://pypi.org/project/pynput/) for terminal interactive input, now gnome-terminal supported
