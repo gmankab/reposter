@@ -1,7 +1,7 @@
 reposter_tg_chache
 __pycache__
-error.txt
-*config.*
+*config*
+*.txt
 *.yml
 *.log
 test*
