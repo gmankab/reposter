@@ -270,7 +270,7 @@ def parse_chat_link(
 
 
 def init_config() -> None:
-    if config['app_version'] < '22.1.18':
+    if config['app_version'] < '22.1.19':
         # update forced because of very important bugfix
         update_app(
             forced = True
@@ -1992,46 +1992,47 @@ def update_app(
 ):
     if not config.check_updates:
         return
-    print('[deep_sky_blue1]checking for updates')
-    with rich.progress.Progress(
-        transient=True
-    ) as progr:
-        progr.add_task(
-            total = None,
-            description = ''
-        )
-        packages = []
-        pip_list = f'{pip} list --format=json --path {modules_path}'
-        all_packages_str = run(pip_list)
-        try:
-            all_packages = json.loads(all_packages_str)
-        except json.JSONDecodeError:
-            progr.stop()
-            print(
-f'''
-{pip_list} command returned non-json output:
-
-{all_packages_str}
-'''
+    if not forced:
+        print('[deep_sky_blue1]checking for updates')
+        with rich.progress.Progress(
+            transient=True
+        ) as progr:
+            progr.add_task(
+                total = None,
+                description = ''
             )
-            return
-        for package in all_packages:
-            if package['name'] != app_name:
-                packages.append(
-                    package['name']
+            packages = []
+            pip_list = f'{pip} list --format=json --path {modules_path}'
+            all_packages_str = run(pip_list)
+            try:
+                all_packages = json.loads(all_packages_str)
+            except json.JSONDecodeError:
+                progr.stop()
+                print(
+    f'''
+    {pip_list} command returned non-json output:
+
+    {all_packages_str}
+    '''
                 )
+                return
+            for package in all_packages:
+                if package['name'] != app_name:
+                    packages.append(
+                        package['name']
+                    )
 
-        command = f'{pip} list --outdated --format=json --path {modules_path}'
-        for package in packages:
-            command += f' --exclude {package}'
+            command = f'{pip} list --outdated --format=json --path {modules_path}'
+            for package in packages:
+                command += f' --exclude {package}'
 
-        updates_found_str = run(command)
-        updates_found = 'reposter' in updates_found_str
-        progr.stop()
+            updates_found_str = run(command)
+            updates_found = 'reposter' in updates_found_str
+            progr.stop()
 
-    if not updates_found:
-        print('updates not found')
-        return
+        if not updates_found:
+            print('updates not found')
+            return
     if not forced:
         bot.send_message(
             chat_id = temp_data.logs_chat.id,
