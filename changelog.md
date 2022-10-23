@@ -10,6 +10,16 @@
 
 - the ability to specify which messages will not be reposted using pyrogram filters
 
+## known bugs
+
+- hyperlinks not supported
+
+## 22.1.16
+
+- now using [curses](https://docs.python.org/3/howto/curses.html) instead of [pynput](https://pypi.org/project/pynput/) for terminal interactive input, now gnome-terminal supported
+
+- fixed some typos
+
 ## 22.1.15
 
 - fixed crash when session expired

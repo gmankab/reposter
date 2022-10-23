@@ -87,23 +87,22 @@ Exec=/bin/python -m {app_name}
         icon_target,
     )
 
-    print(
+    if yes_or_no.choose(
 f'''
 [green]\
 Created file [deep_sky_blue1]{dotdesktop_path}
-
-[green]\
+[/][/]
 This script can be runned with following command:
 [deep_sky_blue1]\
 python -m {app_name}
 [/deep_sky_blue1]\
-Do you want do create shortcuts in \
+Do you want do create shortcut in \
 [deep_sky_blue1]/bin[/deep_sky_blue1]?
 Then you will be able to run this script with [deep_sky_blue1]{app_name}[/deep_sky_blue1] command
-Creating this shortcuts requires sudo\
+Creating this shortcut requires sudo\
+
 '''
-    )
-    if yes_or_no.choose() == 'no':
+    ) == 'no':
         return
     script = f'''\
 #!/bin/bash

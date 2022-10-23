@@ -273,8 +273,9 @@ def init_config() -> None:
     if 'edited_history' not in config:
         config['edited_history'] = True
     if 'check_updates' not in config:
-        print('[deep_sky_blue1]do you want to check updates on start?')
-        if yes_or_no.choose() == 'yes':
+        if yes_or_no.choose(
+            text = '[deep_sky_blue1]do you want to check updates on start?'
+        ) == 'yes':
             config['check_updates'] = True
         else:
             config['check_updates'] = False
@@ -289,7 +290,7 @@ def init_config() -> None:
             print('\nPlease open https://my.telegram.org/apps and get api_id and api_hash')
             print(
 '''\
-[bold red]WARNING:[/bold red] [bold white]use ony your own api_id and api_hash.[/bold white] I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org and on the next day and they unbanned me.
+[bold red]WARNING:[/bold red] [bold white]use only your own api_id and api_hash.[/bold white] I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org and on the next day and they unbanned me.
 ''', highlight = False
             )
             break
@@ -298,7 +299,7 @@ def init_config() -> None:
         'api_hash',
         'phone_number',
     ):
-        config.interact_input(item)
+        config.interactive_input(item)
 
     if 'chats_tree' not in config:
         config['chats_tree'] = {}
@@ -2024,12 +2025,6 @@ f'''
     if not updates_found:
         print('updates not found')
         return
-    print(
-f'''\
-[green]found updates, do you want to update {app_name}?'
-changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
-'''
-    )
     bot.send_message(
         chat_id = temp_data.logs_chat.id,
         text = '''\
@@ -2037,7 +2032,12 @@ please open console to update app
 changelog - github.com/gmankab/reposter/blob/main/changelog.md
 ''',
     )
-    if yes_or_no.choose() == 'no':
+    if yes_or_no.choose(
+        text = f'''\
+[green]found updates, do you want to update {app_name}?'
+changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
+'''
+    ) == 'no':
         return
 
     match platform.system():
@@ -2140,13 +2140,16 @@ Please create new empty group chat and send here clickable link to it. This chat
                     width = 80,
                 )
 
-                def print(*args, **kwargs):
+                def new_print(*args, **kwargs):
                     c.print(*args, **kwargs)
                     c_file.print(*args, **kwargs)
 
-                def log(*args, **kwargs):
+                def new_log(*args, **kwargs):
                     c.log(*args, **kwargs)
                     c_file.log(*args, **kwargs)
+
+                print = new_print
+                log = new_log
 
                 pg.idle()
     except errors.AuthKeyUnregistered:

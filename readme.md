@@ -10,4 +10,8 @@ installation:
 launch:  
 `python -m reposter`
 
+run linux launcher in terminal:
+``  
+or [download]() linux launcher and run it manually
+
 license: [gnu gpl 3](https://gnu.org/licenses/gpl-3.0.en.html)

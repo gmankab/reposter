@@ -1,5 +1,5 @@
 import sys
-import rich
+import rich.traceback
 rich.traceback.install()
 
 if '-m' not in sys.argv:
