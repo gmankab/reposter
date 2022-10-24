@@ -270,7 +270,10 @@ def parse_chat_link(
 
 
 def init_config() -> None:
-    if config['app_version'] < '22.1.19':
+    if config['app_version'] < '22.1.20':
+        if config['app_version'] != app_version:
+            config['app_version'] = app_version
+
         # update forced because of very important bugfix
         update_app(
             forced = True
