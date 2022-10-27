@@ -1,6 +1,7 @@
 #!/bin/bash
 
 app_name="reposter"
+requirements="betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 check_app () {
     cd "$HOME" || echo 'error'
     installed=$(python -m pip list | grep "$app_name")
@@ -10,7 +11,7 @@ check_app () {
             python -m "$app_name";;
         * )
             # echo 'not installed';;
-            python -m pip install "$app_name"
+            python -m pip install --upgrade --force-reinstall "$app_name $requirements"
             python -m "$app_name";;
     esac
         

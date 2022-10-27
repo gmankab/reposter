@@ -2056,14 +2056,14 @@ def update_app(
         ) == 'no':
             return
 
-    dependencies = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
+    requirements = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 
     match platform.system():
         case 'Linux':
             update = f'''\
 kill -2 {os.getpid()} && \
 sleep 1 && \
-{pip} install --upgrade --force-reinstall {app_name} {dependencies} \
+{pip} install --upgrade --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 {sys.executable} {proj_path}\
 '''
@@ -2071,7 +2071,7 @@ sleep 1 && \
             update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{pip} install --upgrade --force-reinstall {app_name} {dependencies} \
+{pip} install --upgrade --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 {sys.executable} {proj_path}\
 '''
