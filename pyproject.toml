@@ -14,7 +14,7 @@ dependencies = [
   "windows-curses ; platform_system==\"Windows\"",
 ]
 name = "reposter"
-version = "22.1.21"
+version = "22.1.22"
 authors = [
   { name="gmanka", email="gmankab@gmail.com" },
 ]
