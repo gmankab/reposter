@@ -11,7 +11,6 @@ dependencies = [
   "tgcrypto",
   "humanize",
   "rich",
-  "windows-curses ; platform_system==\"Windows\"",
 ]
 name = "reposter"
 version = "22.1.22"

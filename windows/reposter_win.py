@@ -86,7 +86,7 @@ import site
         print(upgrade_pip)
 
     os.system(
-        f'{pip} install --upgrade {proj_name} -t {proj_path} --no-cache-dir')
+        f'{pip} install --upgrade --force-reinstall {proj_name} -t {proj_path} --no-cache-dir')
 
     restart_script = f'''\
 taskkill /f /pid {os.getpid()} && \
