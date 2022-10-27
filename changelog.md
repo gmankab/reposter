@@ -14,6 +14,14 @@
 
 - hyperlinks not supported
 
+## 22.1.22
+
+- fixed crash in termux
+
+## 22.1.21
+
+- fixed script version checking
+
 ## 22.1.20
 
 - another time fixed bug with updating

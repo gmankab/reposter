@@ -100,7 +100,10 @@ pp = rich.pretty.pprint
 bot: pg.client.Client = None
 os_name = platform.system()
 if os_name == 'Linux':
-    os_name = platform.freedesktop_os_release()['PRETTY_NAME']
+    try:
+        os_name = platform.freedesktop_os_release()['PRETTY_NAME']
+    except Exception:
+        pass
 os_name = f'{os_name} {platform.release()}'
 python_imp = f'{platform.python_implementation()} {platform.python_version()}'
 pip = f'{sys.executable} -m pip'
