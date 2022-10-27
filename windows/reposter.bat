@@ -44,3 +44,5 @@ if not exist "%proj_py%" (
 )
 
 "%python%" "%proj_py%" portable %*
+
+pause

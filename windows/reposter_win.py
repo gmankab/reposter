@@ -12,9 +12,12 @@ print(sys.path)
 
 try:
     import reposter
-except ImportError as error_text:
-    print(error_text)
+except ImportError as error:
+    print(error)
     print(sys.path)
+    import rich.traceback
+    rich.traceback.install(show_locals=True)
+    raise error
 
     def run(
         command: str
@@ -38,7 +41,7 @@ except ImportError as error_text:
             downloading_progress = new_progress
             print(
                 f'\r{new_progress}%',
-                end = '',
+                end='',
             )
 
     pip = f'{sys.executable} -m pip'
@@ -71,9 +74,9 @@ import site
         get_pip = f'{proj_path}/get-pip.py'
         get_pip_tmp = f'{proj_path}/get-pip.tmp'
         r.urlretrieve(
-            url = 'https://bootstrap.pypa.io/get-pip.py',
-            filename = get_pip_tmp,
-            reporthook = progress,
+            url='https://bootstrap.pypa.io/get-pip.py',
+            filename=get_pip_tmp,
+            reporthook=progress,
         )
         print()
         Path(get_pip_tmp).rename(get_pip)
@@ -86,7 +89,8 @@ import site
     else:
         print(upgrade_pip)
 
-    os.system(f'{pip} install --upgrade {proj_name} -t {proj_path} --no-cache-dir')
+    os.system(
+        f'{pip} install --upgrade {proj_name} -t {proj_path} --no-cache-dir')
 
     restart_script = f'''\
 taskkill /f /pid {os.getpid()} && \
