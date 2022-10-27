@@ -1,3 +1,3 @@
 #!/bin/bash
-python reposter
-# bash linux/reposter.sh
+# python reposter
+bash linux/reposter.sh
