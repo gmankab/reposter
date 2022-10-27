@@ -8,16 +8,12 @@ import os
 proj_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 run_st = subprocess.getstatusoutput
-print(sys.path)
 
 try:
     import reposter
 except ImportError as error:
-    print(error)
     print(sys.path)
-    import rich.traceback
-    rich.traceback.install(show_locals=True)
-    raise error
+    print(error)
 
     def run(
         command: str
