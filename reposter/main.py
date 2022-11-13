@@ -4,7 +4,7 @@
 # sources: https://github.com/gmankab/reposter
 
 try:
-    from setup import (
+    from setup import (  # type: ignore
         modules_path,
         app_version,
         yes_or_no,
@@ -27,8 +27,8 @@ except ModuleNotFoundError:
 import rich.pretty
 import rich.progress
 import rich.traceback
+import rich.tree
 from pathlib import Path
-from rich.tree import Tree
 from betterdata import Data
 from pyrogram.handlers import (
     MessageHandler,
@@ -65,22 +65,21 @@ rich.pretty.install()
 rich.traceback.install(
     show_locals=True
 )
-
-cache_path = Path(
-    f'{modules_path}/reposter_tg_chache'
+c = rich.console.Console(
+    width=80
 )
-
+cache_path = Path(
+    f'{modules_path}/{app_name}_tg_chache'
+)
 config_path = Path(
-    f'{modules_path}/reposter.yml'
+    f'{modules_path}/{app_name}.yml'
 )
 history_path = Path(
     f'{modules_path}/msg_history.yml'
 )
-
 log_path = Path(
-    f'{modules_path}/reposter.log'
+    f'{modules_path}/{app_name}.log'
 )
-
 config = Data(
     file_path=config_path
 )
@@ -89,11 +88,7 @@ history = Data(
 )
 temp_data = Data()
 
-c = rich.console.Console(
-    width=80
-)
-
-c_file = None
+c_log = None
 print = c.print
 log = c.log
 pp = rich.pretty.pprint
@@ -281,8 +276,6 @@ def init_config() -> None:
         update_app(
             forced=True
         )
-    if 'edited_history' not in config:
-        config['edited_history'] = True
     if 'check_updates' not in config:
         if yes_or_no.choose(
             text='[deep_sky_blue1]do you want to check updates on start?'
@@ -293,19 +286,19 @@ def init_config() -> None:
 
     if config['app_version'] != app_version:
         config['app_version'] = app_version
-    for item in (
-        'api_id',
-        'api_hash',
+    if (
+        not config['api_id']
+    ) or (
+        not config['api_hash']
     ):
-        if not config[item]:
-            print(
-                '\nPlease open https://my.telegram.org/apps and get api_id and api_hash')
-            print(
-                '''\
+        print(
+            '\nPlease open https://my.telegram.org/apps and get api_id and api_hash')
+        print(
+            '''\
 [bold red]WARNING:[/bold red] [bold white]use only your own api_id and api_hash.[/bold white] I already tried to take them from decompiled official telegram app, and 20 minutes later my telegram account get banned. Then I wrote email with explanation on recover@telegram.org and on the next day and they unbanned me.
 ''', highlight=False
-            )
-            break
+        )
+
     for item in (
         'api_id',
         'api_hash',
@@ -313,12 +306,12 @@ def init_config() -> None:
     ):
         config.interactive_input(item)
 
+    if 'edited_history' not in config:
+        config['edited_history'] = True
     if 'chats_tree' not in config:
         config['chats_tree'] = {}
-
-    if not config['can_configure']:
+    if 'can_configure' not in config:
         config['can_configure'] = 'only_me'
-
     temp_data['config_handlers'] = []
     temp_data['reposter_handlers'] = []
     temp_data['chats_tree'] = {}
@@ -415,7 +408,7 @@ def set_logs_chat(
 
 
 def recursive_tree_builder(
-    local_tree: Tree,
+    local_tree: rich.tree.Tree,
     local_tree_dict: dict,
     previous: list
 ) -> None:
@@ -449,7 +442,7 @@ def recursive_tree_builder(
 
 def build_chat_tree() -> None:
     tree_dict = config.chats_tree
-    tree = Tree(label='chats tree', hide_root=True)
+    tree = rich.tree.Tree(label='chats tree', hide_root=True)
     recursive_tree_builder(
         local_tree=tree,
         local_tree_dict=tree_dict,
@@ -974,19 +967,19 @@ def resend_file(
         if latest_percent != percent:
             latest_percent = percent
             progress_msg = progress_msg.edit_text(
-                text=f'{progress_action} {humanized_size} file:\n{percent}%'
+                text = f'{progress_action} {humanized_size} file:\n{percent}%'
             )
 
     if file.file_size < max_size:
         downloaded_file = msg.download(
-            in_memory=True,
-            progress=bot_progress,
-            block=True,
+            in_memory = True,
+            progress = bot_progress,
+            block = True,
         )
     else:
         cache_path.mkdir(
-            exist_ok=True,
-            parents=True,
+            exist_ok = True,
+            parents = True,
         )
 
         downloaded_file_path = f'{cache_path}/{msg.chat.id}_{msg.id}'
@@ -1823,7 +1816,7 @@ def init_recursive_repost(
         c.print_exception(
             show_locals=True
         )
-        c_file.print_exception(
+        c_log.print_exception(
             show_locals=True
         )
         bot.send_document(
@@ -1995,24 +1988,29 @@ def init_handlers() -> None:
 
 
 def update_app(
-    forced=False
+    forced = False
 ):
     if not config.check_updates:
         return
     if not forced:
         print('[deep_sky_blue1]checking for updates')
         with rich.progress.Progress(
-            transient=True
+            transient = True
         ) as progr:
             progr.add_task(
-                total=None,
-                description=''
+                total = None,
+                description = ''
             )
             packages = []
             pip_list = f'{pip} list --format=json --path {modules_path}'
             all_packages_str = run(pip_list)
+            start = all_packages_str.find('[')
+            end = all_packages_str.rfind(']') + 1
+            all_packages_str = all_packages_str[start:end]
             try:
-                all_packages = json.loads(all_packages_str)
+                all_packages = json.loads(
+                    all_packages_str
+                )
             except json.JSONDecodeError:
                 progr.stop()
                 print(
@@ -2080,9 +2078,8 @@ timeout /t 1 && \
         update
     )
 
-
 def main() -> None:
-    global c_file
+    global c_log
     global print
     global log
     global bot
@@ -2155,18 +2152,18 @@ Please create new empty group chat and send here clickable link to it. This chat
                 log_path,
                 'a'
             ) as log_file:
-                c_file = rich.console.Console(
+                c_log = rich.console.Console(
                     file=log_file,
                     width=80,
                 )
 
                 def new_print(*args, **kwargs):
                     c.print(*args, **kwargs)
-                    c_file.print(*args, **kwargs)
+                    c_log.print(*args, **kwargs)
 
                 def new_log(*args, **kwargs):
                     c.log(*args, **kwargs)
-                    c_file.log(*args, **kwargs)
+                    c_log.log(*args, **kwargs)
 
                 print = new_print
                 log = new_log

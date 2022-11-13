@@ -7,11 +7,9 @@ check_app () {
     installed=$(python -m pip list | grep "$app_name")
     case "$installed" in
         *"$app_name"* )
-            # echo 'installed';;
             python -m "$app_name";;
         * )
-            # echo 'not installed';;
-            python -m pip install --upgrade --force-reinstall "$app_name $requirements"
+            python -m pip install --upgrade --force-reinstall $app_name $requirements
             python -m "$app_name";;
     esac
         

@@ -14,11 +14,12 @@ just run downloaded file
 ## install via terminal
 
 linux:  
-``
+`curl -sSL gmankab.github.io/reposter/linux | sh`
 
+install on any os:  
 `pip install reposter`
 
-launch:  
+launch on any os:  
 `python -m reposter`
 
 license: [gnu gpl 3](https://gnu.org/licenses/gpl-3.0.en.html)
