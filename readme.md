@@ -6,8 +6,8 @@ python script for reposting messages from telegram channels
 
 ## download
 
-[download for linux](https://github.com/gmankab/reposter/releases/download/reposter/reposter.sh) - for linux  
-[download for windows](https://github.com/gmankab/reposter/releases/download/reposter/reposter.bat) - for windows
+[reposter.sh](https://github.com/gmankab/reposter/releases/download/reposter/reposter.sh) - for linux  
+[reposter.bat](https://github.com/gmankab/reposter/releases/download/reposter/reposter.bat) - for windows
 
 just run downloaded file
 
