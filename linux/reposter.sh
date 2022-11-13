@@ -12,7 +12,6 @@ check_app () {
             python -m pip install --upgrade --force-reinstall $app_name $requirements
             python -m "$app_name";;
     esac
-        
 }
 
 check_pip () {

@@ -115,13 +115,13 @@ acceptable link formats:
 @chat_name
 t.me/chat_name
 t.me/+6XqO65TrfatjNGU6
-webz.telegram.org/#-1657778608
+web.telegram.org/k/#-1657778608
 '''
 acceptable_links_examples = [
     '@chat_name',
     't.me/chat_name',
     't.me/+6XqO65TrfatjNGU6',
-    'webz.telegram.org/#-1657778608',
+    'web.telegram.org/k/#-1657778608',
 ]
 
 if portable:
@@ -178,11 +178,7 @@ def is_group_owner(
 def get_chat_from_link(
     chat_link
 ) -> types.Chat:
-    if (
-        'webz.telegram.org/#' in chat_link
-    ) or (
-        'web.telegram.org/z/#' in chat_link
-    ):
+    if '.telegram.org/' in chat_link:
         chat_id = chat_link.rsplit(
             '#',
             1,
@@ -230,11 +226,7 @@ def parse_chat_link(
         )
     elif chat_link[0] == '@':
         pass
-    elif (
-        'webz.telegram.org/#' in chat_link
-    ) or (
-        'web.telegram.org/z/#' in chat_link
-    ):
+    elif '.telegram.org/' in chat_link:
         chat_id = chat_link.rsplit(
             '#',
             1,
@@ -257,7 +249,7 @@ def parse_chat_link(
             else:
                 return f'{chat_link} is a bad link'
     else:
-        return f'{chat_link} is not a clickable telegram link {acceptable_link_formats}'
+        return f'{chat_link} is not a clickable telegram link\n\n{acceptable_link_formats}'
     chat = is_chat_exist(
         chat_link
     )
@@ -312,6 +304,10 @@ def init_config() -> None:
         config['chats_tree'] = {}
     if 'can_configure' not in config:
         config['can_configure'] = 'only_me'
+    if 'stream_notifications' not in config:
+        config['stream_notifications'] = []
+    if 'repeat_notifications' not in config:
+        config['repeat_notifications'] = 30
     temp_data['config_handlers'] = []
     temp_data['reposter_handlers'] = []
     temp_data['chats_tree'] = {}
@@ -377,7 +373,7 @@ def set_logs_chat(
     _,
     msg: types.Message
 ) -> None:
-    chat_link = split_message(msg)
+    chat_link = split_msg(msg)
     if not chat_link:
         return
 
@@ -494,9 +490,9 @@ def build_chat_tree() -> None:
 
 
 def help(
-    _=None,
+    _ = None,
     msg: types.Message = None,
-    chat_id=None
+    chat_id = None,
 ) -> None:
     if msg:
         reply_msg_id = msg.id
@@ -504,10 +500,9 @@ def help(
     else:
         reply_msg_id = None
 
-    bot.send_message(
-        text=f'''
+    text = f'''
 your config file path:
-**{config_path}**
+`{config_path}`
 
 users, who can configure reposter:
 can_configure = **{config.can_configure}**
@@ -525,17 +520,43 @@ can be changed via this commands:
 logs_chat = {config.logs_chat}
 
 can be changed via this command:
-`/set_logs_chat PUT_LINK_TO_LOGS_CHAT_HERE`
+`/set_logs_chat CHAT_LINK`
 
 example:
 /set_logs_chat {config.logs_chat}
+'''
+
+    if config['stream_notifications']:
+        text += '\nchats for stream notifications:\n'
+        for link in config['stream_notifications']:
+            text += f'  {link}\n'
+
+    text += f'''
+add chat for stream notifications:
+`/set_stream_notifications CHAT_LINK`
+
+remove:
+`/remove_stream_notifications CHAT_LINK`
+
+examples:
+/set_stream_notifications {config.logs_chat}
+/remove_stream_notifications {config.logs_chat}
+
+notification will be repeated **{config['repeat_notifications']}** times
+can be changed via this command:
+`/set_repeat_notifications NUMBER`
+
+example:
+/set_repeat_notifications 10
 
 you can see acceptable link formats via this command:
 /show_acceptable_link_formats
-''',
-        reply_to_message_id=reply_msg_id,
-        chat_id=chat_id,
-        disable_web_page_preview=True
+'''
+    bot.send_message(
+        chat_id = chat_id,
+        text = text,
+        reply_to_message_id = reply_msg_id,
+        disable_web_page_preview = True
     )
 
     text = '''\
@@ -559,10 +580,10 @@ there is no source chat now, you can add add it via this command:
 '''
 
     bot.send_message(
-        text=text,
-        reply_to_message_id=reply_msg_id,
-        chat_id=chat_id,
-        disable_web_page_preview=True,
+        text = text,
+        reply_to_message_id = reply_msg_id,
+        chat_id = chat_id,
+        disable_web_page_preview = True,
     )
 
 
@@ -570,7 +591,7 @@ def add_source(
     _,
     msg: types.Message,
 ) -> None:
-    chat_link = split_message(msg)
+    chat_link = split_msg(msg)
     if not chat_link:
         return
 
@@ -609,7 +630,7 @@ use /help to see updated chats tree
         )
 
 
-def split_message(
+def split_msg(
     msg: types.Message,
 ) -> str | None:
     msg_words = msg.text.split()
@@ -675,6 +696,133 @@ successfully set **can_configure** to **{config.can_configure}**
 use /help to configure reposter
 '''
     )
+
+
+def set_stream_notifications(
+    _,
+    msg: types.Message,
+) -> None:
+    chat_link = split_msg(msg)
+    reply = applying(msg)
+    chat = parse_chat_link(
+        chat_link
+    )
+
+    if isinstance(
+        chat,
+        str,
+    ):
+        reply.edit_text(
+            chat,
+            disable_web_page_preview=True,
+        )
+    else:
+        if chat_link in config['stream_notifications']:
+            reply.edit_text(
+                'chat already in list'
+            )
+        else:
+            config['stream_notifications'].append(
+                chat_link
+            )
+            refresh_stream_notifications()
+            reply.edit_text(
+                f'''
+successfully added {chat_link} in notifications list
+
+use /help to see list
+''',
+                disable_web_page_preview=True,
+            )
+            config.to_file()
+
+def remove_stream_notifications(
+    _,
+    msg: types.Message,
+) -> None:
+    chat_link = split_msg(msg)
+    reply = applying(msg)
+    if chat_link in config['stream_notifications']:
+        config['stream_notifications'].remove(
+            chat_link
+        )
+        refresh_stream_notifications()
+        reply.edit_text(
+            f'''
+successfully removed {chat_link} from notifications list
+
+use /help to see list
+''',
+            disable_web_page_preview=True,
+        )
+        config.to_file()
+    else:
+        reply.edit_text(
+            'chat not in list'
+        )
+
+
+def refresh_stream_notifications():
+    temp_data['stream_notifications'] = []
+    for user in config['stream_notifications']:
+        chat = parse_chat_link(user)
+        if isinstance(chat, str):
+            bot.send_message(
+                temp_data['logs_chat'],
+                chat,
+            )
+        else:
+            temp_data['stream_notifications'].append(
+                chat
+            )
+
+
+def set_repeat_notifications(
+    _,
+    msg: types.Message,
+) -> None:
+    reply: types.Message = msg.reply(
+        'applying...',
+        quote=True,
+    )
+    splitted = msg.text.split()
+    match len(splitted):
+        case 1:
+            reply.edit(
+                text = f'''\
+you must paste number after "{msg.text}"
+
+example:
+{msg.text} 10
+'''
+            )
+            return
+        case 2:
+            pass
+        case _:
+            reply.edit(
+                text = 'you must paste only 1 number'
+            )
+            return
+    number = splitted[-1]
+    if number.isdigit():
+        config['repeat_notifications'] = int(number)
+        reply.edit(
+            text = f'''
+now notifications will repeat {config.repeat_notifications} times
+
+use /help to get help
+'''
+        )
+    else:
+        reply.edit(
+            text = f'''\
+you must paste number after "{msg.text}"
+
+example:
+{msg.text} 10
+'''
+        )
 
 
 def set_save_edited_messages_history(
@@ -1373,6 +1521,7 @@ def recursive_repost(
     src_link: str,
     edited: bool,
     deleted: bool,
+    text = None,
 ) -> None:
     if not targets:
         return
@@ -1396,20 +1545,17 @@ def recursive_repost(
         target_link = target['link']
         next_chats_tree = target['next_chats_tree']
         target_id: int = target['chat'].id
-        if edited:
+        if text:
+            new_msg = bot.send_message(
+                target_id,
+                text,
+            )
+        elif edited:
             new_msg = edit(
                 target_id,
                 msg_in_history,
                 src_msg,
             )
-            if not new_msg:
-                success = False
-                log_msg.reply(
-                    'don\'t know what to edit',
-                    quote=True,
-                )
-                new_msg = src_msg
-                new_log_msg = log_msg
         elif deleted:
             new_msg = mark_deleted(
                 target_id,
@@ -1472,17 +1618,18 @@ def recursive_repost(
             else:
                 text = f'reposted message {link}'
             new_log_msg = log_msg.reply(
-                text=text,
-                quote=True,
+                text = text,
+                quote = True,
             )
         recursive_repost(
-            src_msg=new_msg,
-            orig=orig,
-            targets=next_chats_tree,
-            log_msg=new_log_msg,
-            src_link=src_link,
-            edited=edited,
-            deleted=deleted,
+            src_msg = new_msg,
+            orig = orig,
+            targets = next_chats_tree,
+            log_msg = new_log_msg,
+            src_link = src_link,
+            edited = edited,
+            deleted = deleted,
+            text = text,
         )
 
 
@@ -1689,8 +1836,12 @@ def init_recursive_repost(
                     deleted=True,
                 )
             return
+        stream = False
         if src_msg.service:
-            return
+            if src_msg.service == pg.enums.MessageServiceType.VIDEO_CHAT_STARTED:
+                stream = True
+            else:
+                return
         targets: list = temp_data.chats_tree[src_msg.chat.id]
         src_link = temp_data.links[src_msg.chat.id]
         msg_link = get_msg_link(src_msg)
@@ -1771,12 +1922,35 @@ def init_recursive_repost(
             else:
                 text = f'got message id={src_msg.id} in {src_link}'
         log(text)
-        if edited or not src_msg.media_group_id:
+        if stream:
+            log_msg = bot.send_message(
+                chat_id = temp_data.logs_chat.id,
+                text = text
+            )
+            recursive_repost(
+                src_msg = src_msg,
+                orig = src_msg,
+                targets = targets,
+                log_msg = log_msg,
+                src_link = src_link,
+                edited = edited,
+                deleted = deleted,
+                text = 'started stream',
+            )
+            chat: types.Chat = None
+            for i in range(config['repeat_notifications']):
+                for chat in temp_data['stream_notifications']:
+                    bot.send_message(
+                        chat_id = chat.id,
+                        text = f'[{i + 1}/{config.repeat_notifications}] stream started',
+                    )
+                    time.sleep(5)
+
+        elif edited or not src_msg.media_group_id:
             log_msg = bot.send_message(
                 chat_id=temp_data.logs_chat.id,
                 text=text
             )
-
             recursive_repost(
                 src_msg=src_msg,
                 orig=src_msg,
@@ -1930,6 +2104,12 @@ def refresh_config_handlers() -> None:
     for func, commands in {
         help:
             ['help', 'h'],
+        set_repeat_notifications:
+            'set_repeat_notifications',
+        set_stream_notifications:
+            'set_stream_notifications',
+        remove_stream_notifications:
+            'remove_stream_notifications',
         set_can_configure_all_members_of_this_chat:
             'set_can_configure_all_members_of_this_chat',
         set_can_configure_only_me:
@@ -1978,13 +2158,13 @@ def init_handlers() -> None:
             text='invited @gmanka_bot just for make commands like /help clickable, he is not needed for anything else',
             chat_id=logs_chat.id,
         )
-
     bot.send_message(
         text=start_message + '\n\nuse /help to configure reposter',
         chat_id=logs_chat.id,
     )
     refresh_config_handlers()
     refresh_reposter_handlers()
+    refresh_stream_notifications()
 
 
 def update_app(

@@ -14,6 +14,11 @@
 
 - hyperlinks not supported
 
+## 22.2.0
+
+- added support for webk links
+- added notifications for streams
+
 ## 22.1.22
 
 - fixed crash in termux
