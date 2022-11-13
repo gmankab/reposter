@@ -22,4 +22,6 @@ install on any os:
 launch on any os:  
 `python -m reposter`
 
+[changelog](https://github.com/gmankab/reposter/blob/main/changelog.md)
+
 license: [gnu gpl 3](https://gnu.org/licenses/gpl-3.0.en.html)
