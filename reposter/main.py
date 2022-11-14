@@ -1944,7 +1944,7 @@ def init_recursive_repost(
                         chat_id = chat.id,
                         text = f'[{i + 1}/{config.repeat_notifications}] stream started',
                     )
-                    time.sleep(5)
+                    time.sleep(3)
 
         elif edited or not src_msg.media_group_id:
             log_msg = bot.send_message(

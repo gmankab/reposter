@@ -14,6 +14,10 @@
 
 - hyperlinks not supported
 
+## 22.2.1
+
+- now notifications will be sent every 3 seconds instead of 5
+
 ## 22.2.0
 
 - added support for webk links
