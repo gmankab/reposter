@@ -1392,6 +1392,7 @@ def resend_all(
                 target_id
             ] = new_msg.id
             history.to_file()
+            print(f'{target_id} -> {new_msg.id}')
             return new_msg
     except PollException:
         return False
@@ -1462,7 +1463,7 @@ def forward_all(
                 target_id
             ] = _new_msg.id
         history.to_file()
-    if not is_media_group:
+    else:
         new_msg: types.Message = forward(
             msg=src_msg,
             target=target_id,
@@ -1521,7 +1522,7 @@ def recursive_repost(
     src_link: str,
     edited: bool,
     deleted: bool,
-    text = None,
+    msg_text = None,
 ) -> None:
     if not targets:
         return
@@ -1545,10 +1546,10 @@ def recursive_repost(
         target_link = target['link']
         next_chats_tree = target['next_chats_tree']
         target_id: int = target['chat'].id
-        if text:
+        if msg_text:
             new_msg = bot.send_message(
                 target_id,
-                text,
+                msg_text,
             )
         elif edited:
             new_msg = edit(
@@ -1629,7 +1630,7 @@ def recursive_repost(
             src_link = src_link,
             edited = edited,
             deleted = deleted,
-            text = text,
+            msg_text = msg_text,
         )
 
 
@@ -1935,7 +1936,7 @@ def init_recursive_repost(
                 src_link = src_link,
                 edited = edited,
                 deleted = deleted,
-                text = 'started stream',
+                msg_text = 'stream started',
             )
             chat: types.Chat = None
             for i in range(config['repeat_notifications']):
