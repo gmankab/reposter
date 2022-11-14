@@ -1392,7 +1392,6 @@ def resend_all(
                 target_id
             ] = new_msg.id
             history.to_file()
-            print(f'{target_id} -> {new_msg.id}')
             return new_msg
     except PollException:
         return False
