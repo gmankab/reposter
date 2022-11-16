@@ -6,6 +6,7 @@
 try:
     from setup import (  # type: ignore
         modules_path,
+        win_py_file,
         app_version,
         yes_or_no,
         proj_path,
@@ -16,6 +17,7 @@ try:
 except ModuleNotFoundError:
     from reposter.setup import (  # type: ignore
         modules_path,
+        win_py_file,
         app_version,
         yes_or_no,
         proj_path,
@@ -271,27 +273,25 @@ def init_config() -> None:
         update_app(
             forced=True
         )
-    print(config['app_version'] < '22.3.2')
     if (
         config['app_version']
     ) and (
-        config['app_version'] < '22.3.2'
+        config['app_version'] < '22.3.3'
     ) and portable:
         bat_file = Path(f'{modules_path.parent.resolve()}/reposter.bat')
         bat_file_tmp = Path(f'{bat_file}.tmp')
-        py_file = Path(f'{modules_path}/reposter_win.py')
-        py_file_tmp = Path(f'{py_file}.tmp')
+        win_py_file_tmp = Path(f'{win_py_file}.tmp')
         bat_file.unlink()
         r.urlretrieve(
             url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter.bat',
-            filename = bat_file,
+            filename = bat_file_tmp,
         )
         r.urlretrieve(
             url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter_win.py',
-            filename = py_file_tmp,
+            filename = win_py_file_tmp,
         )
         if (
-            py_file_tmp.exists()
+            win_py_file_tmp.exists()
         ) and (
             bat_file_tmp.exists()
         ):
@@ -299,9 +299,9 @@ def init_config() -> None:
             bat_file_tmp.rename(
                 bat_file
             )
-            py_file.unlink()
-            py_file_tmp.rename(
-                py_file
+            win_py_file.unlink()
+            win_py_file_tmp.rename(
+                win_py_file
             )
         config['app_version'] = app_version
         restart()

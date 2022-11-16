@@ -8,13 +8,14 @@ import sys
 import os
 
 
-app_version = '22.3.1'
+app_version = '22.3.3'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
 c = rich.console.Console()
 print = c.print
-portable = 'portable' in sys.argv
+win_py_file = Path(f'{modules_path}/reposter_win.py')
+portable = win_py_file.exists()
 run_st = sp.getstatusoutput
 
 
