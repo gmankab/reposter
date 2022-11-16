@@ -318,7 +318,7 @@ timeout /t 1 && \
             f'restarting and updating {app_name} with command:\n{restart_command}'
         )
         os.system(
-            restart
+            restart_command
         )
 
     elif config['app_version'] != app_version:
