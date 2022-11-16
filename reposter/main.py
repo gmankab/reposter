@@ -40,7 +40,7 @@ from pyrogram import (
     types,
     errors,
 )
-from concurrent.futures import ThreadPoolExecutor
+from urllib import request as r
 import gmanka_yml as yml
 import pyrogram as pg
 import humanize
