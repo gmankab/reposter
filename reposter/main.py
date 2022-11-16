@@ -281,7 +281,6 @@ def init_config() -> None:
         bat_file = Path(f'{modules_path.parent.resolve()}/reposter.bat')
         bat_file_tmp = Path(f'{bat_file}.tmp')
         win_py_file_tmp = Path(f'{win_py_file}.tmp')
-        bat_file.unlink()
         r.urlretrieve(
             url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter.bat',
             filename = bat_file_tmp,
@@ -295,11 +294,15 @@ def init_config() -> None:
         ) and (
             bat_file_tmp.exists()
         ):
-            bat_file.unlink()
+            bat_file.unlink(
+                missing_ok = True
+            )
             bat_file_tmp.rename(
                 bat_file
             )
-            win_py_file.unlink()
+            win_py_file.unlink(
+                missing_ok = True
+            )
             win_py_file_tmp.rename(
                 win_py_file
             )
@@ -2270,7 +2273,7 @@ def update_app(
         )
         if yes_or_no.choose(
             text=f'''\
-    [green]found updates, do you want to update {app_name}?'
+    [green]found updates, do you want to update {app_name}?
     changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
     '''
         ) == 'no':
