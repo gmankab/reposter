@@ -271,7 +271,6 @@ def init_config() -> None:
         update_app(
             forced=True
         )
-    print(config['app_version'] < '22.3.0')
     if (
         config['app_version']
     ) and (
@@ -303,6 +302,10 @@ def init_config() -> None:
             py_file_tmp.rename(
                 py_file
             )
+        config['app_version'] = app_version
+        restart()
+    elif config['app_version'] != app_version:
+        config['app_version'] = app_version
 
     if 'check_updates' not in config:
         if yes_or_no.choose(
@@ -312,8 +315,6 @@ def init_config() -> None:
         else:
             config['check_updates'] = False
 
-    if config['app_version'] != app_version:
-        config['app_version'] = app_version
     if (
         not config['api_id']
     ) or (
@@ -2283,6 +2284,7 @@ kill -2 {os.getpid()} && \
 sleep 1 && \
 {pip} install --upgrade --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
+sleep 1 && \
 {sys.executable} {proj_path}\
 '''
         case 'Windows':
@@ -2291,6 +2293,25 @@ taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
+timeout /t 1 && \
+{sys.executable} {proj_path}\
+'''
+    print(f'restarting and updating {app_name} with command:\n{update}')
+    os.system(
+        update
+    )
+
+def restart():
+    match platform.system():
+        case 'Linux':
+            update = f'''\
+kill -2 {os.getpid()} && \
+sleep 1 && \
+{sys.executable} {proj_path}\
+'''
+        case 'Windows':
+            update = f'''\
+taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {sys.executable} {proj_path}\
 '''
