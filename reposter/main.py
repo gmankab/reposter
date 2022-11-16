@@ -276,11 +276,12 @@ def init_config() -> None:
     if (
         config['app_version']
     ) and (
-        config['app_version'] < '22.3.3'
+        config['app_version'] < '22.3.5'
     ) and portable:
         bat_file = Path(f'{modules_path.parent.resolve()}/reposter.bat')
         bat_file_tmp = Path(f'{bat_file}.tmp')
         win_py_file_tmp = Path(f'{win_py_file}.tmp')
+        old_python_path = Path(f'{modules_path}/.python_3.10.7')
         r.urlretrieve(
             url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter.bat',
             filename = bat_file_tmp,
@@ -306,8 +307,20 @@ def init_config() -> None:
             win_py_file_tmp.rename(
                 win_py_file
             )
+            old_python_path.unlink()
         config['app_version'] = app_version
-        restart()
+        restart_command = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{bat_file}\
+'''
+        print(
+            f'restarting and updating {app_name} with command:\n{restart_command}'
+        )
+        os.system(
+            restart
+        )
+
     elif config['app_version'] != app_version:
         config['app_version'] = app_version
 
