@@ -16,12 +16,19 @@ just downloaded and run
 linux:  
 `curl -sSL gmankab.github.io/reposter/linux | sh`
 
+windows:
+`curl -sSL gmankab.github.io/reposter/win -o reposter.bat & reposter.bat`
+
 install on any os:  
 `pip install reposter`
 
 launch on any os:  
 `python -m reposter`
 
-[changelog](https://github.com/gmankab/reposter/blob/main/changelog.md)
+## changelog
 
-license: [gnu gpl 3](https://gnu.org/licenses/gpl-3.0.en.html)
+you can read changelog [here](https://github.com/gmankab/reposter/blob/main/changelog.md)
+
+## license
+
+[gnu gpl 3](https://gnu.org/licenses/gpl-3.0.en.html)
