@@ -14,7 +14,7 @@
 
 - hyperlinks not supported
 
-## 22.3.5
+## 22.3.6
 
 - fixed app updating
 

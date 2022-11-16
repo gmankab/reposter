@@ -307,10 +307,10 @@ def init_config() -> None:
             win_py_file_tmp.rename(
                 win_py_file
             )
-            old_python_path.unlink()
         config['app_version'] = app_version
         restart_command = f'''\
 taskkill /f /pid {os.getpid()} && \
+rd /s /q "{old_python_path}" && \
 timeout /t 1 && \
 {bat_file}\
 '''
