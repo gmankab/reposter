@@ -2299,7 +2299,7 @@ def update_app(
             update = f'''\
 kill -2 {os.getpid()} && \
 sleep 1 && \
-{pip} install --upgrade --force-reinstall {app_name} {requirements} \
+{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 sleep 1 && \
 {sys.executable} {proj_path}\
@@ -2308,7 +2308,7 @@ sleep 1 && \
             update = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
-{pip} install --upgrade --force-reinstall {app_name} {requirements} \
+{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
 timeout /t 1 && \
 {sys.executable} {proj_path}\
