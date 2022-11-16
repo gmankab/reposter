@@ -260,14 +260,49 @@ def parse_chat_link(
 
 
 def init_config() -> None:
-    if config['app_version'] and config['app_version'] < '22.1.21':
-        if config['app_version'] != app_version:
-            config['app_version'] = app_version
+    if (
+        config['app_version']
+    ) and (
+        config['app_version'] < '22.1.21'
+    ):
+        config['app_version'] = app_version
 
         # update forced because of very important bugfix
         update_app(
             forced=True
         )
+    if (
+        config['app_version']
+    ) and (
+        config['app_version'] < '22.3.0'
+    ) and portable:
+        bat_file = Path(f'{modules_path.parent.resolve()}/reposter.bat')
+        bat_file_tmp = Path(f'{bat_file}.tmp')
+        py_file = Path(f'{modules_path}/reposter_win.py')
+        py_file_tmp = Path(f'{py_file}.tmp')
+        bat_file.unlink()
+        r.urlretrieve(
+            url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter.bat',
+            filename = bat_file,
+        )
+        r.urlretrieve(
+            url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter_win.py',
+            filename = py_file_tmp,
+        )
+        if (
+            py_file_tmp.exists()
+        ) and (
+            bat_file_tmp.exists()
+        ):
+            bat_file.unlink()
+            bat_file_tmp.rename(
+                bat_file
+            )
+            py_file.unlink()
+            py_file_tmp.rename(
+                py_file
+            )
+
     if 'check_updates' not in config:
         if yes_or_no.choose(
             text='[deep_sky_blue1]do you want to check updates on start?'

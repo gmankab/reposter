@@ -1,23 +1,23 @@
 # reposter
 
-<img src="https://github.com/gmankab/reposter/raw/main/reposter/icons/wide.png">
+<img src="https://github.com/gmankab/reposter/raw/main/img/transparent.png">
 
 python script that copies all messages from one telegram channel to another in real time, and also notifies when a stream has started in the channel
 
 ## download
 
-[reposter.sh](https://github.com/gmankab/reposter/releases/download/reposter/reposter.sh) - for linux  
-[reposter.bat](https://github.com/gmankab/reposter/releases/download/reposter/reposter.bat) - for windows
+[reposter.sh](https://gmankab.github.io/reposter.sh) - for linux  
+[reposter.bat](https://gmankab.github.io/reposter.bat) - for windows
 
 just download and run
 
 ## install via terminal
 
 linux:  
-`curl -sSL gmankab.github.io/reposter/linux | sh`
+`curl -sSL gmankab.github.io/reposter.sh | sh`
 
 windows:  
-`curl -sSL gmankab.github.io/reposter/win -o reposter.bat & reposter.bat`
+`curl -sSL gmankab.github.io/reposter.bat -o & reposter.bat`
 
 install on any os:  
 `pip install reposter`

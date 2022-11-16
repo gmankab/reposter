@@ -14,6 +14,12 @@
 
 - hyperlinks not supported
 
+## 22.3.0
+
+- updated readme
+- changed download links, old links disabled
+- now when you updating app windows launchers updates too
+
 ## 22.2.3
 
 - added "notifications_delay" parameter in config
