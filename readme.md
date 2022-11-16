@@ -16,7 +16,7 @@ just downloaded and run
 linux:  
 `curl -sSL gmankab.github.io/reposter/linux | sh`
 
-windows:
+windows:  
 `curl -sSL gmankab.github.io/reposter/win -o reposter.bat & reposter.bat`
 
 install on any os:  
