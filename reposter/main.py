@@ -310,7 +310,7 @@ def init_config() -> None:
         config['app_version'] = app_version
         restart_command = f'''\
 taskkill /f /pid {os.getpid()} && \
-rd /s /q "{old_python_path}" && \
+rd /s /q "{old_python_path}" & \
 timeout /t 1 && \
 {bat_file}\
 '''
