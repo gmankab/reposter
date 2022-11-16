@@ -2,7 +2,7 @@
 
 <img src="https://github.com/gmankab/reposter/raw/main/img/transparent.png">
 
-python script that copies all messages from one telegram channel to another in real time, and also notifies when a stream has started in the channel
+Python script that copies all messages from one telegram channel to another in real time, and also notifies when a stream has started in the channel
 
 ## download
 
