@@ -271,10 +271,11 @@ def init_config() -> None:
         update_app(
             forced=True
         )
+    print(config['app_version'] < '22.3.2')
     if (
         config['app_version']
     ) and (
-        config['app_version'] < '22.3.0'
+        config['app_version'] < '22.3.2'
     ) and portable:
         bat_file = Path(f'{modules_path.parent.resolve()}/reposter.bat')
         bat_file_tmp = Path(f'{bat_file}.tmp')
