@@ -14,6 +14,10 @@
 
 - hyperlinks not supported
 
+## 22.2.3
+
+- added "notifications_delay" parameter in config
+
 ## 22.2.2
 
 - fixed bug with reposting wrong message

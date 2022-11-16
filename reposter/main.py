@@ -307,7 +307,9 @@ def init_config() -> None:
     if 'stream_notifications' not in config:
         config['stream_notifications'] = []
     if 'repeat_notifications' not in config:
-        config['repeat_notifications'] = 30
+        config['repeat_notifications'] = 75
+    if 'notifications_delay' not in config:
+        config['notifications_delay'] = 3
     temp_data['config_handlers'] = []
     temp_data['reposter_handlers'] = []
     temp_data['chats_tree'] = {}
@@ -1944,7 +1946,9 @@ def init_recursive_repost(
                         chat_id = chat.id,
                         text = f'[{i + 1}/{config.repeat_notifications}] stream started',
                     )
-                    time.sleep(3)
+                    time.sleep(
+                        config['notifications_delay']
+                    )
 
         elif edited or not src_msg.media_group_id:
             log_msg = bot.send_message(
