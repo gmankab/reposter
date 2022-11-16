@@ -271,6 +271,7 @@ def init_config() -> None:
         update_app(
             forced=True
         )
+    print(config['app_version'] < '22.3.0')
     if (
         config['app_version']
     ) and (
@@ -2290,6 +2291,7 @@ taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade --force-reinstall {app_name} {requirements} \
 --no-warn-script-location -t {modules_path} && \
+timeout /t 1 && \
 {sys.executable} {proj_path}\
 '''
     print(f'restarting and updating {app_name} with command:\n{update}')

@@ -19,6 +19,7 @@
 - updated readme
 - changed download links, old links disabled
 - now when you updating app windows launchers updates too
+- python version updated to 3.10.8
 
 ## 22.2.3
 
