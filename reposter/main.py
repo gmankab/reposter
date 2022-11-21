@@ -12,6 +12,7 @@ try:
         proj_path,
         app_name,
         portable,
+        os_name,
         run,
     )
 except ModuleNotFoundError:
@@ -23,6 +24,7 @@ except ModuleNotFoundError:
         proj_path,
         app_name,
         portable,
+        os_name,
         run,
     )
 
@@ -95,7 +97,6 @@ print = c.print
 log = c.log
 pp = rich.pretty.pprint
 bot: pg.client.Client = None
-os_name = platform.system()
 if os_name == 'Linux':
     try:
         os_name = platform.freedesktop_os_release()['PRETTY_NAME']
@@ -268,7 +269,6 @@ def init_config() -> None:
         config['app_version'] < '22.1.21'
     ):
         config['app_version'] = app_version
-
         # update forced because of very important bugfix
         update_app(
             forced=True
@@ -278,16 +278,16 @@ def init_config() -> None:
     ) and (
         config['app_version'] < '22.3.5'
     ) and portable:
-        bat_file = Path(f'{modules_path.parent.resolve()}/reposter.bat')
+        bat_file = Path(f'{modules_path.parent.resolve()}/{app_name}.bat')
         bat_file_tmp = Path(f'{bat_file}.tmp')
         win_py_file_tmp = Path(f'{win_py_file}.tmp')
         old_python_path = Path(f'{modules_path}/.python_3.10.7')
         r.urlretrieve(
-            url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter.bat',
+            url='https://raw.githubusercontent.com/gmankab/{app_name}/main/launcher/{app_name}.bat',
             filename = bat_file_tmp,
         )
         r.urlretrieve(
-            url='https://raw.githubusercontent.com/gmankab/reposter/main/launcher/reposter_win.py',
+            url='https://raw.githubusercontent.com/gmankab/{app_name}/main/launcher/{app_name}_win.py',
             filename = win_py_file_tmp,
         )
         if (
@@ -2270,7 +2270,7 @@ def update_app(
                 command += f' --exclude {package}'
 
             updates_found_str = run(command)
-            updates_found = 'reposter' in updates_found_str
+            updates_found = app_name in updates_found_str
             progr.stop()
 
         if not updates_found:
@@ -2294,7 +2294,7 @@ def update_app(
 
     requirements = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 
-    match platform.system():
+    match os_name:
         case 'Linux':
             update = f'''\
 kill -2 {os.getpid()} && \
@@ -2319,7 +2319,7 @@ timeout /t 1 && \
     )
 
 def restart():
-    match platform.system():
+    match os_name:
         case 'Linux':
             update = f'''\
 kill -2 {os.getpid()} && \

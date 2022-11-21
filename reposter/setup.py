@@ -14,9 +14,10 @@ proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
 c = rich.console.Console()
 print = c.print
-win_py_file = Path(f'{modules_path}/reposter_win.py')
+win_py_file = Path(f'{modules_path}/{app_name}_win.py')
 portable = win_py_file.exists()
 run_st = sp.getstatusoutput
+os_name = platform.system()
 
 
 yes_or_no = Sel(
@@ -32,7 +33,7 @@ yes_or_no = Sel(
 
 
 def main():
-    match platform.system():
+    match os_name:
         case 'Linux':
             linux()
         case 'Windows':

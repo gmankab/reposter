@@ -11,13 +11,10 @@ Python script that copies all messages from one telegram channel to another in r
 
 just download and run
 
-## install via terminal
+## via terminal
 
-linux:  
+install on linux:  
 `curl -sSL gmankab.github.io/reposter.sh | sh`
-
-windows:  
-`curl -sSL gmankab.github.io/reposter.bat -o & reposter.bat`
 
 install on any os:  
 `pip install reposter`
