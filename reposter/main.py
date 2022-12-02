@@ -1,5 +1,3 @@
-#!/bin/python
-
 # license: gnu gpl 3 https://gnu.org/licenses/gpl-3.0.en.html
 # sources: https://github.com/gmankab/reposter
 

@@ -1,3 +1,6 @@
+# license: gnu gpl 3 https://gnu.org/licenses/gpl-3.0.en.html
+# sources: https://github.com/gmankab/reposter
+
 from pathlib import Path
 from easyselect import Sel
 import shutil as sh
