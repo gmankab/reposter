@@ -13,6 +13,11 @@
 ## known bugs
 
 - hyperlinks not supported
+- forwarded messages are reposted without author
+
+## 22.4.0
+
+- added /repost command, it will repost all messages starting from specified one
 
 ## 22.3.7
 
