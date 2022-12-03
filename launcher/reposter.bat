@@ -43,6 +43,6 @@ if not exist "%app_py%" (
     ren "%tmp_name%" "%app_name%_win.py"
 )
 
-"%python%" "%app_py%" portable %*
+"%python%" "%app_py%" %*
 
 pause

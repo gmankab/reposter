@@ -10,7 +10,6 @@ import rich
 import sys
 import os
 
-
 app_version = '22.3.7'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
@@ -20,9 +19,8 @@ print = c.print
 win_py_file = Path(f'{modules_path}/{app_name}_win.py')
 portable = win_py_file.exists()
 run_st = sp.getstatusoutput
+run = sp.getoutput
 os_name = platform.system()
-
-
 yes_or_no = Sel(
     items = [
         'yes',
@@ -43,19 +41,13 @@ def main():
             windows()
 
 
-def run(
-    command: str
-) -> str:
-    return run_st(
-        command
-    )[-1]
-
-
 def linux():
     home = Path.home()
     share = f'{home}/.local/share'
 
-    dotdesktop_path = Path(f'{home}/.local/share/applications/{app_name}.desktop')
+    dotdesktop_path = Path(
+        f'{home}/.local/share/applications/{app_name}.desktop'
+    )
     if dotdesktop_path.exists():
         return
     dotdesktop_path.parent.mkdir(
@@ -92,11 +84,12 @@ Exec=/bin/python -m {app_name}
         icon_target,
     )
 
-    if yes_or_no.choose(
+    act = yes_or_no.choose(
 f'''
 [green]\
 Created file [deep_sky_blue1]{dotdesktop_path}
-[/][/]
+
+[green]\
 This script can be runned with following command:
 [deep_sky_blue1]\
 python -m {app_name}
@@ -105,13 +98,18 @@ Do you want do create shortcut in \
 [deep_sky_blue1]/bin[/deep_sky_blue1]?
 Then you will be able to run this script with [deep_sky_blue1]{app_name}[/deep_sky_blue1] command
 Creating this shortcut requires sudo\
-
 '''
-    ) == 'no':
-        return
+    )
+    match act:
+        case 'yes':
+            pass
+        case 'no':
+            return
+        case 'exit':
+            sys.exit()
     script = f'''\
 #!/bin/bash
-python -m {app_name}
+python -m {app_name} $@
 '''
     os.system(
 f'''
@@ -159,7 +157,7 @@ f'''\
 set WshShell = WScript.CreateObject("WScript.Shell")
 set Shortcut = WshShell.CreateShortcut("{shortcut}")
 Shortcut.TargetPath = "{sys.executable}"
-Shortcut.Arguments = "{proj_path} {'portable' if portable else ""}"
+Shortcut.Arguments = "{proj_path}"
 Shortcut.IconLocation = "{icon_source}"
 Shortcut.Save
 '''

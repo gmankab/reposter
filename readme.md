@@ -8,6 +8,7 @@ script for forwarding messages from one telegram channel to another in real time
 
 - [installation](#installation)
 - [installation via terminal](#installation-via-terminal)
+- [changelog](#changelog)
 - [license](#license)
 
 ### installation[^](#navigation)

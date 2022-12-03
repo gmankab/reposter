@@ -2,13 +2,16 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="256mm"
-   height="256mm"
-   viewBox="0 0 256 256"
+   width="256"
+   height="256"
+   viewBox="0 0 67.733334 67.733334"
    version="1.1"
    id="svg383"
-   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14, custom)"
    sodipodi:docname="icon.svg"
+   inkscape:export-filename="icon.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -22,14 +25,14 @@
      inkscape:pageopacity="0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#000000"
-     inkscape:document-units="mm"
+     inkscape:document-units="px"
      showgrid="false"
-     inkscape:zoom="0.52724989"
-     inkscape:cx="208.62973"
-     inkscape:cy="676.14998"
-     inkscape:window-width="1920"
-     inkscape:window-height="999"
-     inkscape:window-x="1920"
+     inkscape:zoom="1.0544998"
+     inkscape:cx="-30.346142"
+     inkscape:cy="116.64298"
+     inkscape:window-width="1600"
+     inkscape:window-height="828"
+     inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg383" />
@@ -42,7 +45,7 @@
        y1="961.79797"
        x2="-2215.6619"
        y2="962.03632"
-       gradientTransform="matrix(1065.7785,0,0,1065.7785,2361532.8,-1025063.7)">
+       gradientTransform="matrix(281.98722,0,0,281.98722,624822.21,-271214.77)">
       <stop
          offset="0"
          style="stop-color:#2AABEE"
@@ -55,15 +58,14 @@
   </defs>
   <circle
      id="Oval-3"
-     style="clip-rule:evenodd;fill:url(#Oval_00000003067998488394434160000010228473704082694038_);fill-rule:evenodd;stroke-width:1.06578"
-     cx="128"
-     cy="128"
-     r="128"
-     inkscape:label="circle"
-     sodipodi:insensitive="true" />
+     style="clip-rule:evenodd;fill:url(#Oval_00000003067998488394434160000010228473704082694038_);fill-rule:evenodd;stroke-width:0.281988"
+     cx="33.866665"
+     cy="33.866665"
+     r="33.866665"
+     inkscape:label="circle" />
   <g
      id="Слой_2"
-     transform="matrix(0,-1.1871553,1.1871553,0,-8.6554601,268.48977)"
+     transform="matrix(0,-0.31410151,0.31410151,0,-2.2900905,71.037918)"
      inkscape:label="arrow">
     <g
        id="g26"
@@ -142,6 +144,6 @@
   </g>
   <g
      id="g364"
-     transform="matrix(0,-1.1871553,1.1871553,0,74.343574,328.56117)"
+     transform="matrix(0,-0.31410151,0.31410151,0,19.670071,86.93181)"
      inkscape:label="arrow" />
 </svg>
