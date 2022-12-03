@@ -176,6 +176,32 @@ def is_group_owner(
     return chat
 
 
+def get_chat_from_id(
+    chat_id: str | int
+):
+    chat_id = str(chat_id)
+    chat = is_chat_exist(
+        int(chat_id),
+    )
+    if chat:
+        return chat
+    if '-' not in chat_id:
+        chat_id = f'-{chat_id}'
+    chat = is_chat_exist(
+        int(chat_id),
+    )
+    if chat:
+        return chat
+    return bot.get_chat(
+        int(
+            chat_id.replace(
+                '-',
+                '-100',
+            )
+        )
+    )
+
+
 def get_chat_from_link(
     chat_link
 ) -> types.Chat:
@@ -184,22 +210,13 @@ def get_chat_from_link(
             '#',
             1,
         )[-1]
-        chat = is_chat_exist(
-            int(chat_id),
+        return get_chat_from_id(
+            chat_id
         )
-        if chat:
-            return chat
-        else:
-            return bot.get_chat(
-                int(
-                    chat_id.replace(
-                        '-',
-                        '-100',
-                    )
-                )
-            )
     else:
-        return bot.get_chat(chat_link)
+        return bot.get_chat(
+            chat_link
+        )
 
 
 def get_hash(
@@ -578,6 +595,12 @@ can be changed via this command:
 
 example:
 /set_logs_chat {config.logs_chat}
+
+repost all messages starting from specified one:
+/repost **LINK**
+
+example:
+/repost t.me/c/1363784954/1969246
 '''
 
     if config['stream_notifications']:
@@ -638,6 +661,48 @@ there is no source chat now, you can add add it via this command:
         reply_to_message_id = reply_msg_id,
         chat_id = chat_id,
         disable_web_page_preview = True,
+    )
+
+
+def repost_specified(
+    _,
+    msg: types.Message,
+) -> None:
+    answer: types.Message = msg.reply(
+        text = 'starting...'
+    )
+    splitted = msg.text.split('/')
+    if len(splitted) < 3:
+        answer.edit(
+            text = 'you must specify link to message after /repost'
+        )
+        return
+    msg_id = int(splitted[-1])
+    chat = get_chat_from_id(
+        splitted[-2]
+    )
+    ids = []
+    for msg in bot.get_chat_history(
+        chat_id = chat.id,
+    ):
+        if msg.id < msg_id:
+            break
+        ids.append(msg.id)
+    c.log(ids)
+    for msg_id in reversed(ids):
+        msg = bot.get_messages(
+            chat_id = chat.id,
+            message_ids = msg_id,
+        )
+        init_recursive_repost(
+            _,
+            src_msg = msg,
+            force = True,
+        )
+
+    answer.reply(
+        text = 'done',
+        quote = True,
     )
 
 
@@ -1876,8 +1941,10 @@ def forward_media_group(
 def init_recursive_repost(
     _,
     src_msg: types.Message,
-    deleted=False,
+    deleted = False,
+    force = False,
 ) -> None:
+    print(src_msg)
     try:
         if isinstance(
             src_msg,
@@ -1899,7 +1966,10 @@ def init_recursive_repost(
         targets: list = temp_data.chats_tree[src_msg.chat.id]
         src_link = temp_data.links[src_msg.chat.id]
         msg_link = get_msg_link(src_msg)
-        edited = bool(src_msg.edit_date)
+        if force:
+            edited = False
+        else:
+            edited = bool(src_msg.edit_date)
 
         if src_msg.caption:
             text_hash = get_hash(str(src_msg.caption))
@@ -1932,9 +2002,13 @@ def init_recursive_repost(
                 )
                 return
 
-            if history[src_msg.chat.id][src_msg.id][
-                'text_hash'
-            ] == text_hash:
+            if (
+                history[src_msg.chat.id][src_msg.id][
+                    'text_hash'
+                ] == text_hash
+            ) and (
+                not force
+            ):
                 return
 
             if src_msg.media_group_id:
@@ -2184,6 +2258,8 @@ def refresh_config_handlers() -> None:
             'add_target',
         remove:
             'remove',
+        repost_specified:
+            'repost',
     }.items():
         new_handler(
             func=func,
