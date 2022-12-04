@@ -1944,7 +1944,6 @@ def init_recursive_repost(
     deleted = False,
     force = False,
 ) -> None:
-    print(src_msg)
     try:
         if isinstance(
             src_msg,
