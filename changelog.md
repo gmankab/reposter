@@ -15,8 +15,7 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
-## 22.4.3
-
+## 22.4.4
 - fixed bug with config path
 
 ## 22.4.3
