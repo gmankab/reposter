@@ -15,7 +15,12 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 22.4.5
+
+- fixed error when get wrong chat after /repost command
+
 ## 22.4.4
+
 - fixed bug with config path
 
 ## 22.4.3

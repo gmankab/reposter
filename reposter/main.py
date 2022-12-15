@@ -77,7 +77,7 @@ cache_path = Path(
 if sys.argv[-1] not in (
     'reposter',
     'reposter.py',
-    '-m'
+    '-m',
 ):
     config_path = Path(
         sys.argv[-1]
@@ -87,7 +87,7 @@ else:
         f'{modules_path}/{app_name}.yml'
     )
 history_path = Path(
-    f'{modules_path}/msg_history.yml'
+    f'{config_path.parent.resolve()}/msg_history.yml'
 )
 log_path = Path(
     f'{modules_path}/{app_name}.log'
@@ -694,9 +694,15 @@ def repost_single(
         )
         return
     msg_id = int(splitted[-1])
-    chat = get_chat_from_id(
-        splitted[-2]
-    )
+    try:
+        chat = get_chat_from_id(
+            splitted[-2]
+        )
+    except Exception:
+        answer.edit_text(
+            'no such chat'
+        )
+        return
     msg_to_repost = bot.get_messages(
         chat_id = chat.id,
         message_ids = msg_id,
@@ -709,7 +715,7 @@ def repost_single(
     answer.reply(text = 'done')
 
 
-def repost_specified(
+def repost_all_below(
     _,
     msg: types.Message,
 ) -> None:
@@ -723,9 +729,15 @@ def repost_specified(
         )
         return
     start_msg_id = int(splitted[-1])
-    chat = get_chat_from_id(
-        splitted[-2]
-    )
+    try:
+        chat = get_chat_from_id(
+            splitted[-2]
+        )
+    except Exception:
+        answer.edit_text(
+            'no such chat'
+        )
+        return
     msgs = []
     for msg_to_repost in bot.get_chat_history(
         chat_id = chat.id,
@@ -2295,7 +2307,7 @@ def refresh_config_handlers() -> None:
             'add_target',
         remove:
             'remove',
-        repost_specified:
+        repost_all_below:
             'repost',
         repost_single:
             'repost_single',
