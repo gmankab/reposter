@@ -15,6 +15,11 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 22.4.2
+
+- added /repost_single command
+- added ability to pass config path as command line argument
+
 ## 22.4.1
 
 removed extra logs

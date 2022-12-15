@@ -73,9 +73,18 @@ c = rich.console.Console(
 cache_path = Path(
     f'{modules_path}/{app_name}_tg_chache'
 )
-config_path = Path(
-    f'{modules_path}/{app_name}.yml'
-)
+
+if sys.argv[-1] not in (
+    'reposter',
+    'reposter.py',
+):
+    config_path = Path(
+        sys.argv[-1]
+    )
+else:
+    config_path = Path(
+        f'{modules_path}/{app_name}.yml'
+    )
 history_path = Path(
     f'{modules_path}/msg_history.yml'
 )
@@ -596,11 +605,17 @@ can be changed via this command:
 example:
 /set_logs_chat {config.logs_chat}
 
+repost single message:
+
+/repost_single **LINK**
+
 repost all messages starting from specified one:
 /repost **LINK**
 
 example:
 /repost t.me/c/1363784954/1969246
+
+you can pass different config path as comman line argument
 '''
 
     if config['stream_notifications']:
@@ -664,7 +679,7 @@ there is no source chat now, you can add add it via this command:
     )
 
 
-def repost_specified(
+def repost_single(
     _,
     msg: types.Message,
 ) -> None:
@@ -681,30 +696,52 @@ def repost_specified(
     chat = get_chat_from_id(
         splitted[-2]
     )
-    ids = []
-    for msg in bot.get_chat_history(
+    msg_to_repost = bot.get_messages(
+        chat_id = chat.id,
+        message_ids = msg_id,
+    )
+    init_recursive_repost(
+        _,
+        src_msg = msg_to_repost,
+        force = True,
+    )
+    answer.reply(text = 'done')
+
+
+def repost_specified(
+    _,
+    msg: types.Message,
+) -> None:
+    answer: types.Message = msg.reply(
+        text = 'starting...'
+    )
+    splitted = msg.text.split('/')
+    if len(splitted) < 3:
+        answer.edit(
+            text = 'you must specify link to message after /repost'
+        )
+        return
+    start_msg_id = int(splitted[-1])
+    chat = get_chat_from_id(
+        splitted[-2]
+    )
+    msgs = []
+    for msg_to_repost in bot.get_chat_history(
         chat_id = chat.id,
     ):
-        if msg.id < msg_id:
+        if msg_to_repost.id < start_msg_id:
             break
-        ids.append(msg.id)
-    c.log(ids)
-    for msg_id in reversed(ids):
-        msg = bot.get_messages(
-            chat_id = chat.id,
-            message_ids = msg_id,
-        )
+        msgs.append(msg_to_repost)
+    for msg_to_repost in reversed(msgs):
         init_recursive_repost(
             _,
-            src_msg = msg,
+            src_msg = msg_to_repost,
             force = True,
         )
-
     answer.reply(
         text = 'done',
         quote = True,
     )
-
 
 def add_source(
     _,
@@ -887,8 +924,8 @@ def refresh_stream_notifications():
         chat = parse_chat_link(user)
         if isinstance(chat, str):
             bot.send_message(
-                temp_data['logs_chat'],
-                chat,
+                chat_id = temp_data['logs_chat'],
+                text = chat,
             )
         else:
             temp_data['stream_notifications'].append(
@@ -2259,6 +2296,8 @@ def refresh_config_handlers() -> None:
             'remove',
         repost_specified:
             'repost',
+        repost_single:
+            'repost_single',
     }.items():
         new_handler(
             func=func,
@@ -2440,46 +2479,6 @@ def main() -> None:
         first_start = True
     try:
         with bot:
-            temp_data['me'] = bot.get_chat('me')
-            if first_start:
-                config['tg_session'] = bot.export_session_string()
-            if not config['logs_chat']:
-                print(
-                    f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
-
-                bot.send_message(
-                    chat_id='me',
-                    disable_web_page_preview=True,
-                    text=f'''\
-{start_message}
-
-Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring reposter. You must be an owner, and nobody except you must have access to this chat.
-
-{acceptable_link_formats}
-'''
-                )
-
-                temp_data.config_handlers.append(
-                    bot.add_handler(
-                        MessageHandler(
-                            init_set_logs_chat,
-                            filters=filters.chat('me'),
-                        )
-                    )
-
-                )
-            else:
-                print(
-                    f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
-                init_handlers()
-                if log_path.exists() and log_path.stat().st_size:
-                    bot.send_document(
-                        document=log_path,
-                        chat_id=temp_data.logs_chat.id,
-                    )
-                    log_path.unlink()
-
-            update_app()
             with open(
                 log_path,
                 'a'
@@ -2499,11 +2498,51 @@ Please create new empty group chat and send here clickable link to it. This chat
 
                 print = new_print
                 log = new_log
+                temp_data['me'] = bot.get_chat('me')
+                if first_start:
+                    config['tg_session'] = bot.export_session_string()
+                if not config['logs_chat']:
+                    print(
+                        f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
 
+                    bot.send_message(
+                        chat_id='me',
+                        disable_web_page_preview=True,
+                        text=f'''\
+{start_message}
+
+Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring reposter. You must be an owner, and nobody except you must have access to this chat.
+
+{acceptable_link_formats}
+'''
+                    )
+
+                    temp_data.config_handlers.append(
+                        bot.add_handler(
+                            MessageHandler(
+                                init_set_logs_chat,
+                                filters=filters.chat('me'),
+                            )
+                        )
+
+                    )
+                else:
+                    print(
+                        f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
+                    init_handlers()
+                    if log_path.exists() and log_path.stat().st_size:
+                        bot.send_document(
+                            document=log_path,
+                            chat_id=temp_data.logs_chat.id,
+                        )
+                        log_path.unlink()
+
+                update_app()
                 pg.idle()
     except errors.AuthKeyUnregistered:
         config['tg_session'] = None
         main()
+
 
 
 main()
