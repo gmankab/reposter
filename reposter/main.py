@@ -2406,18 +2406,8 @@ def update_app(
 
     requirements = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 
-    match os_name:
-        case 'Linux':
-            update = f'''\
-kill -2 {os.getpid()} && \
-sleep 1 && \
-{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
---no-warn-script-location -t {modules_path} && \
-sleep 1 && \
-{sys.executable} {proj_path}\
-'''
-        case 'Windows':
-            update = f'''\
+    if os_name == 'Windows':
+        update_command = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
@@ -2425,28 +2415,38 @@ timeout /t 1 && \
 timeout /t 1 && \
 {sys.executable} {proj_path}\
 '''
-    print(f'restarting and updating {app_name} with command:\n{update}')
+    else:
+        update_command = f'''\
+kill -2 {os.getpid()} && \
+sleep 1 && \
+{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
+--no-warn-script-location -t {modules_path} && \
+sleep 1 && \
+{sys.executable} {proj_path}\
+'''
+
+    print(f'restarting and updating {app_name} with command:\n{update_command}')
     os.system(
-        update
+        update_command
     )
 
 def restart():
     match os_name:
         case 'Linux':
-            update = f'''\
+            restart_command = f'''\
 kill -2 {os.getpid()} && \
 sleep 1 && \
 {sys.executable} {proj_path}\
 '''
         case 'Windows':
-            update = f'''\
+            restart_command = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {sys.executable} {proj_path}\
 '''
-    print(f'restarting and updating {app_name} with command:\n{update}')
+    print(f'restarting and updating {app_name} with command:\n{restart_command}')
     os.system(
-        update
+        restart_command
     )
 
 def main() -> None:
