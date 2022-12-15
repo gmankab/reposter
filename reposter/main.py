@@ -77,6 +77,7 @@ cache_path = Path(
 if sys.argv[-1] not in (
     'reposter',
     'reposter.py',
+    '-m'
 ):
     config_path = Path(
         sys.argv[-1]

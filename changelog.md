@@ -17,6 +17,10 @@
 
 ## 22.4.3
 
+- fixed bug with config path
+
+## 22.4.3
+
 - fixed app updating
 
 ## 22.4.2
