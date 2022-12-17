@@ -15,6 +15,10 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 22.4.8
+
+- fixed another crash
+
 ## 22.4.7
 
 - fixed error when get wrong chat after /repost command

@@ -427,7 +427,7 @@ def self_username() -> None:
         return 'https://t.me/' + phone_number
 
 
-def init_set_logs_chat(
+def init_set_logs_chat_handler(
     _,
     msg: types.Message
 ) -> None:
@@ -2363,6 +2363,40 @@ def init_handlers() -> None:
     refresh_stream_notifications()
 
 
+def init_logs_chat():
+    if not config['logs_chat']:
+        print(
+            f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
+
+        bot.send_message(
+            chat_id='me',
+            disable_web_page_preview=True,
+            text=f'''\
+{start_message}
+
+Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring reposter. You must be an owner, and nobody except you must have access to this chat.
+
+{acceptable_link_formats}
+'''
+        )
+
+        temp_data.config_handlers.append(
+            bot.add_handler(
+                MessageHandler(
+                    init_set_logs_chat_handler,
+                    filters=filters.chat('me'),
+                )
+            )
+
+        )
+    else:
+        print(
+            f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}'
+        )
+        init_handlers()
+
+
+
 def update_app(
     forced = False
 ):
@@ -2509,11 +2543,20 @@ def main() -> None:
                 log_path,
                 'a'
             ) as log_file:
+                temp_data['me'] = bot.get_chat('me')
+                if first_start:
+                    config['tg_session'] = bot.export_session_string()
+                init_logs_chat()
+                if log_path.exists() and log_path.stat().st_size:
+                    bot.send_document(
+                        document=log_path,
+                        chat_id=temp_data.logs_chat.id,
+                    )
+                    log_path.unlink()
                 c_log = rich.console.Console(
                     file=log_file,
                     width=80,
                 )
-
                 def new_print(*args, **kwargs):
                     c.print(*args, **kwargs)
                     c_log.print(*args, **kwargs)
@@ -2524,44 +2567,6 @@ def main() -> None:
 
                 print = new_print
                 log = new_log
-                temp_data['me'] = bot.get_chat('me')
-                if first_start:
-                    config['tg_session'] = bot.export_session_string()
-                if not config['logs_chat']:
-                    print(
-                        f'\n[bold green]please open telegram and see your "saved messages" chat - [/bold green][bold]{self_username()}')
-
-                    bot.send_message(
-                        chat_id='me',
-                        disable_web_page_preview=True,
-                        text=f'''\
-{start_message}
-
-Please create new empty group chat and send here clickable link to it. This chat needed for logs and for configuring reposter. You must be an owner, and nobody except you must have access to this chat.
-
-{acceptable_link_formats}
-'''
-                    )
-
-                    temp_data.config_handlers.append(
-                        bot.add_handler(
-                            MessageHandler(
-                                init_set_logs_chat,
-                                filters=filters.chat('me'),
-                            )
-                        )
-
-                    )
-                else:
-                    print(
-                        f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}')
-                    init_handlers()
-                    if log_path.exists() and log_path.stat().st_size:
-                        bot.send_document(
-                            document=log_path,
-                            chat_id=temp_data.logs_chat.id,
-                        )
-                        log_path.unlink()
 
                 update_app()
                 pg.idle()
