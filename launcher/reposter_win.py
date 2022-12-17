@@ -15,12 +15,6 @@ except ImportError as error:
     print(sys.path)
     print(error)
 
-    restart_script = f'''\
-taskkill /f /pid {os.getpid()} && \
-timeout /t 1 && \
-{sys.executable} {" ".join(sys.argv)}\
-'''
-
     def run(
         command: str
     ) -> str:
@@ -87,15 +81,25 @@ import site
             f'{sys.executable} {get_pip} --no-warn-script-location --no-cache-dir'
         )
         os.remove(get_pip)
+
+        restart_script = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{sys.executable} {" ".join(sys.argv)}\
+'''
         print(f'restarting script with command:\n{restart_script}')
         os.system(
             restart_script
         )
 
-    os.system(f'{pip} install --upgrade pip --no-cache-dir')
-    os.system(
-        f'{pip} install --upgrade --force-reinstall {proj_name} -t {proj_path} --no-cache-dir')
 
+    restart_script = f'''\
+taskkill /f /pid {os.getpid()} && \
+timeout /t 1 && \
+{pip} install --upgrade pip --no-cache-dir && \
+{pip} install --upgrade --force-reinstall {proj_name} -t {proj_path} --no-cache-dir && \
+{sys.executable} {" ".join(sys.argv)}\
+'''
 
     print(f'restarting script with command:\n{restart_script}')
     os.system(
