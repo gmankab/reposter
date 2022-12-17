@@ -92,7 +92,6 @@ timeout /t 1 && \
             restart_script
         )
 
-
     restart_script = f'''\
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
