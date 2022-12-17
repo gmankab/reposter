@@ -74,14 +74,16 @@ cache_path = Path(
     f'{modules_path}/{app_name}_tg_chache'
 )
 
-if sys.argv[-1] not in (
+if sys.argv[-1].replace('\\', '/').rsplit('/', 1)[-1] not in (
     'reposter',
     'reposter.py',
+    'reposter_win.py',
     '-m',
 ):
     config_path = Path(
         sys.argv[-1]
     )
+    c.log(f'set config path [deep_sky_blue1]{sys.argv[-1]}')
 else:
     config_path = Path(
         f'{modules_path}/{app_name}.yml'
