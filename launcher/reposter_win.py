@@ -96,7 +96,9 @@ timeout /t 1 && \
 taskkill /f /pid {os.getpid()} && \
 timeout /t 1 && \
 {pip} install --upgrade pip --no-cache-dir && \
+timeout /t 1 && \
 {pip} install --upgrade --force-reinstall {proj_name} -t {proj_path} --no-cache-dir && \
+timeout /t 1 && \
 {sys.executable} {" ".join(sys.argv)}\
 '''
 
