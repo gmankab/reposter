@@ -21,6 +21,7 @@ portable = win_py_file.exists()
 run_st = sp.getstatusoutput
 run = sp.getoutput
 os_name = platform.system()
+is_windows = os_name == 'Windows'
 yes_or_no = Sel(
     items = [
         'yes',

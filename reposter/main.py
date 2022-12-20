@@ -6,6 +6,7 @@ try:
         modules_path,
         win_py_file,
         app_version,
+        is_windows,
         yes_or_no,
         proj_path,
         app_name,
@@ -18,6 +19,7 @@ except ModuleNotFoundError:
         modules_path,
         win_py_file,
         app_version,
+        is_windows,
         yes_or_no,
         proj_path,
         app_name,
@@ -2466,47 +2468,33 @@ def update_app(
 
     requirements = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 
-    if os_name == 'Windows':
-        update_command = f'''\
-taskkill /f /pid {os.getpid()} && \
-timeout /t 1 && \
-{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
---no-warn-script-location -t {modules_path} && \
-timeout /t 1 && \
-{sys.executable} {proj_path}\
-'''
-    else:
-        update_command = f'''\
-kill -2 {os.getpid()} && \
-sleep 1 && \
-{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} \
---no-warn-script-location -t {modules_path} && \
-sleep 1 && \
-{sys.executable} {proj_path}\
-'''
-
-    print(f'restarting and updating {app_name} with command:\n{update_command}')
-    os.system(
-        update_command
+    restart(
+        commands = f'{pip} install --upgrade --no-cache-dir --force-reinstall {app_name} {requirements} --no-warn-script-location -t {modules_path}'
     )
 
-def restart():
-    match os_name:
-        case 'Linux':
-            restart_command = f'''\
-kill -2 {os.getpid()} && \
-sleep 1 && \
-{sys.executable} {proj_path}\
-'''
-        case 'Windows':
-            restart_command = f'''\
-taskkill /f /pid {os.getpid()} && \
-timeout /t 1 && \
-{sys.executable} {proj_path}\
-'''
-    print(f'restarting and updating {app_name} with command:\n{restart_command}')
+def restart(
+    commands: str | list[str] | tuple[str],
+):
+    if is_windows:
+        final_command = f'taskkill /f /pid {os.getpid()}'
+    else:
+        final_command = f'kill -2 {os.getpid()}'
+    def add_sleep():
+        if is_windows:
+            final_command += ' && sleep 1 && '
+        else:
+            final_command += ' && timeout /t 1 && '
+    if isinstance(commands, str):
+        commands = [commands]
+    for command in commands:
+        add_sleep()
+        final_command += command
+
+    add_sleep()
+    final_command += f'{sys.executable} {proj_path}'
+    print(f'restarting with command:\n{final_command}')
     os.system(
-        restart_command
+        final_command
     )
 
 def main() -> None:
@@ -2526,33 +2514,33 @@ def main() -> None:
         if phone_number[0] != '+':
             phone_number = '+' + phone_number
         bot = pg.client.Client(
-            name=app_name,
-            api_id=config.api_id,
-            api_hash=config.api_hash,
-            phone_number=phone_number,
-            app_version=app_full_name,
-            device_model=os.getlogin(),
-            system_version=os_name,
-            in_memory=True,
-            workers=1,
+            name = app_name,
+            api_id = config.api_id,
+            api_hash = config.api_hash,
+            phone_number = phone_number,
+            app_version = app_full_name,
+            device_model = os.getlogin(),
+            system_version = os_name,
+            in_memory = True,
+            workers = 1,
         )
         first_start = True
     try:
         with bot:
+            temp_data['me'] = bot.get_chat('me')
+            if first_start:
+                config['tg_session'] = bot.export_session_string()
+            init_logs_chat()
+            if log_path.exists() and log_path.stat().st_size:
+                bot.send_document(
+                    document = log_path,
+                    chat_id = temp_data['logs_chat'].id,
+                )
+            log_path.unlink()
             with open(
                 log_path,
                 'a'
             ) as log_file:
-                temp_data['me'] = bot.get_chat('me')
-                if first_start:
-                    config['tg_session'] = bot.export_session_string()
-                init_logs_chat()
-                if log_path.exists() and log_path.stat().st_size:
-                    bot.send_document(
-                        document=log_path,
-                        chat_id=temp_data.logs_chat.id,
-                    )
-                    log_path.unlink()
                 c_log = rich.console.Console(
                     file=log_file,
                     width=80,
