@@ -15,9 +15,9 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
-## 22.4.8
+## 22.4.9
 
-- fixed another crash
+- fixed crash
 
 ## 22.4.7
 
