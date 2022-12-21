@@ -2536,7 +2536,7 @@ def main() -> None:
                     document = log_path,
                     chat_id = temp_data['logs_chat'].id,
                 )
-            log_path.unlink()
+            log_path.unlink(missing_ok = True)
             with open(
                 log_path,
                 'a'
