@@ -2480,6 +2480,7 @@ def restart(
     else:
         final_command = f'kill -2 {os.getpid()}'
     def add_sleep():
+        nonlocal final_command
         if is_windows:
             final_command += ' && sleep 1 && '
         else:
@@ -2536,7 +2537,7 @@ def main() -> None:
                     document = log_path,
                     chat_id = temp_data['logs_chat'].id,
                 )
-            log_path.unlink(missing_ok = True)
+                log_path.unlink(missing_ok = True)
             with open(
                 log_path,
                 'a'
