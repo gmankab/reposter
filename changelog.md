@@ -15,11 +15,11 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
-## 22.4.12
+## 22.4.13
 
 - fixed architecture issue caused crash
 
-## 22.4.11
+## 22.4.12
 
 - fixed app updating
 
