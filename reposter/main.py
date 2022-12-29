@@ -7,7 +7,7 @@ try:
         win_py_file,
         app_version,
         is_windows,
-        yes_or_no,
+        yes_no,
         proj_path,
         app_name,
         portable,
@@ -20,7 +20,7 @@ except ModuleNotFoundError:
         win_py_file,
         app_version,
         is_windows,
-        yes_or_no,
+        yes_no,
         proj_path,
         app_name,
         portable,
@@ -120,11 +120,14 @@ print = c.print
 log = c.log
 pp = rich.pretty.pprint
 bot: pg.client.Client = None
+reload = None
+
 if os_name == 'Linux':
     try:
         os_name = platform.freedesktop_os_release()['PRETTY_NAME']
     except Exception:
         pass
+
 os_name = f'{os_name} {platform.release()}'
 python_imp = f'{platform.python_implementation()} {platform.python_version()}'
 pip = f'{sys.executable} -m pip'
@@ -365,12 +368,16 @@ timeout /t 1 && \
         config['app_version'] = app_version
 
     if 'check_updates' not in config:
-        if yes_or_no.choose(
+        act = yes_no.choose(
             text='[deep_sky_blue1]do you want to check updates on start?'
-        ) == 'yes':
-            config['check_updates'] = True
-        else:
-            config['check_updates'] = False
+        )
+        match act:
+            case 'yes':
+                config['check_updates'] = True
+            case 'no':
+                config['check_updates'] = False
+            case 'exit':
+                sys.exit()
 
     if (
         not config['api_id']
@@ -458,11 +465,11 @@ def init_set_logs_chat_handler(
     else:
         temp_data['logs_chat'] = chat
         config['logs_chat'] = chat_link
-        init_handlers()
         reply.edit_text(
             f'successfully set {chat_link} as chat for settings and logs, please open it',
             disable_web_page_preview=True,
         )
+        reload()
 
 
 def set_logs_chat(
@@ -2391,12 +2398,12 @@ Please create new empty group chat and send here clickable link to it. This chat
             )
 
         )
+        pg.idle()
     else:
         print(
             f'\n[bold green]please open telegram and see your logs chat - [/bold green][bold]https://{config.logs_chat.replace("@", "t.me/")}'
         )
         init_handlers()
-
 
 
 def update_app(
@@ -2458,13 +2465,19 @@ def update_app(
     changelog - github.com/gmankab/reposter/blob/main/changelog.md
     ''',
         )
-        if yes_or_no.choose(
+        act = yes_no.choose(
             text=f'''\
     [green]found updates, do you want to update {app_name}?
     changelog - https://github.com/gmankab/reposter/blob/main/changelog.md
     '''
-        ) == 'no':
-            return
+        )
+        match act:
+            case 'yes':
+                pass
+            case 'no':
+                return
+            case 'exit':
+                sys.exit()
 
     requirements = "betterdata easyselect gmanka_yml pyrogram tgcrypto humanize rich"
 
@@ -2498,11 +2511,10 @@ def restart(
         final_command
     )
 
+
 def main() -> None:
-    global c_log
-    global print
-    global log
     global bot
+    global reload
     init_config()
     if config['tg_session']:
         bot = pg.client.Client(
@@ -2528,41 +2540,46 @@ def main() -> None:
         first_start = True
     try:
         with bot:
-            temp_data['me'] = bot.get_chat('me')
-            if first_start:
-                config['tg_session'] = bot.export_session_string()
-            init_logs_chat()
-            if log_path.exists() and log_path.stat().st_size:
-                bot.send_document(
-                    document = log_path,
-                    chat_id = temp_data['logs_chat'].id,
-                )
-                log_path.unlink(missing_ok = True)
-            with open(
-                log_path,
-                'a'
-            ) as log_file:
-                c_log = rich.console.Console(
-                    file=log_file,
-                    width=80,
-                )
-                def new_print(*args, **kwargs):
-                    c.print(*args, **kwargs)
-                    c_log.print(*args, **kwargs)
+            def local_reload():
+                global c_log
+                global print
+                global log
+                temp_data['me'] = bot.get_chat('me')
+                if first_start:
+                    config['tg_session'] = bot.export_session_string()
+                init_logs_chat()
+                if log_path.exists() and log_path.stat().st_size:
+                    bot.send_document(
+                        document = log_path,
+                        chat_id = temp_data['logs_chat'].id,
+                    )
+                    log_path.unlink(missing_ok = True)
+                with open(
+                    log_path,
+                    'a'
+                ) as log_file:
+                    c_log = rich.console.Console(
+                        file=log_file,
+                        width=80,
+                    )
+                    def new_print(*args, **kwargs):
+                        c.print(*args, **kwargs)
+                        c_log.print(*args, **kwargs)
 
-                def new_log(*args, **kwargs):
-                    c.log(*args, **kwargs)
-                    c_log.log(*args, **kwargs)
+                    def new_log(*args, **kwargs):
+                        c.log(*args, **kwargs)
+                        c_log.log(*args, **kwargs)
 
-                print = new_print
-                log = new_log
+                    print = new_print
+                    log = new_log
 
-                update_app()
-                pg.idle()
+                    update_app()
+                    pg.idle()
+            reload = local_reload
+            reload()
     except errors.AuthKeyUnregistered:
         config['tg_session'] = None
         main()
-
 
 
 main()

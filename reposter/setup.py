@@ -10,26 +10,33 @@ import rich
 import sys
 import os
 
-app_version = '22.4.11'
+app_version = '22.4.12'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
 c = rich.console.Console()
 print = c.print
-win_py_file = Path(f'{modules_path}/{app_name}_win.py')
+win_py_file = Path(
+    f'{modules_path}/{app_name}_win.py'
+)
+bat_file = Path(
+    f'{modules_path.parent.resolve()}/{app_name}.bat'
+)
 portable = win_py_file.exists()
 run_st = sp.getstatusoutput
 run = sp.getoutput
 os_name = platform.system()
 is_windows = os_name == 'Windows'
-yes_or_no = Sel(
+yes_no = Sel(
     items = [
         'yes',
         'no',
+        'exit',
     ],
     styles = [
         'green',
         'red',
+        'bright_black',
     ]
 )
 
@@ -85,7 +92,7 @@ Exec=/bin/python -m {app_name}
         icon_target,
     )
 
-    act = yes_or_no.choose(
+    act = yes_no.choose(
 f'''
 [green]\
 Created file [deep_sky_blue1]{dotdesktop_path}
