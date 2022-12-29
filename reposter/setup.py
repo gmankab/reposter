@@ -59,8 +59,8 @@ def linux():
     if dotdesktop_path.exists():
         return
     dotdesktop_path.parent.mkdir(
-        parents=True,
-        exist_ok=True
+        parents = True,
+        exist_ok = True
     )
     with open(
         dotdesktop_path,
@@ -84,8 +84,8 @@ Exec=/bin/python -m {app_name}
     icon_source = Path(f'{proj_path}/icons/icon.svg')
     icon_target = Path(f'{share}/icons/{app_name}.svg')
     icon_target.parent.mkdir(
-        parents=True,
-        exist_ok=True
+        parents = True,
+        exist_ok = True
     )
     sh.copy(
         icon_source,
@@ -189,7 +189,7 @@ This script can be runned with following commands:
         text += f'{sys.executable} -m {app_name}\n'
     print(
         text,
-        highlight=False,
+        highlight = False,
     )
 
 
