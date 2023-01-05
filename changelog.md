@@ -15,6 +15,10 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 22.4.16
+
+- fixed error with updating
+
 ## 22.4.15
 
 - fixed some errors

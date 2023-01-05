@@ -2441,7 +2441,7 @@ def update_app(
                 description = ''
             )
             packages = []
-            pip_list = f'{pip} list --format = json --path {modules_path}'
+            pip_list = f'{pip} list --format=json --path {modules_path}'
             all_packages_str = run(pip_list)
             start = all_packages_str.find('[')
             end = all_packages_str.rfind(']') + 1
