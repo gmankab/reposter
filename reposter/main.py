@@ -1531,6 +1531,12 @@ def edit(
     msg_in_history,
     src_msg,
 ) -> bool | types.Message:
+    if target_id not in msg_in_history:
+        bot.send_message(
+            chat_id = temp_data.logs_chat.id,
+            text = f'{clean_link(src_msg.link)} edited but was not reposted and was not saved in `{history_path}`',
+        )
+        return
     target_msg: types.Message = bot.get_messages(
         chat_id = target_id,
         message_ids = msg_in_history[target_id],
@@ -1671,7 +1677,14 @@ def mark_deleted(
     msg_in_history,
     log_msg,
     is_media_group,
+    src_msg,
 ) -> str:
+    if target_id not in msg_in_history:
+        log_msg.reply(
+            chat_id = temp_data.logs_chat.id,
+            text = f'{clean_link(src_msg.link)} deleted but was not reposted and was not saved in `{history_path}`',
+        )
+        return
     target_msg = msg_in_history[target_id]
     if is_media_group:
         target_msg = bot.get_messages(
@@ -1753,6 +1766,7 @@ def recursive_repost(
                 msg_in_history,
                 log_msg,
                 is_media_group,
+                src_msg,
             )
         else:
             if restricted:
@@ -1880,7 +1894,9 @@ def clean_media_group(
     msg
 ) -> None:
     msg_link = get_msg_link(msg)
-    local_dict = temp_data.media_groups[msg.media_group_id]
+    if msg.media_group_id not in temp_data['media_groups']:
+        return
+    local_dict = temp_data['media_groups'][msg.media_group_id]
     if msg_link in local_dict['msgs']:
         local_dict['msgs'].remove(
             clean_link(msg.link),
@@ -2166,6 +2182,20 @@ def init_recursive_repost(
                 )
             time.sleep(2)
             clean_media_group(src_msg)
+    except errors.FloodWait as e:
+        to_sleep = e.value + 15
+        log(f'waiting {to_sleep} seconds and trying again')
+        time.sleep(to_sleep)
+        bot.send_message(
+            chat_id = temp_data.logs_chat.id,
+            text = f'slept {to_sleep} seconds',
+        )
+        init_recursive_repost(
+            _,
+            src_msg,
+            deleted,
+            force,
+        )
     except Exception:
         error_path = f'{proj_path}/error.txt'
         with open(

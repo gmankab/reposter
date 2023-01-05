@@ -15,6 +15,10 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 22.4.15
+
+- fixed some errors
+
 ## 22.4.14
 
 - fixed squared video on ios clients
