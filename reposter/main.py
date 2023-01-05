@@ -159,7 +159,7 @@ if portable:
 start_message = f'''\
 {app_full_name},
 {os_name},
-config path - {config_path}
+config path - `{config_path}`
 '''
 
 
@@ -1904,18 +1904,7 @@ error:
             quote = True
         )
     if not local_dict['msgs']:
-        excluded = temp_data.media_groups.pop(
-            msg.media_group_id,
-            None
-        )
-        if not excluded:
-            local_dict['log_msg'].reply(
-                text = f'''
-error:
-{msg.media_group_id} not in
-{yml.to_str(temp_data.media_groups)}
-'''
-            )
+        temp_data['media_groups'] = {}
 
 
 def resend_media_group(
@@ -1959,6 +1948,8 @@ def resend_media_group(
                 **kwargs,
                 file = msg.video,
                 send_method = log_msg.reply_video,
+                width = msg.video.width,
+                height = msg.video.height,
             )
             new_media.append(
                 types.InputMediaVideo(
@@ -2396,7 +2387,6 @@ Please create new empty group chat and send here clickable link to it. This chat
                     filters = filters.chat('me'),
                 )
             )
-
         )
         pg.idle()
     else:
