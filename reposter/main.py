@@ -2515,9 +2515,9 @@ def restart(
     def add_sleep():
         nonlocal final_command
         if is_windows:
-            final_command += ' && sleep 1 && '
-        else:
             final_command += ' && timeout /t 1 && '
+        else:
+            final_command += ' && sleep 1 && '
     if isinstance(commands, str):
         commands = [commands]
     for command in commands:

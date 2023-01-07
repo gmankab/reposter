@@ -15,9 +15,9 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
-## 22.4.16
+## 22.4.17
 
-- fixed error with updating
+- fixed app updating
 
 ## 22.4.15
 
