@@ -2466,7 +2466,7 @@ def update_app(
                         package['name']
                     )
 
-            command = f'{pip} list --outdated --format = json --path {modules_path}'
+            command = f'{pip} list --outdated --format=json --path {modules_path}'
             for package in packages:
                 command += f' --exclude {package}'
 

@@ -10,7 +10,7 @@ import rich
 import sys
 import os
 
-app_version = '22.4.17'
+app_version = '22.4.18'
 app_name = 'reposter'
 proj_path = Path(__file__).parent.resolve()
 modules_path = Path(__file__).parent.parent.resolve()
