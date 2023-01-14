@@ -1159,7 +1159,8 @@ use /help to see chats tree
 successfully added {chats[-1]} to chats tree
 
 use /help to see updated chats tree
-'''
+''',
+            disable_web_page_preview = True,
         )
 
 
@@ -1851,70 +1852,75 @@ def resend_media_group(
     new_media = []
     other_captions = []
     for msg in src_media:
-        if msg.caption:
-            captions = list(
-                text_wrap(
-                    msg.caption
+        try:
+            if msg.caption:
+                captions = list(
+                    text_wrap(
+                        msg.caption
+                    )
                 )
-            )
-            first_caption = captions[0]
-            other_captions += captions[1:]
-        else:
-            first_caption = None
+                first_caption = captions[0]
+                other_captions += captions[1:]
+            else:
+                first_caption = None
 
-        kwargs = {
-            'msg': msg,
-            'log_msg': log_msg,
-        }
-        if msg.photo:
-            temp_msg: types.Message = resend_file(
-                **kwargs,
-                file = msg.photo,
-                send_method = log_msg.reply_photo,
-            )
-            new_media.append(
-                types.InputMediaPhoto(
-                    media = temp_msg.photo.file_id,
-                    caption = first_caption,
+            kwargs = {
+                'msg': msg,
+                'log_msg': log_msg,
+            }
+            if msg.photo:
+                temp_msg: types.Message = resend_file(
+                    **kwargs,
+                    file = msg.photo,
+                    send_method = log_msg.reply_photo,
                 )
-            )
-        elif msg.video:
-            temp_msg: types.Message = resend_file(
-                **kwargs,
-                file = msg.video,
-                send_method = log_msg.reply_video,
-                width = msg.video.width,
-                height = msg.video.height,
-            )
-            new_media.append(
-                types.InputMediaVideo(
-                    media = temp_msg.video.file_id,
-                    caption = first_caption,
+                new_media.append(
+                    types.InputMediaPhoto(
+                        media = temp_msg.photo.file_id,
+                        caption = first_caption,
+                    )
                 )
-            )
-        elif msg.audio:
-            temp_msg: types.Message = resend_file(
-                **kwargs,
-                file = msg.audio,
-                send_method = log_msg.reply_audio,
-            )
-            new_media.append(
-                types.InputMediaAudio(
-                    media = temp_msg.audio.file_id,
-                    caption = first_caption,
+            elif msg.video:
+                temp_msg: types.Message = resend_file(
+                    **kwargs,
+                    file = msg.video,
+                    send_method = log_msg.reply_video,
+                    width = msg.video.width,
+                    height = msg.video.height,
                 )
-            )
-        elif msg.document:
-            temp_msg: types.Message = resend_file(
-                **kwargs,
-                file = msg.document,
-                send_method = log_msg.reply_document,
-            )
-            new_media.append(
-                types.InputMediaDocument(
-                    media = temp_msg.document.file_id,
-                    caption = first_caption,
+                new_media.append(
+                    types.InputMediaVideo(
+                        media = temp_msg.video.file_id,
+                        caption = first_caption,
+                    )
                 )
+            elif msg.audio:
+                temp_msg: types.Message = resend_file(
+                    **kwargs,
+                    file = msg.audio,
+                    send_method = log_msg.reply_audio,
+                )
+                new_media.append(
+                    types.InputMediaAudio(
+                        media = temp_msg.audio.file_id,
+                        caption = first_caption,
+                    )
+                )
+            elif msg.document:
+                temp_msg: types.Message = resend_file(
+                    **kwargs,
+                    file = msg.document,
+                    send_method = log_msg.reply_document,
+                )
+                new_media.append(
+                    types.InputMediaDocument(
+                        media = temp_msg.document.file_id,
+                        caption = first_caption,
+                    )
+                )
+        except ValueError:
+            log_msg.reply(
+                text = f'too big file {get_msg_link(msg)}'
             )
     return bot.send_media_group(
         chat_id = target,
