@@ -415,7 +415,6 @@ timeout /t 1 && \
     temp_data['reposter_handlers'] = []
     temp_data['chats_tree'] = {}
     temp_data['links'] = {}
-    temp_data['media_groups'] = {}
 
 
 def self_username() -> None:
@@ -1559,7 +1558,6 @@ def resend_all(
     src_msg,
     target_id,
     log_msg,
-    orig,
     msg_in_history,
 ) -> bool | types.Message:
     try:
@@ -1569,15 +1567,6 @@ def resend_all(
                 target = target_id,
                 log_msg = log_msg,
             )
-            new_media_group = new_msg.get_media_group()
-            orig_media_group = orig.get_media_group()
-            for i in range(len(orig_media_group)):
-                _orig_msg = orig_media_group[i]
-                _new_msg = new_media_group[i]
-                history[_orig_msg.chat.id][_orig_msg.id][
-                    target_id
-                ] = _new_msg.id
-            history.to_file()
             return new_msg
         else:
             new_msg = resend(
@@ -1642,7 +1631,6 @@ def forward_all(
     log_msg,
     msg_in_history,
     is_media_group,
-    orig,
 ) -> types.Message:
     if is_media_group:
         new_msg: types.Message = forward_media_group(
@@ -1650,15 +1638,6 @@ def forward_all(
             target = target_id,
             log_msg = log_msg,
         )
-        new_media_group = new_msg.get_media_group()
-        orig_media_group = orig.get_media_group()
-        for i in range(len(orig_media_group)):
-            _orig_msg = orig_media_group[i]
-            _new_msg = new_media_group[i]
-            history[_orig_msg.chat.id][_orig_msg.id][
-                target_id
-            ] = _new_msg.id
-        history.to_file()
     else:
         new_msg: types.Message = forward(
             msg = src_msg,
@@ -1719,7 +1698,7 @@ def mark_deleted(
 
 def recursive_repost(
     src_msg: types.Message,
-    orig: types.Message,
+    first_src_msg: types.Message,
     targets: list[dict],
     log_msg: types.Message,
     src_link: str,
@@ -1744,7 +1723,7 @@ def recursive_repost(
         )
     )
     success = True
-    msg_in_history = history[orig.chat.id][orig.id]
+    msg_in_history = history[first_src_msg.chat.id][first_src_msg.id]
     for target in targets:
         target_link = target['link']
         next_chats_tree = target['next_chats_tree']
@@ -1775,7 +1754,6 @@ def recursive_repost(
                     src_msg,
                     target_id,
                     log_msg,
-                    orig,
                     msg_in_history,
                 )
                 if not new_msg:
@@ -1794,8 +1772,17 @@ def recursive_repost(
                     log_msg,
                     msg_in_history,
                     is_media_group,
-                    orig,
                 )
+            if is_media_group:
+                new_media_group = new_msg.get_media_group()
+                orig_media_group = first_src_msg.get_media_group()
+                for i in range(len(orig_media_group)):
+                    _orig_msg = orig_media_group[i]
+                    _new_msg = new_media_group[i]
+                    history[_orig_msg.chat.id][_orig_msg.id][
+                        target_id
+                    ] = _new_msg.id
+                history.to_file()
         if (
             success
         ) and (
@@ -1828,7 +1815,7 @@ def recursive_repost(
             )
         recursive_repost(
             src_msg = new_msg,
-            orig = orig,
+            first_src_msg = first_src_msg,
             targets = next_chats_tree,
             log_msg = new_log_msg,
             src_link = src_link,
@@ -1849,78 +1836,6 @@ def get_msg_link(
         return None
     else:
         return clean_link(msg.link)
-
-
-def get_media_group(
-    msg: types.Message
-) -> None:
-    local_dict = {
-        'msgs': []
-    }
-    temp_data.media_groups[
-        msg.media_group_id
-    ] = local_dict
-    chat_link = temp_data.links[msg.chat.id]
-    msg_link = get_msg_link(msg)
-    if msg_link:
-        text = f'got media group `{msg.media_group_id}` in {msg_link}'
-    else:
-        text = f'got media group `{msg.media_group_id}` in {chat_link}'
-
-    local_dict['log_msg'] = bot.send_message(
-        text = text,
-        chat_id = temp_data.logs_chat.id,
-    )
-
-    local_media_group = msg.get_media_group()
-    for sub_msg in local_media_group:
-        local_dict['msgs'].append(
-            clean_link(sub_msg.link)
-        )
-
-    local_dict['count'] = len(
-        local_dict['msgs']
-    )
-
-    for __media_group__ in temp_data.media_groups.values():
-        local_dict['log_msg'].reply(
-            text = yml.to_str(__media_group__['msgs']),
-            quote = True,
-        )
-    return local_dict['log_msg']
-
-
-def clean_media_group(
-    msg
-) -> None:
-    msg_link = get_msg_link(msg)
-    if msg.media_group_id not in temp_data['media_groups']:
-        return
-    local_dict = temp_data['media_groups'][msg.media_group_id]
-    if msg_link in local_dict['msgs']:
-        local_dict['msgs'].remove(
-            clean_link(msg.link),
-        )
-        local_dict['log_msg'].reply(
-            text = f'''
-got \
-{local_dict["count"] - len(local_dict['msgs'])}\
-/\
-{local_dict["count"]}
-''',
-            quote = True
-        )
-    else:
-        local_dict['log_msg'].reply(
-            text = f'''
-error:
-{clean_link(msg.link)} not in
-{yml.to_str(local_dict['msgs'])}
-''',
-            quote = True
-        )
-    if not local_dict['msgs']:
-        temp_data['media_groups'] = {}
 
 
 def resend_media_group(
@@ -2131,11 +2046,11 @@ def init_recursive_repost(
         if stream:
             log_msg = bot.send_message(
                 chat_id = temp_data.logs_chat.id,
-                text = text
+                text = text,
             )
             recursive_repost(
                 src_msg = src_msg,
-                orig = src_msg,
+                first_src_msg = src_msg,
                 targets = targets,
                 log_msg = log_msg,
                 src_link = src_link,
@@ -2161,7 +2076,7 @@ def init_recursive_repost(
             )
             recursive_repost(
                 src_msg = src_msg,
-                orig = src_msg,
+                first_src_msg = src_msg,
                 targets = targets,
                 log_msg = log_msg,
                 src_link = src_link,
@@ -2169,19 +2084,28 @@ def init_recursive_repost(
                 deleted = deleted,
             )
         else:
-            if src_msg.media_group_id not in temp_data.media_groups:
-                log_msg = get_media_group(src_msg)
+            src_media = src_msg.get_media_group()
+            if src_media[0].id == src_msg.id:
+                chat_link = temp_data.links[src_msg.chat.id]
+                msg_link = get_msg_link(src_msg)
+                if msg_link:
+                    text = f'got media group `{src_msg.media_group_id}` in {msg_link}'
+                else:
+                    text = f'got media group `{src_msg.media_group_id}` in {chat_link}'
+
+                log_msg = bot.send_message(
+                    text = text,
+                    chat_id = temp_data.logs_chat.id,
+                )
                 recursive_repost(
                     src_msg = src_msg,
-                    orig = src_msg,
+                    first_src_msg = src_msg,
                     targets = targets,
                     log_msg = log_msg,
                     src_link = src_link,
                     edited = edited,
                     deleted = deleted,
                 )
-            time.sleep(2)
-            clean_media_group(src_msg)
     except errors.FloodWait as e:
         to_sleep = e.value + 15
         log(f'waiting {to_sleep} seconds and trying again')
@@ -2369,21 +2293,6 @@ def init_handlers() -> None:
         )
         temp_data['logs_chat'] = logs_chat
 
-    try:
-        bot.get_chat_member(
-            logs_chat.id, 'gmanka_bot'
-        )
-
-    except errors.exceptions.bad_request_400.UserNotParticipant:
-        bot.add_chat_members(
-            chat_id = logs_chat.id,
-            user_ids = 'gmanka_bot',
-            forward_limit = 0,
-        )
-        bot.send_message(
-            text = 'invited @gmanka_bot just for make commands like /help clickable, he is not needed for anything else',
-            chat_id = logs_chat.id,
-        )
     bot.send_message(
         text = start_message + '\n\nuse /help to configure reposter',
         chat_id = logs_chat.id,

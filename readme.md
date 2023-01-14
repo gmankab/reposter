@@ -2,7 +2,7 @@
 
 <img src="https://github.com/gmankab/reposter/raw/main/img/transparent.png">
 
-script for forwarding messages from one telegram channel to another in real time, saves the history of post edits in the comments, marks the message as deleted if it is deleted, and also notifies when a stream has started in the channel. There is support for messages with multiple attachments. Simple, intuitive and setup and launching
+script for forwarding messages from one telegram channel to another in real time, saves the history of post edits in the comments, marks the message as deleted if it deleted, and also notifies when a stream has started in the channel. There is support for messages with multiple attachments. Simple, intuitive setup and launching
 
 ## navigation
 

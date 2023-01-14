@@ -15,6 +15,10 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 23.0.0
+
+- fixed reposting media groups
+
 ## 22.4.18
 
 - fixed app updating
