@@ -13,7 +13,7 @@ dependencies = [
   "rich",
 ]
 name = "reposter"
-version = "23.0.1"
+version = "23.0.2"
 authors = [
   { name="gmanka", email="gmankab@gmail.com" },
 ]

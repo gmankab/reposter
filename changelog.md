@@ -15,9 +15,19 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 23.0.2
+
+- improved error handling when editing messages
+
+- improved logging
+
+- removed useless time.sleep
+
 ## 23.0.1
 
 - improved error handling when editing messages
+
+## 23.0.0
 
 - fixed reposting media groups
 

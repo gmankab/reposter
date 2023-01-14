@@ -1611,10 +1611,6 @@ def save_edited_history(
         )
     except Exception as exc:
         # if not a channel or if has not linked chat
-        log_msg.reply(
-            text = f'can\'t get linked chat message:\n\n {exc}',
-            quote = True,
-        )
         return clean_link(
             new_msg.link
         )
@@ -1745,6 +1741,8 @@ def recursive_repost(
                 msg_in_history,
                 src_msg,
             )
+            if not new_msg:
+                return
         elif deleted:
             new_msg = mark_deleted(
                 target_id,
@@ -1810,11 +1808,11 @@ def recursive_repost(
         if success:
             link = clean_link(new_msg.link)
             if edited:
-                text = f'updated message {link}'
+                text = f'updated msg {link}'
             elif deleted:
-                text = f'marked message as deleted {link}'
+                text = f'marked msg as deleted {link}'
             else:
-                text = f'reposted message {link}'
+                text = f'reposted msg {link}'
             new_log_msg = log_msg.reply(
                 text = text,
                 quote = True,
@@ -1976,7 +1974,6 @@ def init_recursive_repost(
             text_hash = get_hash(str(src_msg.text))
 
         if deleted:
-            time.sleep(4)
             if (
                 src_msg.chat.id not in history
             ) or (
@@ -1989,7 +1986,6 @@ def init_recursive_repost(
                 return
 
         if edited:
-            time.sleep(4)
             if (
                 src_msg.chat.id not in history
             ) or (
