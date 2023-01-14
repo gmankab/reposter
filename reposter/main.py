@@ -1592,6 +1592,12 @@ def save_edited_history(
     log_msg,
     is_media_group,
 ) -> str:
+    if target_id not in msg_in_history:
+        bot.send_message(
+            chat_id = temp_data.logs_chat.id,
+            text = f'{clean_link(src_msg.link)} edited but was not reposted and was not saved in `{history_path}`',
+        )
+        return
     target_msg = msg_in_history[target_id]
     if is_media_group:
         target_msg = bot.get_messages(
