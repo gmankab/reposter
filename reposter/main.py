@@ -1948,6 +1948,7 @@ def init_recursive_repost(
     deleted = False,
     force = False,
 ) -> None:
+    log_msg = None
     try:
         if isinstance(
             src_msg,
@@ -2150,6 +2151,7 @@ def init_recursive_repost(
         bot.send_document(
             chat_id = temp_data.logs_chat.id,
             document = error_path,
+            reply_to_message_id = log_msg,
         )
 
 

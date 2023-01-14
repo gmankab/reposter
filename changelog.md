@@ -15,6 +15,10 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 23.0.4
+
+- improved errors handling
+
 ## 23.0.3
 
 - fixed error with too big file
