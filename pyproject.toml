@@ -6,14 +6,14 @@ build-backend = "hatchling.build"
 dependencies = [
   "betterdata",
   "easyselect",
-  "gmanka_yml",
+  "gmanka_yml"==22.0.1,
   "pyrogram",
   "tgcrypto",
   "humanize",
   "rich",
 ]
 name = "reposter"
-version = "23.0.4"
+version = "23.0.5"
 authors = [
   { name="gmanka", email="gmankab@gmail.com" },
 ]

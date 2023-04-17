@@ -1374,6 +1374,8 @@ def resend(
     reply_to_msg = None,
 ) -> types.Message:
     if msg.caption:
+        if 'файл номер' not in msg.caption:
+            return
         captions = list(
             text_wrap(
                 msg.caption
@@ -1381,9 +1383,8 @@ def resend(
         )
         first_caption = captions[0]
         other_captions = captions[1:]
-    else:
-        first_caption = None
-        other_captions = []
+    first_caption = None
+    other_captions = []
 
     kwargs = {
         'msg': msg,
@@ -1635,6 +1636,10 @@ def forward_all(
     msg_in_history,
     is_media_group,
 ) -> types.Message:
+    if not src_msg.caption:
+        return
+    if 'файл номер' not in src_msg.caption:
+        return
     if is_media_group:
         new_msg: types.Message = forward_media_group(
             msg = src_msg,
