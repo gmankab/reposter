@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 dependencies = [
   "betterdata",
   "easyselect",
-  "gmanka_yml"==22.0.1,
+  "gmanka_yml==22.0.1",
   "pyrogram",
   "tgcrypto",
   "humanize",
