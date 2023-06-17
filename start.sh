@@ -1,3 +1,3 @@
 #!/bin/bash
+. .venv/bin/activate
 python reposter
-# bash linux/reposter.sh

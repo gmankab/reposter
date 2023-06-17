@@ -15,6 +15,10 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 23.0.6
+
+- fixed photos with captions was not reposted
+
 ## 23.0.5
 
 - fixed dependecies

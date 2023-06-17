@@ -49,6 +49,7 @@ import gmanka_yml as yml
 import pyrogram as pg
 import humanize
 import platform
+import datetime
 import hashlib
 import rich
 import time
@@ -1374,8 +1375,6 @@ def resend(
     reply_to_msg = None,
 ) -> types.Message:
     if msg.caption:
-        if 'файл номер' not in msg.caption:
-            return
         captions = list(
             text_wrap(
                 msg.caption
@@ -1385,14 +1384,12 @@ def resend(
         other_captions = captions[1:]
     first_caption = None
     other_captions = []
-
     kwargs = {
         'msg': msg,
         'target': target,
         'log_msg': log_msg,
         'caption': first_caption,
     }
-
     if msg.poll:
         try:
             options = []
@@ -1420,6 +1417,7 @@ def resend(
             file = msg.photo,
             send_method = bot.send_photo,
         )
+        c.log(new_msg)
     elif msg.video:
         new_msg = resend_file(
             **kwargs,
@@ -1576,6 +1574,11 @@ def resend_all(
                 target = target_id,
                 log_msg = log_msg,
             )
+            if not new_msg:
+                bot.send_message(
+                    chat_id = temp_data.logs_chat.id,
+                    text = 'error: no message was reposted'
+                )
             msg_in_history[
                 target_id
             ] = new_msg.id
@@ -1637,8 +1640,6 @@ def forward_all(
     is_media_group,
 ) -> types.Message:
     if not src_msg.caption:
-        return
-    if 'файл номер' not in src_msg.caption:
         return
     if is_media_group:
         new_msg: types.Message = forward_media_group(
@@ -2135,29 +2136,53 @@ def init_recursive_repost(
             force,
         )
     except Exception:
-        error_path = f'{proj_path}/error.txt'
-        with open(
-            error_path,
-            'w',
-        ) as file:
-            c_error = rich.console.Console(
-                width = 80,
-                file = file,
-            )
-            c_error.print_exception(
-                show_locals = True
-            )
-        c.print_exception(
-            show_locals = True
-        )
-        c_log.print_exception(
-            show_locals = True
-        )
         bot.send_document(
             chat_id = temp_data.logs_chat.id,
-            document = error_path,
-            reply_to_message_id = log_msg,
+            document = write_error(),
         )
+
+
+def write_error() -> str:
+    max_errors_in_dir = 30
+    errors_path = modules_path.joinpath('errors')
+    errors_path.mkdir(
+        exist_ok = True,
+        parents = True,
+    )
+    all_errors = list(
+        errors_path.iterdir()
+    )
+    all_errors.sort()
+    while len(
+        all_errors
+    ) >= max_errors_in_dir:
+        all_errors[0].unlink()
+        all_errors.remove(all_errors[0])
+    file_date = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M")
+    test_error_path = errors_path.joinpath(file_date)
+    error_path = Path(
+        f'{test_error_path}.txt'
+    )
+    index = 2
+    while error_path.exists():
+        error_path = Path(
+            f'{test_error_path}_{index}.txt'
+        )
+        index += 1
+    with open(
+        error_path,
+        'w',
+        encoding = "utf-8",
+    ) as file:
+        c_error = rich.console.Console(
+            width = 80,
+            file = file,
+        )
+        c_error.print_exception(
+            show_locals = True
+        )
+    c.log(f'error written to {error_path}')
+    return str(error_path)
 
 
 def clean_link(

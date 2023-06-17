@@ -1,8 +1,10 @@
 reposter_tg_chache
 __pycache__
+.venv
 *config*
 *.txt
 *.yml
 *.log
 test*
+errors
 dist
