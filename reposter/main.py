@@ -1382,8 +1382,9 @@ def resend(
         )
         first_caption = captions[0]
         other_captions = captions[1:]
-    first_caption = None
-    other_captions = []
+    else:
+        first_caption = None
+        other_captions = []
     kwargs = {
         'msg': msg,
         'target': target,
@@ -1639,8 +1640,6 @@ def forward_all(
     msg_in_history,
     is_media_group,
 ) -> types.Message:
-    if not src_msg.caption:
-        return
     if is_media_group:
         new_msg: types.Message = forward_media_group(
             msg = src_msg,
