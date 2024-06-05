@@ -74,7 +74,7 @@ c = rich.console.Console(
     width = 80
 )
 cache_path = Path(
-    f'{modules_path}/{app_name}_tg_chache'
+    f'{modules_path}/{app_name}_tg_cache'
 )
 
 if sys.argv[-1].replace(
@@ -2551,3 +2551,4 @@ def main() -> None:
 
 
 main()
+
