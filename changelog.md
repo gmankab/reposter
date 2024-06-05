@@ -15,6 +15,11 @@
 - hyperlinks not supported
 - forwarded messages are reposted without author
 
+## 23.0.0
+
+- fixed typos
+- updated dependencies
+
 ## 23.0.7
 
 - fixed photos captions
@@ -25,7 +30,7 @@
 
 ## 23.0.5
 
-- fixed dependecies
+- fixed dependencies
 
 ## 23.0.4
 
@@ -218,7 +223,7 @@ removed extra logs
 
 - deleted massages now marked as deleted but not deleting
 
-- added message editing history but when source chat is not restricted and target chat is a chanel and has linked chat
+- added message editing history but when source chat is not restricted and target chat is a channel and has linked chat
 
 - added ability to check updates on start and ability to update app using pip
 
