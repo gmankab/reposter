@@ -1,0 +1,17 @@
+[project]
+dependencies = [
+    'tgcrypto-pyrofork',
+    'pyrofork',
+    'rich',
+]
+name = 'reposter'
+version = '24.1.0'
+requires-python = '>=3.11'
+
+[project.scripts]
+galaxy_backend = 'reposter.__main__:main'
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
