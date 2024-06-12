@@ -3,6 +3,7 @@ import pyrogram.types
 import typing
 
 
+cor_str = typing.Coroutine[typing.Any, typing.Any, str]
 msg_gen = typing.AsyncGenerator[pyrogram.types.Message, None]
 bytes_gen = typing.AsyncGenerator[bytes, None]
 media_file = typing.Union[
@@ -54,4 +55,12 @@ class Progress(rich.progress.Progress):
                     rich.progress.TextColumn("[progress.description]{task.description}"),
                 )
             yield self.make_tasks_table([task])
+
+
+class NotPassed(Exception):
+    def __init__(
+        self,
+        msg: str = '',
+    ):
+        self.msg = msg
 

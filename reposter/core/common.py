@@ -24,10 +24,12 @@ class app:
         version: str = importlib.metadata.version(name)
     console: rich.console.Console = rich.console.Console()
     progress: rich.progress.Progress
+    exit_code: int = 0
 
 
 class tg:
     client: pyrogram.client.Client
+    floodwait: int = 0
 
 
 log = app.console.log

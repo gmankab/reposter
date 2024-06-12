@@ -1,4 +1,4 @@
-from reposter.core.common import log, app
+from reposter.core import common
 from pathlib import Path
 import pyrogram.errors
 import datetime
@@ -13,12 +13,9 @@ def get_now() -> float:
 
 async def wait_the_flood_wait(
     seconds: int,
-    method_name: str,
-    file_str,
 ):
-    log(f'[yellow]\\[floodwait][/] {seconds}s by {method_name} in {file_str}')
     started = get_now()
-    task_id = app.progress.add_task(
+    task_id = common.app.progress.add_task(
         description=f'floodwait for {seconds}s',
         total=seconds,
     )
@@ -26,16 +23,16 @@ async def wait_the_flood_wait(
         completed = get_now() - started
         if completed > seconds:
             break
-        app.progress.update(
+        common.app.progress.update(
             task_id=task_id,
             completed=completed,
         )
         await asyncio.sleep(0.2)
-    app.progress.update(
+    common.app.progress.update(
         task_id=task_id,
         visible=False,
     )
-    app.progress.stop_task(
+    common.app.progress.stop_task(
         task_id=task_id,
     )
 
@@ -57,20 +54,22 @@ async def run_excepted(
     **kwargs,
 ) -> typing.Any:
     parents = 1
+    while common.tg.floodwait:
+        await asyncio.sleep(common.tg.floodwait)
     while True:
         try:
             return await callable(**kwargs)
         except pyrogram.errors.FloodWait as flood_to_wait:
             assert isinstance(flood_to_wait.value, int)
+            common.tg.floodwait = flood_to_wait.value
             file_str = get_caller(parents)
             await wait_the_flood_wait(
                 seconds=flood_to_wait.value,
-                method_name=callable.__name__,
-                file_str=file_str,
             )
+            common.tg.floodwait = 0
         except Exception as error:
             file_str = get_caller(parents)
-            log(
+            common.log(
                 f'[yellow]\\[warn][/] name={callable.__name__}, file={file_str}, error={error}'
             )
             return
