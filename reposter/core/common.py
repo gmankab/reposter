@@ -1,29 +1,26 @@
 from pathlib import Path
-import pyrogram.client
 import importlib.metadata
+import pyrogram.client
 import rich.progress
 import rich.console
 import tomllib
 
 
 class path:
-    app = Path(__file__).parent.parent.parent.resolve()
-    data = app / 'data'
-    pyproject = app / 'pyproject.toml'
-    data.mkdir(
-        exist_ok=True,
-        parents=True,
-    )
+    app_dir = Path(__file__).parent.parent.parent.resolve()
+    pyproject_toml: Path = app_dir / 'pyproject.toml'
+    config_json: Path
+    data_dir: Path
 
 
 class app:
-    if path.pyproject.exists():
-        with path.pyproject.open('rb') as file:
+    if path.pyproject_toml.exists():
+        with path.pyproject_toml.open('rb') as file:
             project = tomllib.load(file)['project']
         version: str = project['version']
         name: str = project['name']
     else:
-        name: str = path.app.name
+        name: str = path.app_dir.name
         version: str = importlib.metadata.version(name)
     console: rich.console.Console = rich.console.Console()
     progress: rich.progress.Progress

@@ -1,4 +1,6 @@
-from reposter.core import common, config
+from reposter.core import common
+import reposter.funcs.parse_conf
+import reposter.core.config
 import reposter.tg.save_file
 import pyrogram.client
 import types
@@ -6,32 +8,32 @@ import os
 
 
 async def init():
-    set_env()
+    reposter.funcs.parse_conf.read_env()
+    reposter.funcs.parse_conf.read_config()
     get_client()
     await common.tg.client.start()
 
 
 def get_client() -> None:
+    session_name = 'tg_bot'
+    session_path = common.path.data_dir / f'{session_name}.session'
+    if not session_path.exists() and not reposter.core.config.json.tg_session:
+        if not reposter.core.config.json.api_id or not reposter.core.config.json.api_hash:
+            common.log(
+                f'[red]\\[error][/] you should set api_id and api_hash in {common.path.config}'
+            )
     common.tg.client = pyrogram.client.Client(
-        name='tg_bot',
-        api_id=config.env.api_id,
-        api_hash=config.env.api_hash,
-        workdir=str(common.path.data),
+        name=session_name,
+        api_id=reposter.core.config.json.api_id,
+        api_hash=reposter.core.config.json.api_hash,
+        session_string=reposter.core.config.json.tg_session,
+        workdir=str(common.path.data_dir),
         sleep_threshold=0,
     )
     common.tg.client.save_file = types.MethodType(
         reposter.tg.save_file.save_file_custom_wrapper,
         common.tg.client,
     )
-
-
-def set_env() -> None:
-    for key, value_type in config.env.__annotations__.items():
-        value = os.getenv(key)
-        if value:
-            assert isinstance(value_type, type)
-            assert isinstance(value, value_type)
-            setattr(config.env, key, value)
 
 
 def before_shutdown() -> None:
