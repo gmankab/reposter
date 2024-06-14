@@ -15,7 +15,7 @@ async def main():
         console=reposter.core.common.app.console
     ) as progress:
         reposter.core.common.app.progress = progress
-        if reposter.core.config.env.tests:
+        if reposter.core.config.env.tests or reposter.core.config.env.big_tests:
             await reposter.autotests.run.main()
         else:
             print('running app')

@@ -8,6 +8,7 @@ class env:
     XDG_DATA_HOME: str
     reposter_data_dir: str
     reposter_conf: str
+    big_tests: str
     tests: str
 
 

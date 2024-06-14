@@ -14,18 +14,20 @@ class Resender():
         source_msg: pyrogram.types.Message,
         target_chat: int | str,
         remove_progress_bar: bool = True,
+        skip_big_files: bool = False,
     ) -> None:
         self.msg: pyrogram.types.Message = source_msg
         self.progress = reposter.core.common.app.progress
         self.client: pyrogram.client.Client = reposter.core.common.tg.client
         self.task_id: rich.progress.TaskID
         self.remove_progress_bar: bool = remove_progress_bar
-        self.big_file_size = 10 * 1024 * 1024
+        self._1mb = 1024 * 1024
         self.target_chat: int | str = target_chat
         self.send_kwargs: dict[str, typing.Any] = {
             'chat_id': self.target_chat,
         }
         self.capiton_sep: str = ''
+        self.skip_big_files: bool = skip_big_files
         if self.msg.chat.username:
             self.link = f'{self.msg.chat.username}/{self.msg.id}'
         else:
@@ -50,7 +52,10 @@ class Resender():
         if isinstance(media, reposter.core.types.media_file):
             self.media_file = media
             self.send_method = getattr(self.client, f'send_{self.media_value}')
-            if self.media_file.file_size > self.big_file_size:
+            if self.media_file.file_size > 5 * self._1mb:
+                if self.skip_big_files:
+                    raise reposter.core.types.SkipError()
+            if self.media_file.file_size > 10 * self._1mb:
                 await self.send_big_file()
             else:
                 await self.send_small_file()

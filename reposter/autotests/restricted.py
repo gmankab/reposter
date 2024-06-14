@@ -4,6 +4,7 @@ import reposter.tg.restricted
 import reposter.funcs.handle
 import reposter.core.config
 import reposter.core.types
+import reposter.core.common
 
 
 async def restricted(
@@ -12,9 +13,13 @@ async def restricted(
     resender = reposter.tg.restricted.Resender(
         source_msg=msg,
         target_chat=reposter.core.config.tests.target,
+        skip_big_files=True,
     )
-    await reposter.funcs.handle.run_excepted(
-        resender.resend_anything,
-    )
+    try:
+        await reposter.funcs.handle.run_excepted(
+            resender.resend_anything,
+        )
+    except reposter.core.types.SkipError:
+        return f'skipped {resender.media_value} {resender.link}'
     return f'restricted {resender.media_value} {resender.link}'
 

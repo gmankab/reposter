@@ -1,5 +1,6 @@
 from reposter.core import common
 from pathlib import Path
+import reposter.core.types
 import pyrogram.errors
 import datetime
 import inspect
@@ -67,6 +68,8 @@ async def run_excepted(
                 seconds=flood_to_wait.value,
             )
             common.tg.floodwait = 0
+        except reposter.core.types.SkipError as e:
+            raise e
         except Exception as error:
             file_str = get_caller(parents)
             common.log(
