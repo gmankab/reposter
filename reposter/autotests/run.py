@@ -1,5 +1,6 @@
 import reposter.funcs.other
 import reposter.core.common
+import reposter.core.config
 import reposter.tg.history
 import asyncio
 import typing
@@ -19,7 +20,7 @@ async def main():
         ruff.ruff(),
     ]
     async for msg in reposter.tg.history.get_msgs(
-        from_chat='@tgparse_chat',
+        from_chat=reposter.core.config.tests.source,
         min_id=107,
         max_id=116,
     ):

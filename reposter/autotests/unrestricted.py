@@ -1,6 +1,7 @@
-import pyrogram.types
 import reposter.tg.unrestricted
 import reposter.funcs.handle
+import reposter.core.config
+import pyrogram.types
 
 
 async def unrestricted(
@@ -9,7 +10,7 @@ async def unrestricted(
     await reposter.funcs.handle.run_excepted(
         callable=reposter.tg.unrestricted.forward,
         source_msg=msg,
-        target_chat='me',
+        target_chat=reposter.core.config.tests.target,
     )
     if msg.media:
         media = msg.media.value

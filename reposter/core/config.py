@@ -1,3 +1,8 @@
+class tests:
+    source: str = '@autotests_source'
+    target: str = '@autotests_target'
+
+
 class env:
     XDG_CONFIG_HOME: str
     XDG_DATA_HOME: str
