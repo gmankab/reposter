@@ -57,10 +57,14 @@ class Progress(rich.progress.Progress):
             yield self.make_tasks_table([task])
 
 
-class NotPassed(Exception):
+class NotPassedError(Exception):
     def __init__(
         self,
         msg: str = '',
     ):
         self.msg = msg
+
+
+class SkipError(Exception):
+    pass
 

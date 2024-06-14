@@ -30,5 +30,5 @@ async def pyright() -> str:
     if success in stdout_str.lower():
         return f'pyright: {stdout_str}'
     else:
-        raise reposter.core.types.NotPassed(stdout_str + stderr_str)
+        raise reposter.core.types.NotPassedError(stdout_str + stderr_str)
 

@@ -11,7 +11,7 @@ async def timer(
     msg: str = ''
     try:
         msg = await to_run
-    except reposter.core.types.NotPassed as e:
+    except reposter.core.types.NotPassedError as e:
         common.app.exit_code = 1
         error = e.msg
     except Exception as e:
