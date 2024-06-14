@@ -96,7 +96,6 @@ class Resender():
         chunk_gen = reposter.tg.chunk_gen.ChunkGen(
             msg=self.msg,
             media=self.media_file,
-            remove_progress=False,
         )
         self.send_kwargs[self.media_value] = chunk_gen
         self.sent_msg: pyrogram.types.Message = await self.send_method(

@@ -10,6 +10,7 @@ async def get_msgs(
     from_chat: str,
     max_id: int,
     min_id: int,
+    remove_progress: bool = True,
 ) -> reposter.core.types.msg_gen:
     max_id +=1
     min_id -=1
@@ -37,4 +38,9 @@ async def get_msgs(
         completed=total,
     )
     app.progress.stop_task(task_id)
+    if remove_progress:
+        app.progress.update(
+            task_id=task_id,
+            visible=False,
+        )
 

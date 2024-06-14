@@ -37,7 +37,7 @@ def get_client() -> None:
 
 
 def before_shutdown() -> None:
-    common.log('exiting')
+    common.log('[green]\\[exiting]')
     common.app.progress.stop()
     common.app.console.show_cursor()
 
