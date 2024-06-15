@@ -1,6 +1,8 @@
 from pathlib import Path
 import reposter.core.common
 import reposter.funcs.suppress
+import reposter.funcs.other
+import pyrogram.types
 import rich.console
 import datetime
 
@@ -67,4 +69,25 @@ def write_error(
             reposter.core.common.app.console.log(
                 f'[red]\\[error][/] {error_path}'
             )
+
+def log_msg(
+    to_log: str,
+    source_msg: pyrogram.types.Message,
+    target_msg: pyrogram.types.Message,
+):
+    links = reposter.funcs.other.double_links(
+        source_msg=source_msg,
+        target_msg=target_msg,
+    )
+    to_log += f' {links}'
+    to_add = ''
+    if source_msg.text:
+        to_add = source_msg.text
+    elif source_msg.caption:
+        to_add = source_msg.caption
+    if to_add:
+        if len(to_add) > 30:
+            to_add = f'{to_add[:30]}…'
+        to_log += f' text={to_add}'
+    reposter.core.common.log(to_log)
 

@@ -2,7 +2,7 @@ import rich.progress
 import pyrogram.types
 import typing
 
-
+target = int | str | list[int | str]
 cor_str = typing.Coroutine[typing.Any, typing.Any, str]
 msg_gen = typing.AsyncGenerator[pyrogram.types.Message, None]
 bytes_gen = typing.AsyncGenerator[bytes, None]
