@@ -1,4 +1,5 @@
 from reposter.core import common
+import reposter.funcs.logging
 import reposter.core.types
 import datetime
 
@@ -14,9 +15,9 @@ async def timer(
     except reposter.core.types.NotPassedError as e:
         common.app.exit_code = 1
         error = e.msg
-    except Exception as e:
+    except Exception:
         common.app.exit_code = 1
-        raise e
+        reposter.funcs.logging.write_error()
     end = datetime.datetime.now()
     delta = end - start
     ms = int(delta.total_seconds() * 1000)

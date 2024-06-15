@@ -11,6 +11,7 @@ class path:
     pyproject_toml: Path = app_dir / 'pyproject.toml'
     config_json: Path
     data_dir: Path
+    errors_dir: Path
 
 
 class app:

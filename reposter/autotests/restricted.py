@@ -17,6 +17,7 @@ async def restricted(
     try:
         await reposter.funcs.handle.run_excepted(
             resender.resend_anything,
+            to_raise=True,
         )
     except reposter.core.types.SkipError:
         return f'skipped {resender.media_value} {resender.link}'

@@ -55,5 +55,6 @@ def read_env() -> None:
         parents=True,
         exist_ok=True,
     )
+    common.path.errors_dir = common.path.data_dir / 'error'
     assert common.path.data_dir.is_dir()
 

@@ -52,6 +52,7 @@ def get_caller(
 
 async def run_excepted(
     callable: typing.Callable,
+    to_raise: bool = False,
     **kwargs,
 ) -> typing.Any:
     parents = 1
@@ -68,12 +69,15 @@ async def run_excepted(
                 seconds=flood_to_wait.value,
             )
             common.tg.floodwait = 0
-        except reposter.core.types.SkipError as e:
-            raise e
+        except reposter.core.types.SkipError as error:
+            raise error
         except Exception as error:
-            file_str = get_caller(parents)
-            common.log(
-                f'[yellow]\\[warn][/] name={callable.__name__}, file={file_str}, error={error}'
-            )
-            return
+            if to_raise:
+                raise error
+            else:
+                file_str = get_caller(parents)
+                common.log(
+                    f'[yellow]\\[warn][/] name={callable.__name__}, file={file_str}, error={error}'
+                )
+                return
 
