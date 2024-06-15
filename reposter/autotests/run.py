@@ -24,7 +24,8 @@ async def main():
         min_id=reposter.core.config.tests.min_id,
         max_id=reposter.core.config.tests.max_id,
     ):
-        to_timer_list.append(unrestricted.unrestricted(msg))
+        to_timer_list.append(unrestricted.unrestricted(msg, True))
+        to_timer_list.append(unrestricted.unrestricted(msg, False))
         to_timer_list.append(restricted.restricted(msg))
     for to_timer in to_timer_list:
         to_run_list.append(timer.timer(to_timer))

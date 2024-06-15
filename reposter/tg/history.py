@@ -1,6 +1,4 @@
 from reposter.core.common import app
-import reposter.tg.unrestricted
-import reposter.funcs.handle
 import reposter.core.common
 import reposter.core.types
 import typing

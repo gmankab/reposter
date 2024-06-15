@@ -1,10 +1,8 @@
 import pyrogram
-import reposter.tg.unrestricted
 import reposter.tg.restricted
 import reposter.funcs.handle
 import reposter.core.config
 import reposter.core.types
-import reposter.core.common
 
 
 async def restricted(
@@ -20,6 +18,6 @@ async def restricted(
             to_raise=True,
         )
     except reposter.core.types.SkipError:
-        return f'skipped {resender.media_value} {resender.link}'
-    return f'restricted {resender.media_value} {resender.link}'
+        return f'skipped restrict=True {resender.media_value} {resender.link}'
+    return f'restrict=True {resender.media_value} {resender.link}'
 
