@@ -35,8 +35,7 @@ class Resender():
             await self.resend_media()
 
     async def resend_media(self) -> None:
-        assert isinstance(self.msg.media.value, str)
-        media_any = getattr(self.msg, self.msg.media.value)
+        media_any = getattr(self.msg, self.media_value)
         if isinstance(media_any, reposter.core.types.media_file):
             send_media_file = SendMediaFile(
                 msg=self.msg,
@@ -44,12 +43,19 @@ class Resender():
                 target_chat=self.target_chat,
                 link=self.link,
             )
-            await send_media_file.send_file_any_size()
-
+            await send_media_file.send_anything()
+        elif isinstance(media_any, reposter.core.types.media_other):
+            send_media_other = SendMediaOther(
+                msg=self.msg,
+                target_chat=self.target_chat,
+            )
+            await send_media_other.send_aynthing()
+        else:
+            raise NotImplementedError()
     async def send_text(self) -> None:
         await self.client.send_message(
             chat_id=self.target_chat,
-            text=self.msg.text.markdown
+            text=self.msg.text.markdown,
         )
 
 
@@ -74,7 +80,7 @@ class SendMediaFile:
             'chat_id': self.target_chat,
         }
 
-    async def send_file_any_size(self) -> None:
+    async def send_anything(self) -> None:
         _1mb: int = 1024 * 1024
         _5mb: int = _1mb * 5
         _10mb: int = _1mb * 10
@@ -168,5 +174,62 @@ class SendMediaFile:
         self.progress.update(
             task_id=self.task_id,
             visible=False,
+        )
+
+
+class SendMediaOther:
+    def __init__(
+        self,
+        msg: pyrogram.types.Message,
+        target_chat: str | int,
+    ) -> None:
+        self.msg: pyrogram.types.Message = msg
+        self.target_chat: str | int = target_chat
+        self.client: pyrogram.client.Client = reposter.core.common.tg.client
+        self.media_value: str = str(self.msg.media.value)
+
+    async def send_aynthing(self):
+        send_method: typing.Callable = getattr(self, f'send_{self.media_value}')
+        await send_method()
+
+    async def send_location(self) -> None:
+        await self.client.send_location(
+            chat_id=self.target_chat,
+            latitude=self.msg.location.latitude,
+            longitude=self.msg.location.longitude,
+        )
+
+    async def send_venue(self) -> None:
+        await self.client.send_venue(
+            chat_id=self.target_chat,
+            latitude=self.msg.venue.location.latitude,
+            longitude=self.msg.venue.location.longitude,
+            title=self.msg.venue.title,
+            address=self.msg.venue.address,
+            foursquare_id=self.msg.venue.foursquare_id or '',
+            foursquare_type=self.msg.venue.foursquare_type or '',
+        )
+
+    async def send_poll(self) -> None:
+        await self.client.send_poll(
+            chat_id=self.target_chat,
+            question=self.msg.poll.question,
+            options=self.msg.poll.options,
+            allows_multiple_answers=self.msg.poll.allows_multiple_answers,
+        )
+
+    async def send_contact(self) -> None:
+        await self.client.send_contact(
+            chat_id=self.target_chat,
+            phone_number=self.msg.contact.phone_number,
+            first_name=self.msg.contact.first_name,
+            last_name=self.msg.contact.last_name,
+            vcard=self.msg.contact.vcard,
+        )
+
+    async def send_sticker(self) -> None:
+        await self.client.send_sticker(
+            chat_id=self.target_chat,
+            sticker=self.msg.sticker.file_id,
         )
 

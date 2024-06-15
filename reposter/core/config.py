@@ -1,6 +1,8 @@
 class tests:
     source: str = '@autotests_source'
     target: str = '@autotests_target'
+    min_id: int = 107
+    max_id: int = 120
 
 
 class env:

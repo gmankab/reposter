@@ -21,8 +21,8 @@ async def main():
     ]
     async for msg in reposter.tg.history.get_msgs(
         from_chat=reposter.core.config.tests.source,
-        min_id=107,
-        max_id=116,
+        min_id=reposter.core.config.tests.min_id,
+        max_id=reposter.core.config.tests.max_id,
     ):
         to_timer_list.append(unrestricted.unrestricted(msg))
         to_timer_list.append(restricted.restricted(msg))
