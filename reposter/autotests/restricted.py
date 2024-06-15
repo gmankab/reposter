@@ -1,8 +1,9 @@
-import pyrogram
 import reposter.tg.restricted
 import reposter.funcs.handle
 import reposter.core.config
 import reposter.core.types
+import pyrogram.errors
+import pyrogram
 
 
 async def restricted(
@@ -19,5 +20,7 @@ async def restricted(
         )
     except reposter.core.types.SkipError:
         return f'skipped restrict=True {resender.media_value} {resender.link}'
+    except pyrogram.errors.PremiumAccountRequired:
+        return f'preium required {resender.link}'
     return f'restrict=True {resender.media_value} {resender.link}'
 

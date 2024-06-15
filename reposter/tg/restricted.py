@@ -233,3 +233,12 @@ class SendMediaOther:
             sticker=self.msg.sticker.file_id,
         )
 
+    async def send_story(self) -> None:
+        assert isinstance(self.msg.story, pyrogram.types.Story)
+        await self.client.send_story(
+            chat_id=self.target_chat,
+            photo=self.msg.story.photo.file_id if self.msg.story.photo else '',
+            video=self.msg.story.video.file_id if self.msg.story.video else '',
+            caption=self.msg.story.caption,
+        )
+
