@@ -13,7 +13,6 @@ async def restricted(
     resender = reposter.tg.restricted.Resender(
         source_msg=msg,
         target_chat=reposter.core.config.tests.target,
-        skip_big_files=True,
     )
     try:
         await reposter.funcs.handle.run_excepted(

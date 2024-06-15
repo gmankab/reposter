@@ -11,16 +11,16 @@ media_file = typing.Union[
     pyrogram.types.Photo,
     pyrogram.types.Video,
     pyrogram.types.Voice,
-    pyrogram.types.Sticker,
     pyrogram.types.Document,
     pyrogram.types.Animation,
     pyrogram.types.VideoNote,
 ]
 media_other = typing.Union[
     pyrogram.types.Location,
-    pyrogram.types.Story,
     pyrogram.types.Venue,
     pyrogram.types.Poll,
+    pyrogram.types.Story,
+    pyrogram.types.Sticker,
 ]
 
 
