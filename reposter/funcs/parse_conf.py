@@ -45,7 +45,7 @@ def read_env() -> None:
         setattr(config.env, key, value)
     if config.env.reposter_data_dir:
         common.path.data_dir = Path(config.env.reposter_data_dir)
-    if config.env.XDG_DATA_HOME:
+    elif config.env.XDG_DATA_HOME:
         common.path.data_dir = Path(config.env.XDG_DATA_HOME) / common.app.name
     else:
         common.path.data_dir = common.path.config_json = common.path.app_dir / 'data'
@@ -84,7 +84,7 @@ def check_config():
     if not common.path.session.exists() and not config.json.tg_session:
         to_check += [
             'api_id',
-            'json.api_hash',
+            'api_hash',
         ]
     to_add: list[str] = []
     for item in to_check:
