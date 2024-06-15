@@ -4,26 +4,37 @@ import json
 import os
 
 
+def write_config(
+    dict_to_write: dict,
+) -> None:
+    str_to_write = json.dumps(
+        obj=dict_to_write,
+        indent=4,
+        ensure_ascii=False,
+    )
+    common.path.config_json.write_text(
+        data=str_to_write,
+        encoding='utf-8'
+    )
+
+
 def read_config() -> None:
     if common.path.config_json.exists():
-        to_parse: dict = json.loads(
+        should_write: bool = False
+        loaded_config: dict = json.loads(
             common.path.config_json.read_text()
         )
-        assert isinstance(to_parse, dict)
-        for key in config.default.keys():
-            assert key in to_parse
+        assert isinstance(loaded_config, dict)
+        for key, value in config.default.items():
+            if key not in loaded_config:
+                loaded_config[key] = value
+                should_write = True
+        if should_write:
+            write_config(loaded_config)
     else:
-        to_write = json.dumps(
-            obj=config.default,
-            indent=4,
-            ensure_ascii=False,
-        )
-        common.path.config_json.write_text(
-            data=to_write,
-            encoding='utf-8'
-        )
-        to_parse = config.default
-    for key, val in to_parse.items():
+        write_config(config.default)
+        loaded_config = config.default
+    for key, val in loaded_config.items():
         setattr(config.json, key, val)
 
 

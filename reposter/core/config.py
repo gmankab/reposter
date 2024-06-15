@@ -18,11 +18,17 @@ class json:
     api_id: int
     api_hash: str
     tg_session: str
+    drop_author: bool
+    chats: dict
 
 
 default = {
     'api_id': 0,
     'api_hash': '',
     'tg_session': '',
+    'drop_author': True,
+    'chats': {
+        tests.source: tests.target,
+    }
 }
 
