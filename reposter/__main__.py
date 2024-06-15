@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 sys.path.append(str(Path(__file__).parent.parent.resolve()))
+import reposter.tg.handlers
 import reposter.autotests.run
 import reposter.funcs.other
 import reposter.core.common
@@ -18,7 +19,7 @@ async def main():
         if reposter.core.config.env.tests or reposter.core.config.env.big_tests:
             await reposter.autotests.run.main()
         else:
-            print('running app')
+            await reposter.tg.handlers.main()
 
 
 if __name__ == '__main__':
