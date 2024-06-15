@@ -58,6 +58,12 @@ def read_env() -> None:
         common.path.config_json = Path(config.env.XDG_CONFIG_HOME) / common.app.name / 'reposter.json'
     else:
         common.path.config_json = common.path.data_dir / 'config.json'
+    if not config.env.session_name:
+        config.env.session_name = 'tg_bot'
+    common.path.session = common.path.data_dir / f'{config.env.session_name}.session'
+
+
+def check_env():
     common.path.data_dir.mkdir(
         parents=True,
         exist_ok=True,
@@ -68,4 +74,26 @@ def read_env() -> None:
     )
     common.path.errors_dir = common.path.data_dir / 'error'
     assert common.path.data_dir.is_dir()
+
+
+def check_config():
+    to_check: list[str] = [
+        'logs_chat',
+        'chats',
+    ]
+    if not common.path.session.exists() and not config.json.tg_session:
+        to_check += [
+            'api_id',
+            'json.api_hash',
+        ]
+    to_add: list[str] = []
+    for item in to_check:
+        if not getattr(config.json, item):
+            to_add.append(item)
+    if to_add:
+        to_add_str = ', '.join(to_add)
+        common.log(
+            f'[red]\\[error][/] you should set {to_add_str} in {common.path.config_json}'
+        )
+        os._exit(1)
 

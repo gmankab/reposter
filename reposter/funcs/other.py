@@ -1,4 +1,4 @@
-from reposter.core import common
+from reposter.core import common, config
 import reposter.funcs.parse_conf
 import reposter.core.config
 import reposter.tg.save_file
@@ -9,21 +9,16 @@ import os
 
 async def init():
     reposter.funcs.parse_conf.read_env()
+    reposter.funcs.parse_conf.check_env()
     reposter.funcs.parse_conf.read_config()
+    reposter.funcs.parse_conf.check_config()
     get_client()
     await common.tg.client.start()
 
 
 def get_client() -> None:
-    session_name = 'tg_bot'
-    session_path = common.path.data_dir / f'{session_name}.session'
-    if not session_path.exists() and not reposter.core.config.json.tg_session:
-        if not reposter.core.config.json.api_id or not reposter.core.config.json.api_hash:
-            common.log(
-                f'[red]\\[error][/] you should set api_id and api_hash in {common.path.config_json}'
-            )
     common.tg.client = pyrogram.client.Client(
-        name=session_name,
+        name=config.env.session_name,
         api_id=reposter.core.config.json.api_id,
         api_hash=reposter.core.config.json.api_hash,
         session_string=reposter.core.config.json.tg_session,

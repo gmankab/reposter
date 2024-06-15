@@ -12,6 +12,7 @@ class path:
     config_json: Path
     data_dir: Path
     errors_dir: Path
+    session: Path
 
 
 class app:
