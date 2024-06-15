@@ -1,3 +1,4 @@
+import reposter.funcs.other
 import reposter.funcs.handle
 import reposter.core.config
 import reposter.core.common
@@ -5,21 +6,21 @@ import pyrogram.types
 
 
 async def unrestricted(
-    msg: pyrogram.types.Message,
+    source_msg: pyrogram.types.Message,
     drop_author: bool,
 ) -> str:
-    await reposter.funcs.handle.run_excepted(
-        msg.forward,
+    target_msg = await reposter.funcs.handle.run_excepted(
+        source_msg.forward,
         chat_id=reposter.core.config.tests.target,
         drop_author=drop_author,
     )
-    if msg.media:
-        media = msg.media.value
+    if source_msg.media:
+        media = source_msg.media.value
     else:
         media = 'no_media'
-    if msg.chat.username:
-        link = f'{msg.chat.username}/{msg.id}'
-    else:
-        link = f'{msg.chat.full_name}/{msg.id}'
-    return f'restrict=False drop={drop_author} {media} {link}'
+    links = reposter.funcs.other.double_links(
+        source_msg=source_msg,
+        target_msg=target_msg,
+    )
+    return f'restrict=False drop={drop_author} {media} {links}'
 

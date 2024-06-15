@@ -47,3 +47,19 @@ async def shutdown() -> None:
     await common.tg.client.stop()
     os._exit(common.app.exit_code)
 
+
+def single_link(
+    msg: pyrogram.types.Message,
+) -> str:
+    if msg.chat.username:
+        return f'{msg.chat.username}/{msg.id}'
+    else:
+        return f'{msg.chat.full_name}/{msg.id}'
+
+
+def double_links(
+    source_msg: pyrogram.types.Message,
+    target_msg: pyrogram.types.Message,
+) -> str:
+    return f'{single_link(source_msg)} -> {single_link(target_msg)}'
+

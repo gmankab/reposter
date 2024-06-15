@@ -1,3 +1,4 @@
+import reposter.funcs.other
 import reposter.core.common
 import reposter.core.config
 import reposter.core.types
@@ -19,41 +20,48 @@ class Resender():
         self.client: pyrogram.client.Client = reposter.core.common.tg.client
         self.task_id: rich.progress.TaskID
         self.target_chat: int | str = target_chat
-        if self.msg.chat.username:
-            self.link = f'{self.msg.chat.username}/{self.msg.id}'
-        else:
-            self.link = f'{self.msg.chat.full_name}/{self.msg.id}'
+        self.link = reposter.funcs.other.single_link(self.msg)
         if self.msg.media:
             self.media_value: str = str(self.msg.media.value)
         else:
             self.media_value: str = 'text'
 
-    async def resend_anything(self) -> None:
+    async def resend_anything(self) -> pyrogram.types.Message:
+        assert self.msg
         if self.msg.text:
-            return await self.send_text()
-        if self.msg.media:
-            await self.resend_media()
+            msg = await self.send_text()
+        elif self.msg.media:
+            msg = await self.resend_media()
+        else:
+            reposter.core.common.log(self.msg)
+            raise NotImplementedError()
+        assert isinstance(msg, pyrogram.types.Message)
+        return msg
 
-    async def resend_media(self) -> None:
+    async def resend_media(self) -> pyrogram.types.Message:
         media_any = getattr(self.msg, self.media_value)
         if isinstance(media_any, reposter.core.types.media_file):
             send_media_file = SendMediaFile(
                 msg=self.msg,
                 media_file=media_any,
                 target_chat=self.target_chat,
-                link=self.link,
             )
-            await send_media_file.send_anything()
+            msg = await send_media_file.send_anything()
+
         elif isinstance(media_any, reposter.core.types.media_other):
             send_media_other = SendMediaOther(
                 msg=self.msg,
                 target_chat=self.target_chat,
             )
-            await send_media_other.send_aynthing()
+            msg = await send_media_other.send_aynthing()
         else:
+            reposter.core.common.log(self.msg)
             raise NotImplementedError()
-    async def send_text(self) -> None:
-        await self.client.send_message(
+        assert isinstance(msg, pyrogram.types.Message)
+        return msg
+
+    async def send_text(self) -> pyrogram.types.Message:
+        return await self.client.send_message(
             chat_id=self.target_chat,
             text=self.msg.text.markdown,
         )
@@ -65,12 +73,11 @@ class SendMediaFile:
         msg: pyrogram.types.Message,
         media_file: reposter.core.types.media_file,
         target_chat: str | int,
-        link: str,
     ) -> None:
         self.msg: pyrogram.types.Message = msg
         self.media_file: reposter.core.types.media_file = media_file
         self.target_chat: str | int = target_chat
-        self.link: str = link
+        self.link = reposter.funcs.other.single_link(self.msg)
         self.progress = reposter.core.common.app.progress
         self.client: pyrogram.client.Client = reposter.core.common.tg.client
         self.capiton_sep: str = ''
@@ -80,7 +87,7 @@ class SendMediaFile:
             'chat_id': self.target_chat,
         }
 
-    async def send_anything(self) -> None:
+    async def send_anything(self) -> pyrogram.types.Message:
         _1mb: int = 1024 * 1024
         _5mb: int = _1mb * 5
         _10mb: int = _1mb * 10
@@ -90,14 +97,16 @@ class SendMediaFile:
                 if not reposter.core.config.env.big_tests:
                     raise reposter.core.types.SkipError()
         if self.media_file.file_size > _10mb:
-            sent_msg = await self.send_file_big()
+            msg = await self.send_file_big()
         else:
-            sent_msg = await self.send_file_small()
+            msg = await self.send_file_small()
         if self.capiton_sep:
-            await sent_msg.reply_text(
+            return await msg.reply_text(
                 text=self.capiton_sep,
                 quote=True,
             )
+        assert isinstance(msg, pyrogram.types.Message)
+        return msg
 
     async def download_file_small(self) -> io.BytesIO:
         self.start_progress(
@@ -188,19 +197,21 @@ class SendMediaOther:
         self.client: pyrogram.client.Client = reposter.core.common.tg.client
         self.media_value: str = str(self.msg.media.value)
 
-    async def send_aynthing(self):
+    async def send_aynthing(self) -> pyrogram.types.Message:
         send_method: typing.Callable = getattr(self, f'send_{self.media_value}')
-        await send_method()
+        msg = await send_method()
+        assert isinstance(msg, pyrogram.types.Message)
+        return msg
 
-    async def send_location(self) -> None:
-        await self.client.send_location(
+    async def send_location(self) -> pyrogram.types.Message:
+        return await self.client.send_location(
             chat_id=self.target_chat,
             latitude=self.msg.location.latitude,
             longitude=self.msg.location.longitude,
         )
 
-    async def send_venue(self) -> None:
-        await self.client.send_venue(
+    async def send_venue(self) -> pyrogram.types.Message:
+        return await self.client.send_venue(
             chat_id=self.target_chat,
             latitude=self.msg.venue.location.latitude,
             longitude=self.msg.venue.location.longitude,
@@ -210,16 +221,16 @@ class SendMediaOther:
             foursquare_type=self.msg.venue.foursquare_type or '',
         )
 
-    async def send_poll(self) -> None:
-        await self.client.send_poll(
+    async def send_poll(self) -> pyrogram.types.Message:
+        return await self.client.send_poll(
             chat_id=self.target_chat,
             question=self.msg.poll.question,
             options=self.msg.poll.options,
             allows_multiple_answers=self.msg.poll.allows_multiple_answers,
         )
 
-    async def send_contact(self) -> None:
-        await self.client.send_contact(
+    async def send_contact(self) -> pyrogram.types.Message:
+        return await self.client.send_contact(
             chat_id=self.target_chat,
             phone_number=self.msg.contact.phone_number,
             first_name=self.msg.contact.first_name,
@@ -227,18 +238,11 @@ class SendMediaOther:
             vcard=self.msg.contact.vcard,
         )
 
-    async def send_sticker(self) -> None:
-        await self.client.send_sticker(
+    async def send_sticker(self) -> pyrogram.types.Message:
+        msg = await self.client.send_sticker(
             chat_id=self.target_chat,
             sticker=self.msg.sticker.file_id,
         )
-
-    async def send_story(self) -> None:
-        assert isinstance(self.msg.story, pyrogram.types.Story)
-        await self.client.send_story(
-            chat_id=self.target_chat,
-            photo=self.msg.story.photo.file_id if self.msg.story.photo else '',
-            video=self.msg.story.video.file_id if self.msg.story.video else '',
-            caption=self.msg.story.caption,
-        )
+        assert msg
+        return msg
 

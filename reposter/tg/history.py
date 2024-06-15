@@ -1,6 +1,7 @@
 from reposter.core.common import app
 import reposter.core.common
 import reposter.core.types
+import pyrogram.types
 import typing
 
 
@@ -26,6 +27,9 @@ async def get_msgs(
         total=total,
     )
     async for msg in history_generator:
+        assert isinstance(msg, pyrogram.types.Message)
+        if msg.empty:
+            continue
         app.progress.update(
             task_id=task_id,
             completed=max_id - msg.id,

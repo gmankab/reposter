@@ -19,7 +19,6 @@ media_other = typing.Union[
     pyrogram.types.Location,
     pyrogram.types.Venue,
     pyrogram.types.Poll,
-    pyrogram.types.Story,
     pyrogram.types.Contact,
     pyrogram.types.Sticker,
 ]
