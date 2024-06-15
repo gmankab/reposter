@@ -18,6 +18,14 @@ async def main():
 def set_handlers():
     for source, target in reposter.core.config.json.chats.items():
         on_message = OnMessage(target_any=target)
+        if isinstance(source, str):
+            if 't.me/+' not in source:
+                source = source.replace('https://t.me/', '@')
+                source = source.replace('http://t.me/', '@')
+            try:
+                source = int(source)
+            except Exception:
+                pass
         reposter.core.common.tg.client.add_handler(
             pyrogram.handlers.message_handler.MessageHandler(
                 callback=on_message.handler,
@@ -42,7 +50,7 @@ class OnMessage:
         _,
         source_msg: pyrogram.types.Message,
     ) -> None:
-        if source_msg.has_protected_content:
+        if source_msg.has_protected_content or source_msg.chat.has_protected_content:
             real_time_resend = RealTimeResend(
                 source_msg=source_msg,
                 target_any=self.target_any,
