@@ -48,7 +48,7 @@ def read_env() -> None:
     elif config.env.XDG_DATA_HOME:
         common.path.data_dir = Path(config.env.XDG_DATA_HOME) / common.app.name
     else:
-        common.path.data_dir = common.path.config_json = common.path.app_dir / 'data'
+        common.path.data_dir = common.path.app_dir / 'data'
     if config.env.reposter_conf:
         assert config.env.reposter_conf.endswith('.json')
         common.path.config_json = Path(config.env.reposter_conf)
@@ -96,4 +96,7 @@ def check_config():
             f'[red]\\[error][/] you should set {to_add_str} in {common.path.config_json}'
         )
         os._exit(1)
+    common.log(
+            f'[green]loaded config[/] {common.path.config_json}'
+    )
 
