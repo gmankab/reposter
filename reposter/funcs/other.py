@@ -14,6 +14,18 @@ async def init():
     reposter.funcs.parse_conf.check_config()
     get_client()
     await common.tg.client.start()
+    await start_log()
+
+
+async def start_log():
+    try:
+        reposter.core.config.json.logs_chat = int(reposter.core.config.json.logs_chat)
+    except Exception:
+        pass
+    await common.tg.client.send_message(
+        chat_id=config.json.logs_chat,
+        text=f'started {common.app.name} {common.app.version}',
+    )
 
 
 def get_client() -> None:
