@@ -1,18 +1,24 @@
 import pyrogram.handlers.message_handler
-import reposter.funcs.logging
-import pyrogram.filters
-import pyrogram.types
 import reposter.tg.restricted
+import reposter.funcs.logging
+import reposter.funcs.other
 import reposter.core.config
 import reposter.core.common
 import reposter.core.types
+import pyrogram.filters
+import pyrogram.types
 import asyncio
+import sys
 
 
 async def main():
     set_handlers()
-    while True:
-        await asyncio.sleep(1)
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except KeyboardInterrupt:
+        reposter.funcs.other.before_shutdown()
+        sys.exit()
 
 
 def set_handlers():
