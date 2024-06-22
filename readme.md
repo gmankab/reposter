@@ -4,13 +4,13 @@
 
 userbot that forwards messages from one telegram channel to another in real time
 
-supported features:
+### supported features:
 - repost msgs
 - repost restricted content
 - chunk by chunk download and upload big files without writing on disk
 - logs
 
-todo:
+### todo:
 - notify if live stream started
 - notify if msg deleted
 - msg edit sync
