@@ -11,6 +11,7 @@ userbot that forwards messages from one telegram channel to another in real time
 - logs
 
 ### todo:
+- proper video size on ios
 - notify if live stream started
 - notify if msg deleted
 - msg edit sync
