@@ -21,17 +21,28 @@ async def main():
         sys.exit()
 
 
+def chat_str_fix(chat: str | int) -> str | int:
+    if isinstance(chat, int):
+        return chat
+    if 't.me/+' not in chat:
+        chat = chat.replace('https://t.me/', '@')
+        chat = chat.replace('http://t.me/', '@')
+    try:
+        return int(chat)
+    except Exception:
+        return chat
+
+
 def set_handlers():
-    for source, target in reposter.core.config.json.chats.items():
+    for source_to_fix, target_to_fix in reposter.core.config.json.chats.items():
+        source = chat_str_fix(source_to_fix)
+        if isinstance(target_to_fix, list):
+            target = []
+            for i in target_to_fix:
+                target.append(chat_str_fix(i))
+        else:
+            target = chat_str_fix(target_to_fix)
         on_message = OnMessage(target_any=target)
-        if isinstance(source, str):
-            if 't.me/+' not in source:
-                source = source.replace('https://t.me/', '@')
-                source = source.replace('http://t.me/', '@')
-            try:
-                source = int(source)
-            except Exception:
-                pass
         reposter.core.common.tg.client.add_handler(
             pyrogram.handlers.message_handler.MessageHandler(
                 callback=on_message.handler,
