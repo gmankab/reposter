@@ -22,6 +22,9 @@ async def start_log():
         reposter.core.config.json.logs_chat = int(reposter.core.config.json.logs_chat)
     except Exception:
         pass
+    assert common.tg.client.me
+    if reposter.core.config.json.logs_chat == 'me' and common.tg.client.me.is_bot:
+        return
     await common.tg.client.send_message(
         chat_id=config.json.logs_chat,
         text=f'started {common.app.name} {common.app.version}',
