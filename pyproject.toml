@@ -5,8 +5,16 @@ dependencies = [
     'rich',
 ]
 name = 'reposter'
-version = '24.1.0'
+version = '24.1.1'
+description = 'python script for reposting telegram messages'
+readme = 'readme.md'
 requires-python = '>=3.11'
+classifiers = [
+    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+]
+
+[project.urls]
+repo = 'https://github.com/gmankab/reposter'
 
 [project.optional-dependencies]
 tests = [
