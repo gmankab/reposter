@@ -5,28 +5,20 @@ import reposter.tg.history
 import asyncio
 import typing
 from reposter.autotests import (
-    restricted,
-    unrestricted,
     pyright,
     timer,
     ruff,
+    msgs,
 )
 
 
 async def main():
     to_run_list: list[typing.Coroutine] = []
     to_timer_list: list[typing.Coroutine] = [
+        msgs.test_all(),
         pyright.pyright(),
         ruff.ruff(),
     ]
-    async for msg in reposter.tg.history.get_msgs(
-        from_chat=reposter.core.config.tests.source,
-        min_id=reposter.core.config.tests.min_id,
-        max_id=reposter.core.config.tests.max_id,
-    ):
-        to_timer_list.append(unrestricted.unrestricted(msg, True))
-        to_timer_list.append(unrestricted.unrestricted(msg, False))
-        to_timer_list.append(restricted.restricted(msg))
     for to_timer in to_timer_list:
         to_run_list.append(timer.timer(to_timer))
     tasks = asyncio.gather(*to_run_list)
