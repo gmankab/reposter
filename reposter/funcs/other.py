@@ -4,10 +4,14 @@ import reposter.core.config
 import reposter.tg.save_file
 import pyrogram.client
 import types
+import sys
+import io
 import os
 
 
 async def init():
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     reposter.funcs.parse_conf.read_env()
     reposter.funcs.parse_conf.check_env()
     reposter.funcs.parse_conf.read_config()
