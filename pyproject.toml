@@ -13,11 +13,19 @@ tests = [
     'pyright',
     'ruff',
 ]
+build = [
+    'setuptools',
+    'twine',
+    'build',
+]
 
 [project.scripts]
 galaxy_backend = 'reposter.__main__:main'
 
 [tool.pyright]
-venvPath = "."
-venv = ".venv"
+venvPath = '.'
+venv = '.venv'
+
+[tool.setuptools.packages.find]
+where = ['reposter']
 
