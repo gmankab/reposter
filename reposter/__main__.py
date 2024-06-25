@@ -2,7 +2,6 @@ from pathlib import Path
 import sys
 sys.path.append(str(Path(__file__).parent.parent.resolve()))
 import reposter.tg.handlers
-import reposter.autotests.run
 import reposter.funcs.other
 import reposter.core.common
 import reposter.core.config
@@ -17,7 +16,8 @@ async def main():
     ) as progress:
         reposter.core.common.app.progress = progress
         if reposter.core.config.env.tests or reposter.core.config.env.big_tests:
-            await reposter.autotests.run.main()
+            import reposter.autotests.run as tests
+            await tests.main()
         else:
             await reposter.tg.handlers.main()
 
