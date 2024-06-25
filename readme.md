@@ -4,6 +4,15 @@
 
 userbot that forwards messages from one telegram channel to another in real time
 
+### navigation
+
+- [repo](https://github.com/gmankab/reposter)
+- [how to run](https://github.com/gmankab/reposter/blob/main/docs/run.md)
+- [how to build](https://github.com/gmankab/reposter/blob/main/docs/build.md)
+- [config and env](https://github.com/gmankab/reposter/blob/main/docs/config.md)
+- [pypi](https://pypi.org/project/reposter)
+
+
 ### supported features:
 - repost msgs
 - repost restricted content
