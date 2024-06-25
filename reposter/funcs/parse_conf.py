@@ -36,6 +36,8 @@ def read_config() -> None:
         loaded_config = config.default
     for key, val in loaded_config.items():
         setattr(config.json, key, val)
+    if config.env.tg_session:
+        config.json.tg_session = config.env.tg_session
 
 
 def read_env() -> None:

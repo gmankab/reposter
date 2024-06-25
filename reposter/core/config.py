@@ -11,6 +11,7 @@ class env:
     session_name: str
     reposter_data_dir: str
     reposter_conf: str
+    tg_session: str
     big_tests: str
     tests: str
 
