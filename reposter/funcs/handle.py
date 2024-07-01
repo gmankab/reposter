@@ -52,7 +52,7 @@ def get_caller(
 
 async def run_excepted(
     callable: typing.Callable,
-    to_raise: bool = False,
+    to_raise: bool = True,
     **kwargs,
 ) -> typing.Any:
     parents = 1

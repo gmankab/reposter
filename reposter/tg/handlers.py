@@ -1,6 +1,7 @@
 import pyrogram.handlers.message_handler
 import reposter.tg.restricted
 import reposter.funcs.logging
+import reposter.funcs.handle
 import reposter.funcs.other
 import reposter.core.config
 import reposter.core.common
@@ -94,7 +95,8 @@ class RealTimeResend:
     async def resend_anything(self) -> None:
         if isinstance(self.target_any, list):
             assert reposter.core.config.json.logs_chat
-            resent_to_log_chat = await self.resend_one(
+            resent_to_log_chat = await reposter.funcs.handle.run_excepted(
+                self.resend_one,
                 source_msg=self.source_msg,
                 target_id=reposter.core.config.json.logs_chat,
             )
@@ -120,7 +122,9 @@ class RealTimeResend:
             source_msg=self.source_msg,
             target_chat=target_id,
         )
-        target_msg = await resender.resend_anything()
+        target_msg = await reposter.funcs.handle.run_excepted(
+            resender.resend_anything,
+        )
         assert target_msg
         reposter.funcs.logging.log_msg(
             to_log=f'[green]\\[{resender.media_value}][/]',
@@ -162,7 +166,8 @@ class RealTimeForward:
         source_msg: pyrogram.types.Message,
         target_id: str | int,
     ) -> None:
-        target_msg = await source_msg.forward(
+        target_msg = await reposter.funcs.handle.run_excepted(
+            source_msg.forward,
             chat_id=target_id,
             drop_author=reposter.core.config.json.drop_author,
         )
