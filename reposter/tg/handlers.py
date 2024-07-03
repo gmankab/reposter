@@ -37,6 +37,12 @@ def chat_str_fix(chat: str | int) -> str | int:
 
 
 def set_handlers():
+    notify = []
+    for chat_to_fix in reposter.core.config.json.stream_notify_chats:
+         notify.append(
+            chat_str_fix(chat_to_fix)
+         )
+    reposter.core.config.json.stream_notify_chats = notify
     for source_to_fix, target_to_fix in reposter.core.config.json.chats.items():
         source = chat_str_fix(source_to_fix)
         if isinstance(target_to_fix, list):
