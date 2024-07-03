@@ -224,8 +224,8 @@ class StreamNotify:
         self,
         target_any: reposter.core.types.target,
     ) -> None:
-        self.delay: int = 3
-        self.repeat_count: int = 10
+        self.delay: int = 5
+        self.repeat_count: int = 40
         self.target_any: reposter.core.types.target = target_any
         self.progress = reposter.core.common.app.progress
         self.text: str = ''
