@@ -80,6 +80,8 @@ def log_msg(
         target_msg=target_msg,
     )
     to_log += f' {links}'
+    if source_msg.media:
+        to_log += f' media={source_msg.media.value}'
     to_add = ''
     if source_msg.text:
         to_add = source_msg.text
