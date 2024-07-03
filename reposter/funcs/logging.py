@@ -88,6 +88,7 @@ def log_msg(
     if to_add:
         if len(to_add) > 30:
             to_add = f'{to_add[:30]}…'
-        to_log += f' text={to_add}'
+        to_add = to_add.replace('\n', '')
+        to_log += f" text='{to_add}'"
     reposter.core.common.log(to_log)
 
