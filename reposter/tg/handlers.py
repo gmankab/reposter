@@ -1,4 +1,5 @@
 import pyrogram.handlers.message_handler
+import pyrogram.enums
 import reposter.tg.restricted
 import reposter.funcs.logging
 import reposter.funcs.handle
@@ -9,6 +10,7 @@ import reposter.core.types
 import pyrogram.filters
 import pyrogram.types
 import asyncio
+import typing
 import sys
 
 
@@ -66,115 +68,231 @@ class OnMessage:
     async def handler(
         self,
         _,
-        source_msg: pyrogram.types.Message,
+        src_msg: pyrogram.types.Message,
     ) -> None:
-        if source_msg.has_protected_content or source_msg.chat.has_protected_content:
-            real_time_resend = RealTimeResend(
-                source_msg=source_msg,
+        if src_msg.service:
+            service = Service(
+                target_any=self.target_any,
+                src_msg=src_msg,
+            )
+            await service.service_all()
+            if src_msg.service == pyrogram.enums.MessageServiceType.VIDEO_CHAT_STARTED:
+                stream_notify = StreamNotify(
+                    target_any=self.target_any,
+                )
+                await stream_notify.notify_all()
+            return
+        if src_msg.has_protected_content or src_msg.chat.has_protected_content:
+            real_time_resend = ResendRestricted(
+                src_msg=src_msg,
                 target_any=self.target_any,
             )
-            await real_time_resend.resend_anything()
+            await real_time_resend.resend_all()
         else:
-            real_time_forward = RealTimeForward(
-                source_msg=source_msg,
+            real_time_forward = ForwardUnrestricted(
+                src_msg=src_msg,
                 target_any=self.target_any,
             )
-            await real_time_forward.forward_anything()
+            await real_time_forward.forward_all()
 
 
-class RealTimeResend:
+class ResendRestricted:
     def __init__(
         self,
         target_any: reposter.core.types.target,
-        source_msg: pyrogram.types.Message,
+        src_msg: pyrogram.types.Message,
     ) -> None:
         self.target_any: reposter.core.types.target = target_any
-        self.source_msg = source_msg
+        self.src_msg = src_msg
         assert isinstance(self.target_any, (str, int, list))
 
-    async def resend_anything(self) -> None:
+    async def resend_all(self) -> None:
         if isinstance(self.target_any, list):
             assert reposter.core.config.json.logs_chat
             resent_to_log_chat = await reposter.funcs.handle.run_excepted(
                 self.resend_one,
-                source_msg=self.source_msg,
-                target_id=reposter.core.config.json.logs_chat,
+                src_msg=self.src_msg,
+                target=reposter.core.config.json.logs_chat,
             )
-            real_time_forward = RealTimeForward(
-                source_msg=resent_to_log_chat,
+            real_time_forward = ForwardUnrestricted(
+                src_msg=resent_to_log_chat,
                 target_any=self.target_any,
             )
-            await real_time_forward.forward_anything()
+            await real_time_forward.forward_all()
         elif isinstance(self.target_any, (str, int)):
             await self.resend_one(
-                source_msg=self.source_msg,
-                target_id=self.target_any,
+                src_msg=self.src_msg,
+                target=self.target_any,
             )
         else:
             raise AssertionError
 
     async def resend_one(
         self,
-        source_msg: pyrogram.types.Message,
-        target_id: str | int,
+        src_msg: pyrogram.types.Message,
+        target: str | int,
     ) -> pyrogram.types.Message:
         resender = reposter.tg.restricted.Resender(
-            source_msg=self.source_msg,
-            target_chat=target_id,
+            source_msg=self.src_msg,
+            target_chat=target,
         )
         target_msg = await reposter.funcs.handle.run_excepted(
             resender.resend_anything,
         )
         assert target_msg
         reposter.funcs.logging.log_msg(
-            to_log=f'[green]\\[{resender.media_value}][/]',
-            source_msg=source_msg,
+            to_log='[green]\\[resend][/]',
+            source_msg=src_msg,
             target_msg=target_msg,
         )
         return target_msg
 
 
-class RealTimeForward:
+class ForwardUnrestricted:
     def __init__(
         self,
         target_any: reposter.core.types.target,
-        source_msg: pyrogram.types.Message,
+        src_msg: pyrogram.types.Message,
     ) -> None:
         self.target_any: reposter.core.types.target = target_any
-        self.source_msg = source_msg
+        self.src_msg = src_msg
         assert isinstance(self.target_any, (str, int, list))
 
-    async def forward_anything(
+    async def forward_all(
         self,
-    ) -> None:
-        if isinstance(self.target_any, list):
-            for subtarget in self.target_any:
-                await self.forward_one(
-                    source_msg=self.source_msg,
-                    target_id=subtarget,
-                )
-        elif isinstance(self.target_any, (str, int)):
-            await self.forward_one(
-                source_msg=self.source_msg,
-                target_id=self.target_any,
-            )
-        else:
-            raise AssertionError
+    ):
+        await parse_targets(
+            target_any=self.target_any,
+            to_call=self.forward_one,
+        )
 
     async def forward_one(
         self,
-        source_msg: pyrogram.types.Message,
-        target_id: str | int,
+        target: str | int,
     ) -> None:
         target_msg = await reposter.funcs.handle.run_excepted(
-            source_msg.forward,
-            chat_id=target_id,
+            self.src_msg.forward,
+            chat_id=target,
             drop_author=reposter.core.config.json.drop_author,
         )
         assert isinstance(target_msg, pyrogram.types.Message)
         reposter.funcs.logging.log_msg(
             to_log='[green]\\[forward][/]',
-            source_msg=source_msg,
+            source_msg=self.src_msg,
             target_msg=target_msg,
         )
+
+
+class Service:
+    def __init__(
+        self,
+        target_any: reposter.core.types.target,
+        src_msg: pyrogram.types.Message,
+    ) -> None:
+        self.target_any: reposter.core.types.target = target_any
+        self.src_msg = src_msg
+        assert isinstance(self.target_any, (str, int, list))
+
+    async def service_all(
+        self,
+    ):
+        await parse_targets(
+            target_any=self.target_any,
+            to_call=self.service_one,
+        )
+
+    async def service_one(
+        self,
+        target: str | int,
+    ) -> None:
+        assert self.src_msg.service
+        text = str(self.src_msg.service.value)
+        target_msg = await reposter.funcs.handle.run_excepted(
+            reposter.core.common.tg.client.send_message,
+            chat_id=target,
+            text=text,
+        )
+        assert isinstance(target_msg, pyrogram.types.Message)
+        reposter.funcs.logging.log_msg(
+            to_log=f'[green]\\[service][/] {text}',
+            source_msg=self.src_msg,
+            target_msg=target_msg,
+        )
+
+class StreamNotify:
+    def __init__(
+        self,
+        target_any: reposter.core.types.target,
+    ) -> None:
+        self.delay: int = 3
+        self.repeat_count: int = 10
+        self.target_any: reposter.core.types.target = target_any
+        self.progress = reposter.core.common.app.progress
+        self.text: str = ''
+        assert isinstance(self.target_any, (str, int, list))
+        assert isinstance(reposter.core.config.json.stream_notify_chats, list)
+
+    async def notify_all(
+        self,
+    ):
+        task_id_big = self.progress.add_task(
+            description='stream notifications',
+            total=self.repeat_count,
+        )
+        task_id_little = self.progress.add_task(
+            description=f'{self.delay} seconds delay',
+        )
+        for index in range(self.repeat_count):
+            self.progress.update(
+                task_id=task_id_big,
+                completed=index,
+            )
+            self.text = f'stream notifications {index+1}/{self.repeat_count}'
+            await parse_targets(
+                target_any=reposter.core.config.json.stream_notify_chats,
+                to_call=self.notify_one,
+            )
+            await reposter.funcs.handle.wait(
+                seconds=self.delay,
+                task_id=task_id_little,
+                hide=False,
+            )
+        self.progress.update(
+            task_id=task_id_big,
+            completed=self.repeat_count,
+            visible=False,
+        )
+        self.progress.stop_task(
+            task_id=task_id_big,
+        )
+
+    async def notify_one(
+        self,
+        target: str | int,
+    ):
+        await reposter.funcs.handle.run_excepted(
+            reposter.core.common.tg.client.send_message,
+            chat_id=target,
+            text=self.text,
+            repeat=False,
+            to_raise=False,
+        )
+
+
+async def parse_targets(
+    target_any: reposter.core.types.target,
+    to_call: typing.Callable,
+) -> None:
+    if isinstance(target_any, list):
+        for subtarget in target_any:
+            assert isinstance(subtarget, (str, int))
+            await to_call(
+                target=subtarget,
+            )
+    elif isinstance(target_any, (str, int)):
+        await to_call(
+            target=target_any,
+        )
+    else:
+        raise AssertionError
 
