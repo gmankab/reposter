@@ -17,11 +17,12 @@ userbot that forwards messages from one telegram channel to another in real time
 - repost msgs
 - repost restricted content
 - chunk by chunk download and upload big files without writing on disk
+- notify if live stream started
 - logs
 
 ### todo:
+- stop stream notifications button
 - proper video size on ios
-- notify if live stream started
 - notify if msg deleted
 - msg edit sync
 - msg edit history
