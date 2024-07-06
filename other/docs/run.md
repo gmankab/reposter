@@ -6,13 +6,17 @@
 - [config and env](https://github.com/gmankab/reposter/blob/main/docs/config.md)
 - [pypi](https://pypi.org/project/reposter)
 
-### run via pip (recommended)
+### run via pip (recommended, any os)
 
 ```
 python -m ensurepip
 python -m pip install reposter
 python -m reposter
 ```
+
+### run on windows
+
+download and run [reposter.bat](https://github.com/gmankab/reposter/releases/latest/download/reposter.bat)
 
 ### run from sources
 
