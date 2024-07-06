@@ -1,15 +1,15 @@
 ### reposter
 
-<img src="https://github.com/gmankab/reposter/raw/main/img/transparent.png">
+<img src="https://github.com/gmankab/reposter/raw/main/other/img/transparent.png">
 
 userbot that forwards messages from one telegram channel to another in real time
 
 ### navigation
 
 - [repo](https://github.com/gmankab/reposter)
-- [how to run](https://github.com/gmankab/reposter/blob/main/docs/run.md)
-- [how to build](https://github.com/gmankab/reposter/blob/main/docs/build.md)
-- [config and env](https://github.com/gmankab/reposter/blob/main/docs/config.md)
+- [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
+- [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
+- [config and env](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
 - [pypi](https://pypi.org/project/reposter)
 
 
@@ -37,4 +37,8 @@ userbot that forwards messages from one telegram channel to another in real time
 - this code was rewritten from scratch several times :)
 - [most-legacy](https://github.com/gmankab/reposter/tree/most-legacy)
 - [second-legacy](https://github.com/gmankab/reposter/tree/second-legacy)
+
+### license
+
+license is [gnu gpl 3](https://gnu.org/licenses/gpl-3.0.en.html)
 
