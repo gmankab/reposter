@@ -2,10 +2,10 @@
 setlocal enabledelayedexpansion
 set python_version=3.12.4
 set app_name=reposter
-set deps="%app_name%"
+set deps=%app_name%
 set app_path=%~dp0
 set data_path=%app_path%/data
-set venv_bin=%app_path%/.venv/scripts
+set venv_bin=%data_path%/.venv/scripts
 set python_link=python.org/ftp/python/%python_version%/python-%python_version%-embed-amd64.zip
 set uv_link=github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip
 
@@ -27,7 +27,7 @@ if not exist "%data_path%/uv.exe" (
     tar -xf "%data_path%/uv.zip" -C "%data_path%"
 )
 if not exist "%data_path%/.venv" (
-    "%data_path%/uv.exe" venv "%app_path%/.venv" "--python=%data_path%/python/python.exe"
+    "%data_path%/uv.exe" venv "%data_path%/.venv" "--python=%data_path%/python/python.exe"
     if /I "%big_tests%"=="true" (
         set deps=%app_name%[tests]
     )
@@ -37,6 +37,7 @@ if not exist "%data_path%/.venv" (
     "%data_path%/uv.exe" pip install !deps! "--python=%venv_bin%/python.exe"
 )
 
+set reposter_data_dir=%data_path%
 "%venv_bin%/reposter.exe"
 pause
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
