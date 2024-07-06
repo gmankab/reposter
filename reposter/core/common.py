@@ -7,7 +7,8 @@ import tomllib
 
 
 class path:
-    app_dir = Path(__file__).parent.parent.parent.resolve()
+    src_dir = Path(__file__).parent.parent.resolve()
+    app_dir = src_dir.parent.resolve()
     pyproject_toml: Path = app_dir / 'pyproject.toml'
     config_json: Path
     data_dir: Path
@@ -22,7 +23,7 @@ class app:
         version: str = project['version']
         name: str = project['name']
     else:
-        name: str = path.app_dir.name
+        name: str = path.src_dir.name
         version: str = importlib.metadata.version(name)
     console: rich.console.Console = rich.console.Console()
     progress: rich.progress.Progress
