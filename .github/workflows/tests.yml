@@ -1,7 +1,8 @@
 name: autotests
 on: [push, pull_request]
+
 jobs:
-  autotests-linux:
+  git-linux:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -16,8 +17,9 @@ jobs:
         python -m uv venv
         python -m uv pip install -r pyproject.toml --extra=tests --python=.venv/bin/python
     - name: tests
-      run: tg_session=${{ secrets.tg_session_lin }} big_tests=true .venv/bin/python reposter
-  autotests-windows:
+      run: tg_session=${{ secrets.git_linux }} big_tests=true .venv/bin/python reposter
+
+  git-win:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
@@ -33,7 +35,18 @@ jobs:
         python -m uv pip install -r pyproject.toml --extra=tests --python=.venv/scripts/python.exe
     - name: tests
       run: |
-        $env:tg_session = '${{ secrets.tg_session_win }}'
+        $env:tg_session = '${{ secrets.git_win }}'
         $env:big_tests = 'true'
         .venv/scripts/python reposter
+
+  bat-pypi-win:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: tests
+      run: |
+        $env:tg_session = '${{ secrets.bat_pypi_win }}'
+        $env:big_tests = 'true'
+        cd other/launcher
+        cmd /c reposter.bat
 
