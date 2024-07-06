@@ -5,7 +5,7 @@ dependencies = [
     'rich',
 ]
 name = 'reposter'
-version = '24.1.1'
+version = '24.1.2'
 description = 'python script for reposting telegram messages'
 readme = 'readme.md'
 requires-python = '>=3.11'
