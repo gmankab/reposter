@@ -10,7 +10,7 @@ import reposter.tg.handlers
 import asyncio
 
 
-async def main():
+async def async_main():
     await reposter.funcs.other.init()
     reposter.core.common.log(
         reposter.funcs.status.status.get()
@@ -26,6 +26,10 @@ async def main():
             await reposter.tg.handlers.main()
 
 
+def main():
+    asyncio.run(async_main())
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
 
