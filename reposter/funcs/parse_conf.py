@@ -98,7 +98,4 @@ def check_config():
             f'[red]\\[error][/] you should set {to_add_str} in {common.path.config_json}'
         )
         os._exit(1)
-    common.log(
-            f'[green]loaded config[/] {common.path.config_json}'
-    )
 

@@ -13,6 +13,7 @@ class Status:
         bot = reposter.core.common.tg.client.me
         assert bot
         return {
+            'config_path': str(reposter.core.common.path.config_json),
             'app_version': reposter.core.common.app.version,
             'app_uptime': self.get_app_uptime(),
             'system': self.get_system_name(),
