@@ -46,14 +46,14 @@ def read_env() -> None:
         assert isinstance(value, str)
         setattr(config.env, key, value)
     if config.env.reposter_data_dir:
-        common.path.data_dir = Path(config.env.reposter_data_dir)
+        common.path.data_dir = Path(config.env.reposter_data_dir).resolve()
     elif config.env.XDG_DATA_HOME:
         common.path.data_dir = Path(config.env.XDG_DATA_HOME) / common.app.name
     else:
         common.path.data_dir = common.path.app_dir / 'data'
     if config.env.reposter_conf:
         assert config.env.reposter_conf.endswith('.json')
-        common.path.config_json = Path(config.env.reposter_conf)
+        common.path.config_json = Path(config.env.reposter_conf).resolve()
     elif config.env.reposter_data_dir:
         common.path.config_json = common.path.data_dir / 'config.json'
     elif config.env.XDG_CONFIG_HOME:
