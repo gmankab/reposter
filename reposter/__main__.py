@@ -1,12 +1,12 @@
 from pathlib import Path
 import sys
 sys.path.append(str(Path(__file__).parent.parent.resolve()))
+import reposter.handlers.set
 import reposter.funcs.status
 import reposter.funcs.other
 import reposter.core.common
 import reposter.core.config
 import reposter.core.types
-import reposter.tg.handlers
 import asyncio
 
 
@@ -23,7 +23,7 @@ async def async_main():
             import reposter.autotests.run as tests
             await tests.main()
         else:
-            await reposter.tg.handlers.main()
+            await reposter.handlers.set.main()
 
 
 def main():
