@@ -20,13 +20,13 @@ async def timer(
         reposter.funcs.logging.write_error()
     end = datetime.datetime.now()
     delta = end - start
-    ms = int(delta.total_seconds() * 1000)
+    sec = delta.total_seconds()
     if msg:
         common.log(
-            f'[green]\\[passed] {ms} ms[/] {msg}'
+            f'[green]\\[passed] {sec:.3f} sec[/] {msg}'
         )
     else:
         common.log(
-            f'[red]\\[error] {ms} ms[/] {error}'
+            f'[red]\\[error] {sec:.3f} sec[/] {error}'
         )
 
