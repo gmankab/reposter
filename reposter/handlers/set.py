@@ -1,12 +1,14 @@
-import pyrogram.handlers.message_handler
-import reposter.funcs.other
-import reposter.core.common
-import reposter.core.config
-import reposter.core.types
 import reposter.handlers.forward_unrestricted
 import reposter.handlers.resend_restricted
 import reposter.handlers.stream_notify
 import reposter.handlers.service
+import reposter.funcs.handle
+import reposter.funcs.other
+import reposter.core.common
+import reposter.core.config
+import reposter.core.types
+import pyrogram.handlers.message_handler
+import pyrogram.raw.functions
 import asyncio
 import sys
 
@@ -14,11 +16,30 @@ import sys
 async def main():
     set_handlers()
     try:
-        while True:
-            await asyncio.sleep(1)
+        if reposter.core.config.json.online_status_every_seconds:
+            await stay_online()
+        else:
+            while True:
+                await asyncio.sleep(1)
     except KeyboardInterrupt:
         reposter.funcs.other.before_shutdown()
         sys.exit()
+
+
+async def stay_online():
+    online = pyrogram.raw.functions.account.update_status.UpdateStatus(
+        offline=False,
+    )
+    while True:
+        await asyncio.sleep(
+            reposter.core.config.json.online_status_every_seconds
+        )
+        await reposter.funcs.handle.run_excepted(
+            callable=reposter.core.common.tg.client.invoke,
+            to_raise=False,
+            repeat=False,
+            query=online,
+        )
 
 
 def chat_str_fix(chat: str | int) -> str | int:

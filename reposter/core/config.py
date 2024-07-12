@@ -22,6 +22,7 @@ class json:
     tg_session: str
     drop_author: bool
     logs_chat: str | int
+    online_status_every_seconds: int
     stream_notify_chats: list
     chats: dict
 
@@ -32,6 +33,7 @@ default = {
     'tg_session': '',
     'drop_author': True,
     'logs_chat': 'me',
+    'online_status_every_seconds': 0,
     'stream_notify_chats': [],
     'chats': {
         tests.source: tests.target,
