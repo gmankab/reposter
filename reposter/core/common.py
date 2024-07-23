@@ -11,9 +11,10 @@ class path:
     app_dir = src_dir.parent.resolve()
     pyproject_toml: Path = app_dir / 'pyproject.toml'
     config_json: Path
-    data_dir: Path
     errors_dir: Path
+    data_dir: Path
     session: Path
+    db_path: Path
 
 
 class app:
@@ -28,6 +29,7 @@ class app:
     console: rich.console.Console = rich.console.Console()
     progress: rich.progress.Progress
     exit_code: int = 0
+    db_url: str
 
 
 class tg:

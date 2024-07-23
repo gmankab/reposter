@@ -4,6 +4,7 @@ import reposter.funcs.logging
 import reposter.core.config
 import reposter.core.types
 import reposter.tg.restricted
+import reposter.db.models
 import pyrogram.types
 
 
@@ -26,14 +27,21 @@ class ResendRestricted:
                 target=reposter.core.config.json.logs_chat,
             )
             real_time_forward = reposter.handlers.forward_unrestricted.ForwardUnrestricted(
-                src_msg=resent_to_log_chat,
                 target_any=self.target_any,
+                src_to_forward=resent_to_log_chat,
+                src_in_db=self.src_msg,
             )
-            await real_time_forward.forward_all()
+            return await real_time_forward.forward_all()
         elif isinstance(self.target_any, (str, int)):
-            await self.resend_one(
+            target_msg = await self.resend_one(
                 src_msg=self.src_msg,
                 target=self.target_any,
+            )
+            await reposter.db.models.Msg.create(
+                src_msg=self.src_msg.id,
+                src_chat=self.src_msg.chat,
+                target_msg=target_msg.id,
+                target_chat=target_msg.chat.id
             )
         else:
             raise AssertionError

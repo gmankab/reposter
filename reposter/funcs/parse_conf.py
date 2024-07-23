@@ -63,6 +63,8 @@ def read_env() -> None:
     if not config.env.session_name:
         config.env.session_name = 'tg_bot'
     common.path.session = common.path.data_dir / f'{config.env.session_name}.session'
+    common.path.db_path = common.path.data_dir / 'db.sqlite'
+    common.app.db_url = f'sqlite://{common.path.db_path}'
 
 
 def check_env():
