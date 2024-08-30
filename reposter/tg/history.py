@@ -19,6 +19,18 @@ async def get_msgs(
         ):
             yield msg
     else:
+        if start < stop:
+            gen = get_msgs_userbot(
+                from_chat=from_chat,
+                max_id=stop,
+                min_id=start,
+            )
+            async for msg in get_msgs_userbot_reversed(
+                gen=gen,
+                from_chat=from_chat,
+            ):
+                yield msg
+            return
         gen = get_msgs_userbot(
             from_chat=from_chat,
             max_id=start,
@@ -27,12 +39,7 @@ async def get_msgs(
         if start > stop:
             async for msg in gen:
                 yield msg
-        elif start < stop:
-            async for msg in get_msgs_userbot_reversed(
-                gen=gen,
-                from_chat=from_chat,
-            ):
-                yield msg
+            return
         else:
             async for msg in gen:
                 yield msg
@@ -74,6 +81,7 @@ async def get_msgs_userbot(
     max_id +=1
     min_id -=1
     total = max_id - min_id - 1
+    print(f'{max_id}, {min_id}, {total}')
     assert total > 0
     history_generator = reposter.core.common.tg.client.get_chat_history(
         chat_id=from_chat,
