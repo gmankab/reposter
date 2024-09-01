@@ -1,5 +1,6 @@
 [project]
 dependencies = [
+    'tortoise-orm',
     'tgcrypto-pyrofork',
     'pyrofork',
     'rich',
