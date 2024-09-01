@@ -2,6 +2,7 @@ import reposter.handlers.forward_unrestricted
 import reposter.handlers.resend_restricted
 import reposter.handlers.stream_notify
 import reposter.handlers.service
+import reposter.handlers.edit
 import reposter.funcs.other
 import reposter.core.common
 import reposter.core.types
@@ -61,19 +62,27 @@ class OnMsg:
         reposter.core.common.log(
             f'[bright_cyan]\\[edited msg] [blue]{link}'
         )
-        loaded = await reposter.db.models.Msg.get_or_none(
+        db_msgs = await reposter.db.models.Msg.filter(
             src_msg=src_msg.id,
             src_chat=src_msg.chat.id
         )
-        if loaded:
-            reposter.core.common.log(
-                loaded.src_chat,
-                loaded.src_msg,
-                loaded.target_chat,
-                loaded.target_msg,
-            )
-        else:
+        if not db_msgs:
             reposter.core.common.log(
                 f'[yellow]\\[warn] [blue]{link} edited but was never saved in db'
             )
+            return
+        for db_msg in db_msgs:
+            target_msg = await reposter.core.common.tg.client.get_messages(
+                chat_id=db_msg.target_chat,
+                message_ids=db_msg.target_msg,
+            )
+            assert isinstance(
+                target_msg,
+                pyrogram.types.Message,
+            )
+            edit = reposter.handlers.edit.Edit(
+                target_msg=target_msg,
+                src_msg=src_msg,
+            )
+            await edit.edit()
 
