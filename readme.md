@@ -2,7 +2,7 @@
 
 <img src="https://github.com/gmankab/reposter/raw/main/other/img/transparent.png">
 
-userbot that forwards messages from one telegram channel to another in real time
+userbot that forwards messages from telegram channels others in real time
 
 ### navigation
 
@@ -14,6 +14,7 @@ userbot that forwards messages from one telegram channel to another in real time
 
 
 ### supported features:
+- msg edit sync (text only)
 - repost msgs
 - repost restricted content
 - chunk by chunk download and upload big files without writing on disk
@@ -21,13 +22,11 @@ userbot that forwards messages from one telegram channel to another in real time
 - logs
 
 ### todo:
-- stop stream notifications button
-- proper video size on ios
-- notify if msg deleted
-- msg edit sync
+- msg edit sync (media)
 - msg edit history
+- stop stream notifications button
 - msg with multiple media support
-- github actions autotests
+- notify if msg deleted
 - multiple account support
 - reading and posting messages as different accounts
 - configuration with buttons in tg bot
@@ -35,8 +34,8 @@ userbot that forwards messages from one telegram channel to another in real time
 ### legacy versions
 
 - this code was rewritten from scratch several times :)
-- [most-legacy](https://github.com/gmankab/reposter/tree/most-legacy)
-- [second-legacy](https://github.com/gmankab/reposter/tree/second-legacy)
+- [legacy-2021](https://github.com/gmankab/reposter/tree/legacy-2021)
+- [legacy-2022](https://github.com/gmankab/reposter/tree/legacy-2022)
 
 ### license
 
