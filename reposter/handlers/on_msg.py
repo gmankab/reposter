@@ -2,11 +2,14 @@ import reposter.handlers.forward_unrestricted
 import reposter.handlers.resend_restricted
 import reposter.handlers.stream_notify
 import reposter.handlers.service
+import reposter.funcs.other
+import reposter.core.common
 import reposter.core.types
+import reposter.db.models
 import pyrogram.types
 
 
-class OnMessage:
+class OnMsg:
     def __init__(
         self,
         target_any: reposter.core.types.target
@@ -14,11 +17,15 @@ class OnMessage:
         self.target_any: reposter.core.types.target = target_any
         assert isinstance(self.target_any, (str, int, list))
 
-    async def handler(
+    async def on_new_msg(
         self,
         _,
         src_msg: pyrogram.types.Message,
     ) -> None:
+        link = reposter.funcs.other.single_link(src_msg)
+        reposter.core.common.log(
+            f'[green]\\[new msg] [blue]{link}'
+        )
         if src_msg.service:
             service = reposter.handlers.service.Service(
                 target_any=self.target_any,
@@ -39,8 +46,34 @@ class OnMessage:
             await real_time_resend.resend_all()
         else:
             real_time_forward = reposter.handlers.forward_unrestricted.ForwardUnrestricted(
-                src_msg=src_msg,
                 target_any=self.target_any,
+                src_to_forward=src_msg,
+                src_in_db=src_msg,
             )
             await real_time_forward.forward_all()
+
+    async def on_edited_msg(
+        self,
+        _,
+        src_msg: pyrogram.types.Message,
+    ) -> None:
+        link = reposter.funcs.other.single_link(src_msg)
+        reposter.core.common.log(
+            f'[bright_cyan]\\[edited msg] [blue]{link}'
+        )
+        loaded = await reposter.db.models.Msg.get_or_none(
+            src_msg=src_msg.id,
+            src_chat=src_msg.chat.id
+        )
+        if loaded:
+            reposter.core.common.log(
+                loaded.src_chat,
+                loaded.src_msg,
+                loaded.target_chat,
+                loaded.target_msg,
+            )
+        else:
+            reposter.core.common.log(
+                f'[yellow]\\[warn] [blue]{link} edited but was never saved in db'
+            )
 

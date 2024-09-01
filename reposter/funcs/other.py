@@ -1,8 +1,9 @@
 from reposter.core import common, config
 import reposter.funcs.parse_conf
 import reposter.core.config
-import reposter.tg.save_file
 import pyrogram.client
+import reposter.tg.save_file
+import reposter.db.init
 import types
 import sys
 import io
@@ -16,6 +17,7 @@ async def init():
     reposter.funcs.parse_conf.check_env()
     reposter.funcs.parse_conf.read_config()
     reposter.funcs.parse_conf.check_config()
+    await reposter.db.init.init()
     get_client()
     await common.tg.client.start()
     await start_log()

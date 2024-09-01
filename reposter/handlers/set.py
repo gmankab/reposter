@@ -1,11 +1,12 @@
-import reposter.handlers.on_message
+import reposter.handlers.on_msg
 import reposter.funcs.handle
 import reposter.funcs.other
 import reposter.core.common
 import reposter.core.config
 import pyrogram.raw.functions
+import pyrogram.handlers
 import asyncio
-import sys
+import os
 
 
 async def main():
@@ -16,9 +17,12 @@ async def main():
         else:
             while True:
                 await asyncio.sleep(1)
-    except KeyboardInterrupt:
+    except (
+        KeyboardInterrupt,
+        asyncio.exceptions.CancelledError,
+    ):
         reposter.funcs.other.before_shutdown()
-        sys.exit()
+        os._exit(0)
 
 
 async def stay_online():
@@ -58,21 +62,23 @@ def set_handlers():
     reposter.core.config.json.stream_notify_chats = notify
     for source_to_fix, target_to_fix in reposter.core.config.json.chats.items():
         source = chat_str_fix(source_to_fix)
+        source_filter = pyrogram.filters.chat(source)
         if isinstance(target_to_fix, list):
             target = []
             for i in target_to_fix:
                 target.append(chat_str_fix(i))
         else:
             target = chat_str_fix(target_to_fix)
-        on_message = reposter.handlers.on_message.OnMessage(target_any=target)
-        reposter.core.common.tg.client.add_handler(
-            pyrogram.handlers.message_handler.MessageHandler(
-                callback=on_message.handler,
-                filters=pyrogram.filters.chat(source),
-            )
-        )
+        on_msg = reposter.handlers.on_msg.OnMsg(target_any=target)
+        for handler, to_run in {
+            pyrogram.handlers.edited_message_handler.EditedMessageHandler: on_msg.on_edited_msg,
+            pyrogram.handlers.message_handler.MessageHandler: on_msg.on_new_msg,
+        }.items():
+            reposter.core.common.tg.client.add_handler(handler(
+                callback=to_run,
+                filters=source_filter,
+            ))
         reposter.core.common.log(
             f'[green]\\[added handler][/] [blue]{source}[/] -> [yellow]{target}'
         )
-
 
