@@ -86,6 +86,10 @@ class SendMediaFile:
         self.send_kwargs: dict[str, typing.Any] = {
             'chat_id': self.target_chat,
         }
+        if self.media_value == 'video':
+            self.send_kwargs['width'] = self.msg.video.width
+            self.send_kwargs['height'] = self.msg.video.height
+
 
     async def send_anything(self) -> pyrogram.types.Message:
         _1mb: int = 1024 * 1024
