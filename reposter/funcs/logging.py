@@ -72,21 +72,21 @@ def write_error(
 
 def log_msg(
     to_log: str,
-    source_msg: pyrogram.types.Message,
+    src_msg: pyrogram.types.Message,
     target_msg: pyrogram.types.Message,
 ):
     links = reposter.funcs.other.double_links(
-        source_msg=source_msg,
+        src_msg=src_msg,
         target_msg=target_msg,
     )
     to_log += f' {links}'
-    if source_msg.media:
-        to_log += f' media={source_msg.media.value}'
+    if src_msg.media:
+        to_log += f' media={src_msg.media.value}'
     to_add = ''
-    if source_msg.text:
-        to_add = source_msg.text
-    elif source_msg.caption:
-        to_add = source_msg.caption
+    if src_msg.text:
+        to_add = src_msg.text
+    elif src_msg.caption:
+        to_add = src_msg.caption
     if to_add:
         if len(to_add) > 30:
             to_add = f'{to_add[:30]}…'

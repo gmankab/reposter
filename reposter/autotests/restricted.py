@@ -8,10 +8,10 @@ import pyrogram
 
 
 async def restricted(
-    source_msg: pyrogram.types.Message
+    src_msg: pyrogram.types.Message
 ) -> str:
     resender = reposter.tg.restricted.Resender(
-        source_msg=source_msg,
+        src_msg=src_msg,
         target_chat=reposter.core.config.tests.target,
     )
     try:
@@ -24,7 +24,7 @@ async def restricted(
     except pyrogram.errors.PremiumAccountRequired:
         return f'preium required {resender.link}'
     links = reposter.funcs.other.double_links(
-        source_msg=source_msg,
+        src_msg=src_msg,
         target_msg=target_msg,
     )
     return f'restrict=True {resender.media_value} {links}'

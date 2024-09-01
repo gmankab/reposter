@@ -45,7 +45,7 @@ class ForwardUnrestricted:
         )
         reposter.funcs.logging.log_msg(
             to_log='[green]\\[forward][/]',
-            source_msg=self.src_msg,
+            src_msg=self.src_msg,
             target_msg=target_msg,
         )
 

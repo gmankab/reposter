@@ -13,10 +13,10 @@ import io
 class Resender():
     def __init__(
         self,
-        source_msg: pyrogram.types.Message,
+        src_msg: pyrogram.types.Message,
         target_chat: int | str,
     ) -> None:
-        self.msg: pyrogram.types.Message = source_msg
+        self.msg: pyrogram.types.Message = src_msg
         self.client: pyrogram.client.Client = reposter.core.common.tg.client
         self.task_id: rich.progress.TaskID
         self.target_chat: int | str = target_chat

@@ -74,8 +74,8 @@ def single_link(
 
 
 def double_links(
-    source_msg: pyrogram.types.Message,
+    src_msg: pyrogram.types.Message,
     target_msg: pyrogram.types.Message,
 ) -> str:
-    return f'[blue]{single_link(source_msg)}[/] -> [yellow]{single_link(target_msg)}[/]'
+    return f'[blue]{single_link(src_msg)}[/] -> [yellow]{single_link(target_msg)}[/]'
 

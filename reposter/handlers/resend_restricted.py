@@ -52,7 +52,7 @@ class ResendRestricted:
         target: str | int,
     ) -> pyrogram.types.Message:
         resender = reposter.tg.restricted.Resender(
-            source_msg=self.src_msg,
+            src_msg=self.src_msg,
             target_chat=target,
         )
         target_msg = await reposter.funcs.handle.run_excepted(
@@ -61,7 +61,7 @@ class ResendRestricted:
         assert target_msg
         reposter.funcs.logging.log_msg(
             to_log='[green]\\[resend][/]',
-            source_msg=src_msg,
+            src_msg=src_msg,
             target_msg=target_msg,
         )
         return target_msg

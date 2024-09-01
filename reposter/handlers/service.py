@@ -38,7 +38,7 @@ class Service:
         assert isinstance(target_msg, pyrogram.types.Message)
         reposter.funcs.logging.log_msg(
             to_log=f'[green]\\[service][/] {text}',
-            source_msg=self.src_msg,
+            src_msg=self.src_msg,
             target_msg=target_msg,
         )
 
