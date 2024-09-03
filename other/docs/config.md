@@ -90,5 +90,5 @@ also you can repost messages from one chat to multiple:
 
 - set 0 to disable, any other integer to enable
 - if disabled, all edited posts are synced
-- if set to 360, all edited posts older than 1 hour will not be synced
+- if set to 3600, all edited posts older than 1 hour will not be synced
 
