@@ -1,6 +1,7 @@
 import reposter.handlers.forward_unrestricted
 import reposter.funcs.handle
 import reposter.funcs.logging
+import reposter.funcs.other
 import reposter.core.config
 import reposter.core.types
 import reposter.tg.restricted
@@ -38,6 +39,7 @@ class ResendRestricted:
                 target=self.target_any,
             )
             await reposter.db.models.Msg.create(
+                hash = reposter.funcs.other.get_hash(self.src_msg),
                 src_msg=self.src_msg.id,
                 src_chat=self.src_msg.chat,
                 target_msg=target_msg.id,
@@ -60,7 +62,7 @@ class ResendRestricted:
         )
         assert target_msg
         reposter.funcs.logging.log_msg(
-            to_log='[green]\\[resend][/]',
+            to_log='[green]\\[success resend][/]',
             src_msg=src_msg,
             target_msg=target_msg,
         )
