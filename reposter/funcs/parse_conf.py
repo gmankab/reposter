@@ -4,6 +4,15 @@ import json
 import os
 
 
+def compatibility_from_24_2_0_to_24_2_1(
+    db_path: Path,
+):
+    common.log(
+        f'removing {db_path} for compatibility'
+    )
+    db_path.unlink(missing_ok=True)
+
+
 def write_config(
     dict_to_write: dict,
 ) -> None:
@@ -25,6 +34,10 @@ def read_config() -> None:
             common.path.config_json.read_text()
         )
         assert isinstance(loaded_config, dict)
+        if 'app_version' not in loaded_config:
+            compatibility_from_24_2_0_to_24_2_1(
+                db_path=common.path.db_path,
+            )
         for key, value in config.default.items():
             if key not in loaded_config:
                 loaded_config[key] = value

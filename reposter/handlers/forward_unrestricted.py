@@ -1,6 +1,7 @@
 import reposter.handlers.other
 import reposter.funcs.logging
 import reposter.funcs.handle
+import reposter.funcs.other
 import reposter.core.config
 import reposter.core.types
 import reposter.db.models
@@ -38,13 +39,14 @@ class ForwardUnrestricted:
         )
         assert isinstance(target_msg, pyrogram.types.Message)
         await reposter.db.models.Msg.create(
+            hash = reposter.funcs.other.get_hash(self.src_msg),
             src_msg=self.src_in_db.id,
             src_chat=self.src_in_db.chat.id,
             target_msg=target_msg.id,
             target_chat=target_msg.chat.id
         )
         reposter.funcs.logging.log_msg(
-            to_log='[green]\\[forward][/]',
+            to_log='[green]\\[success forward][/]',
             src_msg=self.src_msg,
             target_msg=target_msg,
         )

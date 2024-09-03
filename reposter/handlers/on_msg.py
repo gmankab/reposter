@@ -5,9 +5,11 @@ import reposter.handlers.service
 import reposter.handlers.edit
 import reposter.funcs.other
 import reposter.core.common
+import reposter.core.config
 import reposter.core.types
 import reposter.db.models
 import pyrogram.types
+import datetime
 
 
 class OnMsg:
@@ -60,8 +62,16 @@ class OnMsg:
     ) -> None:
         link = reposter.funcs.other.single_link(src_msg)
         reposter.core.common.log(
-            f'[bright_cyan]\\[edited msg] [blue]{link}'
+            f'[bright_cyan]\\[new edit] [blue]{link}'
         )
+        if reposter.core.config.json.edit_timeout_seconds:
+            send_how_long_ago = src_msg.edit_date - src_msg.date
+            timeout = datetime.timedelta(seconds=reposter.core.config.json.edit_timeout_seconds)
+            if send_how_long_ago > timeout:
+                reposter.core.common.log(
+                    f'[yellow]\\[warn] [blue]{link} edited but send too long ago'
+                )
+                return
         db_msgs = await reposter.db.models.Msg.filter(
             src_msg=src_msg.id,
             src_chat=src_msg.chat.id
@@ -83,6 +93,7 @@ class OnMsg:
             edit = reposter.handlers.edit.Edit(
                 target_msg=target_msg,
                 src_msg=src_msg,
+                db_msg=db_msg,
             )
             await edit.edit()
 

@@ -4,6 +4,7 @@ import reposter.core.config
 import pyrogram.client
 import reposter.tg.save_file
 import reposter.db.init
+import hashlib
 import types
 import sys
 import io
@@ -78,4 +79,18 @@ def double_links(
     target_msg: pyrogram.types.Message,
 ) -> str:
     return f'[blue]{single_link(src_msg)}[/] -> [yellow]{single_link(target_msg)}[/]'
+
+
+def get_hash(
+    msg: pyrogram.types.Message,
+) -> str:
+    hash = hashlib.new('sha256')
+    if msg.text:
+        to_hash = msg.text.markdown.encode()
+    elif msg.caption:
+        to_hash = msg.caption.markdown.encode()
+    else:
+        return ''
+    hash.update(to_hash)
+    return hash.hexdigest()
 

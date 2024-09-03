@@ -1,3 +1,6 @@
+import reposter.core.common
+
+
 class tests:
     source: str = '@autotests_source'
     target: str = '@autotests_target'
@@ -17,24 +20,28 @@ class env:
 
 
 class json:
+    app_version: str
     api_id: int
     api_hash: str
     tg_session: str
     drop_author: bool
     logs_chat: str | int
-    online_status_every_seconds: int
     stream_notify_chats: list
+    edit_timeout_seconds: int
+    online_status_every_seconds: int
     chats: dict
 
 
 default = {
+    'app_version': reposter.core.common.app.version,
     'api_id': 0,
     'api_hash': '',
     'tg_session': '',
     'drop_author': True,
     'logs_chat': 'me',
-    'online_status_every_seconds': 0,
     'stream_notify_chats': [],
+    'edit_timeout_seconds': 0,
+    'online_status_every_seconds': 0,
     'chats': {
         tests.source: tests.target,
     }
