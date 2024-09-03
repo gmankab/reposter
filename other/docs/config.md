@@ -1,9 +1,10 @@
 ### navigation
 
 - [repo](https://github.com/gmankab/reposter)
-- [how to run](https://github.com/gmankab/reposter/blob/main/docs/run.md)
-- [how to build](https://github.com/gmankab/reposter/blob/main/docs/build.md)
-- [config and env](https://github.com/gmankab/reposter/blob/main/docs/config.md)
+- [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
+- [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
+- [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
+- [env](https://github.com/gmankab/reposter/blob/main/other/docs/env.md)
 - [pypi](https://pypi.org/project/reposter)
 
 
@@ -16,9 +17,13 @@
     "tg_session": "",
     "drop_author": true,
     "logs_chat": "me",
+    "stream_notify_chats": [],
+    "online_status_every_seconds": 0,
+    "edit_timeout_seconds": 0,
     "chats": {
         "@autotests_source": "@autotests_target"
     }
+
 }
 ```
 
@@ -34,14 +39,17 @@
 - `logs_chat` - bot will send logs to this chat, it's recommended to change it from `me` to something else
 - `@autotests_source` - chat to take posts from
 - `@autotests_target` - chat to send posts to
+- `stream_notify_chats` - list of chats to get notifications if source channel starts video chat
 - you may want to replace this values with other ones
 
 ### chats formats
 
 you can use following formats:
-- `@usrname`
-- id, all ids should be strings, supergroups and channels ids should start with `-100`, for example `-100123456789`
-- `t.me/+abcd1234` ivite links
+- `@username`
+- `t.me/+abcd1234` (ivite link)
+- `"-100123456789"` (id)
+- all ids should be strings, not integers
+- supergroups and channels ids should start with `-100`
 
 ```json
 {
@@ -72,26 +80,15 @@ also you can repost messages from one chat to multiple:
 }
 ```
 
-### env variables: reposter_data_dir
+### online_status_every_seconds
 
-- `reposter_data_dir` - directory to store reposter config and session
-- if there is no `reposter_data_dir` variable, program looks for `XDG_DATA_HOME` variable
-- if there is no `XDG_DATA_HOME` variable, program works in portable way and creates `data` directory near `reposter` dir which contains code
+- set 0 to disable, any other integer to enable
+- allows your account to stay online, sometimes it solves issue when some messages not being reposted
 
-### env variables: reposter_conf
 
-- `reposter_conf` - path to `config.json` file
-- if there is no `reposter_data_dir` variable, program looks for `XDG_CONFIG_HOME` variable
-- if there is no `XDG_CONFIG_HOME` variable, program creates config in `data` directory
+### edit_timeout_seconds
 
-### env variables: session_name
-
-- `session_name` - name of tg session, defatults to `tg_bot`, so session file would be `tg_bot.session`
-- if you set it to something like `my_session`, session file would be `my_session.session`
-
-### env variables: tests
-
-- `tests` - if set to `true`, autotests are started
-- `big_tests` - if set to `true`, autotests with additional tests for big 10mb+ files are started
-- big tests takes more time then regular tests
+- set 0 to disable, any other integer to enable
+- if disabled, all edited posts are synced
+- if set to 360, all edited posts older than 1 hour will not be synced
 

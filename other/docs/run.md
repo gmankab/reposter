@@ -1,9 +1,10 @@
 ### navigation
 
 - [repo](https://github.com/gmankab/reposter)
-- [how to run](https://github.com/gmankab/reposter/blob/main/docs/run.md)
-- [how to build](https://github.com/gmankab/reposter/blob/main/docs/build.md)
-- [config and env](https://github.com/gmankab/reposter/blob/main/docs/config.md)
+- [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
+- [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
+- [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
+- [env](https://github.com/gmankab/reposter/blob/main/other/docs/env.md)
 - [pypi](https://pypi.org/project/reposter)
 
 ### run via pip (recommended, any os)
