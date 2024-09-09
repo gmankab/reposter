@@ -53,7 +53,7 @@ class OnMsg:
                 src_to_forward=src_msg,
                 src_in_db=src_msg,
             )
-            await real_time_forward.forward_all()
+            await real_time_forward.copy_all()
 
     async def on_edited_msg(
         self,

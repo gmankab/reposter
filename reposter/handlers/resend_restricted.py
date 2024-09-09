@@ -32,7 +32,7 @@ class ResendRestricted:
                 src_to_forward=resent_to_log_chat,
                 src_in_db=self.src_msg,
             )
-            return await real_time_forward.forward_all()
+            return await real_time_forward.copy_all()
         elif isinstance(self.target_any, (str, int)):
             target_msg = await self.resend_one(
                 src_msg=self.src_msg,
