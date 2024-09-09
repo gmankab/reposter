@@ -28,17 +28,9 @@ class Edit:
             src_msg=self.src_msg,
             target_msg=self.target_msg,
         )
-        '''
-        reposter.core.common.log('new', self.db_msg)
-        '''
 
     async def edit(self) -> None:
         self.new_hash = reposter.funcs.other.get_hash(self.src_msg)
-        '''
-        reposter.core.common.log('got', self.db_msg.__dict__)
-        reposter.core.common.log('old', self.db_msg.hash)
-        reposter.core.common.log('new', self.new_hash)
-        '''
         if self.db_msg.hash == self.new_hash:
             reposter.core.common.log(
                 f'[yellow]\\[warn][/] can\'t see changes between {self.links}'
