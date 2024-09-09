@@ -42,11 +42,18 @@ class OnMsg:
                 await stream_notify.notify_all()
             return
         if src_msg.has_protected_content or src_msg.chat.has_protected_content:
-            real_time_resend = reposter.handlers.resend_restricted.ResendRestricted(
-                src_msg=src_msg,
-                target_any=self.target_any,
-            )
-            await real_time_resend.resend_all()
+            if src_msg.media_group_id:
+                resend_media_group = reposter.handlers.resend_restricted.ResendMediaGroup(
+                    src_msg=src_msg,
+                    target_any=self.target_any,
+                )
+                await resend_media_group.all()
+            else:
+                resend_one = reposter.handlers.resend_restricted.ResendOne(
+                    src_msg=src_msg,
+                    target_any=self.target_any,
+                )
+                await resend_one.all()
         else:
             real_time_forward = reposter.handlers.forward_unrestricted.ForwardUnrestricted(
                 target_any=self.target_any,

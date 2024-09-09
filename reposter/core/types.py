@@ -22,6 +22,20 @@ media_other = typing.Union[
     pyrogram.types.Contact,
     pyrogram.types.Sticker,
 ]
+in_group_media = typing.Union[
+    pyrogram.types.Audio,
+    pyrogram.types.Photo,
+    pyrogram.types.Video,
+    pyrogram.types.Document,
+    pyrogram.types.Animation,
+]
+input_media = typing.Union[
+    pyrogram.types.InputMediaAudio,
+    pyrogram.types.InputMediaPhoto,
+    pyrogram.types.InputMediaVideo,
+    pyrogram.types.InputMediaDocument,
+    pyrogram.types.InputMediaAnimation,
+]
 
 
 class Progress(rich.progress.Progress):
