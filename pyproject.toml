@@ -6,12 +6,12 @@ dependencies = [
     'rich',
 ]
 name = 'reposter'
-version = '24.2.1'
-description = 'python script for reposting telegram messages'
+version = '24.3.2'
+description = 'userbot that forwards messages from telegram channels to others in real time'
 readme = 'readme.md'
 requires-python = '>=3.11'
 classifiers = [
-    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+    'License :: OSI Approved :: GNU Affero General Public License v3',
 ]
 
 [project.urls]
