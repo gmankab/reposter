@@ -47,7 +47,7 @@ class Progress(rich.progress.Progress):
                     rich.progress.BarColumn(),
                     rich.progress.TimeElapsedColumn(),
                     rich.progress.TaskProgressColumn(),
-                    rich.progress.TextColumn("[progress.description]{task.description}"),
+                    rich.progress.TextColumn('[progress.description]{task.description}'),
                 )
             elif task.fields.get('transfer'):
                 self.columns = (
@@ -58,7 +58,7 @@ class Progress(rich.progress.Progress):
                     rich.progress.FileSizeColumn(),
                     '/',
                     rich.progress.TotalFileSizeColumn(),
-                    rich.progress.TextColumn("[progress.description]{task.description}"),
+                    rich.progress.TextColumn('[progress.description]{task.description}'),
                 )
             else:
                 self.columns = (
@@ -66,7 +66,7 @@ class Progress(rich.progress.Progress):
                     rich.progress.BarColumn(),
                     rich.progress.TimeElapsedColumn(),
                     rich.progress.MofNCompleteColumn(),
-                    rich.progress.TextColumn("[progress.description]{task.description}"),
+                    rich.progress.TextColumn('[progress.description]{task.description}'),
                 )
             yield self.make_tasks_table([task])
 
