@@ -22,7 +22,7 @@ download and run [reposter.bat](https://github.com/gmankab/reposter/releases/lat
 ### run from sources
 
 ```shell
-git clone https://gitlab.com/gmanka/reposter
+git clone https://github.com/gmankab/reposter
 cd reposter
 python -m ensurepip
 python -m pip install uv
