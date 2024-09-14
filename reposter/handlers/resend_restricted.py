@@ -67,7 +67,7 @@ class ResendOne:
             await reposter.db.models.Msg.create(
                 hash = reposter.funcs.other.get_hash(self.src_msg),
                 src_msg=self.src_msg.id,
-                src_chat=self.src_msg.chat,
+                src_chat=self.src_msg.chat.id,
                 target_msg=target_msg.id,
                 target_chat=target_msg.chat.id
             )
