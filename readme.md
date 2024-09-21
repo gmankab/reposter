@@ -6,7 +6,9 @@ userbot that forwards messages from telegram channels to others in real time
 
 ### navigation
 
-- [repo](https://github.com/gmankab/reposter)
+- [github repo](https://github.com/gmankab/reposter)
+- [gitlab repo](https://gitlab.com/gmanka/reposter)
+- [codeberg repo](https://codeberg.org/gmanka/reposter)
 - [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
 - [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
 - [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
