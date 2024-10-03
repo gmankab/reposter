@@ -3,6 +3,7 @@ import reposter.handlers.resend_restricted
 import reposter.handlers.stream_notify
 import reposter.handlers.service
 import reposter.handlers.edit
+import reposter.funcs.handle
 import reposter.funcs.other
 import reposter.core.common
 import reposter.core.config
@@ -29,6 +30,11 @@ class OnMsg:
         reposter.core.common.log(
             f'[green]\\[new msg] [blue]{link}'
         )
+        if reposter.core.config.json.repost_delay_seconds:
+            await reposter.funcs.handle.wait(
+                reposter.core.config.json.repost_delay_seconds,
+                text='repost delay',
+            )
         if src_msg.service:
             service = reposter.handlers.service.Service(
                 target_any=self.target_any,

@@ -28,6 +28,7 @@ class json:
     logs_chat: str | int
     stream_notify_chats: list
     edit_timeout_seconds: int
+    repost_delay_seconds: int
     online_status_every_seconds: int
     chats: dict
 
@@ -41,6 +42,7 @@ default = {
     'logs_chat': 'me',
     'stream_notify_chats': [],
     'edit_timeout_seconds': 0,
+    'repost_delay_seconds': 0,
     'online_status_every_seconds': 0,
     'chats': {
         tests.source: tests.target,
