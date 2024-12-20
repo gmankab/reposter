@@ -30,11 +30,6 @@ class OnMsg:
         reposter.core.common.log(
             f'[green]\\[new msg] [blue]{link}'
         )
-        if reposter.core.config.json.repost_delay_seconds:
-            await reposter.funcs.handle.wait(
-                reposter.core.config.json.repost_delay_seconds,
-                text='repost delay',
-            )
         if src_msg.service:
             service = reposter.handlers.service.Service(
                 target_any=self.target_any,
@@ -47,6 +42,12 @@ class OnMsg:
                 )
                 await stream_notify.notify_all()
             return
+        else:
+            if reposter.core.config.json.repost_delay_seconds:
+                await reposter.funcs.handle.wait(
+                    reposter.core.config.json.repost_delay_seconds,
+                    text='repost delay',
+                )
         if src_msg.has_protected_content or src_msg.chat.has_protected_content:
             if src_msg.media_group_id:
                 resend_media_group = reposter.handlers.resend_restricted.ResendMediaGroup(
