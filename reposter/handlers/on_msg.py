@@ -42,12 +42,17 @@ class OnMsg:
                 )
                 await stream_notify.notify_all()
             return
-        else:
-            if reposter.core.config.json.repost_delay_seconds:
-                await reposter.funcs.handle.wait(
-                    reposter.core.config.json.repost_delay_seconds,
-                    text='repost delay',
-                )
+        elif reposter.core.config.json.repost_delay_seconds:
+            await reposter.funcs.handle.wait(
+                reposter.core.config.json.repost_delay_seconds,
+                text='repost delay',
+            )
+            update_src_msg = await reposter.core.common.tg.client.get_messages(
+                chat_id=src_msg.chat.id,
+                message_ids=src_msg.id,
+            )
+            assert isinstance(update_src_msg, pyrogram.types.Message)
+            src_msg = update_src_msg
         if src_msg.has_protected_content or src_msg.chat.has_protected_content:
             if src_msg.media_group_id:
                 resend_media_group = reposter.handlers.resend_restricted.ResendMediaGroup(
