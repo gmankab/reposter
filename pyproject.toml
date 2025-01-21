@@ -2,7 +2,7 @@
 dependencies = [
     'tortoise-orm',
     'tgcrypto-pyrofork',
-    'pyrofork==2.3.45',
+    'pyrofork',
     'rich',
 ]
 name = 'reposter'
