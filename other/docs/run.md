@@ -19,7 +19,7 @@ python -m reposter
 
 ### run on windows
 
-download and run [reposter.bat](https://github.com/gmankab/reposter/releases/latest/download/reposter.bat)
+download and run [reposter.bat](https://gitlab.com/gmanka/reposter/-/raw/main/other/launcher/reposter.bat?inline=false)
 
 ### run from sources
 
