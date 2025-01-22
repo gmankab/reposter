@@ -1,6 +1,6 @@
-from reposter.core import common, config
 import reposter.funcs.parse_conf
 import reposter.core.config
+import reposter.core.common
 import pyrogram.client
 import reposter.tg.save_file
 import reposter.db.init
@@ -20,7 +20,7 @@ async def init():
     reposter.funcs.parse_conf.check_config()
     await reposter.db.init.init()
     get_client()
-    await common.tg.client.start()
+    await reposter.core.common.tg.client.start()
     await start_log()
 
 
@@ -29,40 +29,44 @@ async def start_log():
         reposter.core.config.json.logs_chat = int(reposter.core.config.json.logs_chat)
     except Exception:
         pass
-    assert common.tg.client.me
-    if reposter.core.config.json.logs_chat == 'me' and common.tg.client.me.is_bot:
-        return
-    await common.tg.client.send_message(
-        chat_id=config.json.logs_chat,
-        text=f'started {common.app.name} {common.app.version}',
+    logs_chat = await reposter.core.common.tg.client.get_chat(reposter.core.config.json.logs_chat)
+    assert isinstance(logs_chat, pyrogram.types.Chat)
+    reposter.core.common.tg.logs_chat = logs_chat
+    assert reposter.core.common.tg.client.me
+    if reposter.core.common.tg.client.me.id == reposter.core.common.tg.logs_chat.id:
+        if reposter.core.common.tg.client.me.is_bot:
+            return
+    await reposter.core.common.tg.client.send_message(
+        chat_id=reposter.core.common.tg.logs_chat.id,
+        text=f'started {reposter.core.common.app.name} {reposter.core.common.app.version}',
     )
 
 
 def get_client() -> None:
-    common.tg.client = pyrogram.client.Client(
-        name=config.env.session_name,
+    reposter.core.common.tg.client = pyrogram.client.Client(
+        name=reposter.core.config.env.session_name,
         api_id=reposter.core.config.json.api_id,
         api_hash=reposter.core.config.json.api_hash,
         session_string=reposter.core.config.json.tg_session,
-        workdir=str(common.path.data_dir),
+        workdir=str(reposter.core.common.path.data_dir),
         sleep_threshold=0,
     )
-    common.tg.client.save_file = types.MethodType(
+    reposter.core.common.tg.client.save_file = types.MethodType(
         reposter.tg.save_file.save_file_custom_wrapper,
-        common.tg.client,
+        reposter.core.common.tg.client,
     )
 
 
 def before_shutdown() -> None:
-    common.log('[green]\\[exiting]')
-    common.app.progress.stop()
-    common.app.console.show_cursor()
+    reposter.core.common.log('[green]\\[exiting]')
+    reposter.core.common.app.progress.stop()
+    reposter.core.common.app.console.show_cursor()
 
 
 async def shutdown() -> None:
     before_shutdown()
-    await common.tg.client.stop()
-    os._exit(common.app.exit_code)
+    await reposter.core.common.tg.client.stop()
+    os._exit(reposter.core.common.app.exit_code)
 
 
 def single_link(

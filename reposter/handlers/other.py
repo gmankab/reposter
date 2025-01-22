@@ -1,4 +1,6 @@
+import reposter.core.common
 import reposter.core.types
+import pyrogram.types
 import typing
 
 
@@ -18,4 +20,16 @@ async def parse_targets(
         )
     else:
         raise AssertionError
+
+
+async def on_logs_chat_msg(
+    _,
+    src_msg: pyrogram.types.Message,
+) -> None:
+    if src_msg.text in ['/s', '/stop']:
+        if reposter.core.common.tg.stream_notificating_now:
+            reposter.core.common.tg.stream_notificating_now = False
+            await src_msg.reply('notifications are successfully stopped')
+        else:
+            await src_msg.reply('notifications are already stopped')
 

@@ -1,3 +1,4 @@
+import reposter.handlers.stream_notify
 import reposter.handlers.other
 import reposter.funcs.logging
 import reposter.funcs.handle
@@ -23,6 +24,11 @@ class Service:
             target_any=self.target_any,
             to_call=self.service_one,
         )
+        if self.src_msg.service == pyrogram.enums.MessageServiceType.VIDEO_CHAT_STARTED:
+            stream_notify = reposter.handlers.stream_notify.StreamNotify(
+                target_any=self.target_any,
+            )
+            await stream_notify.notify_all()
 
     async def service_one(
         self,

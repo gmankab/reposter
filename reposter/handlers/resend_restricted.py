@@ -33,9 +33,8 @@ class ResendOne:
             raise AssertionError
 
     async def multiple_targets(self) -> None:
-        assert reposter.core.config.json.logs_chat
         resent_to_log_chat = await self.one_target(
-            target=reposter.core.config.json.logs_chat,
+            target=reposter.core.common.tg.logs_chat.id,
             save_db=False,
         )
         real_time_forward = reposter.handlers.forward_unrestricted.ForwardUnrestricted(
@@ -130,11 +129,11 @@ class ResendMediaGroup:
         src_msg: pyrogram.types.Message,
     ) -> reposter.core.types.input_media:
         resend_one = ResendOne(
-            target_any=reposter.core.config.json.logs_chat,
+            target_any=reposter.core.common.tg.logs_chat.id,
             src_msg=src_msg,
         )
         resent_to_log_chat = await resend_one.one_target(
-            target=reposter.core.config.json.logs_chat,
+            target=reposter.core.common.tg.logs_chat.id,
             save_db=False,
         )
         if resent_to_log_chat.caption:

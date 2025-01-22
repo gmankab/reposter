@@ -1,4 +1,5 @@
 import reposter.handlers.on_msg
+import reposter.handlers.other
 import reposter.funcs.handle
 import reposter.funcs.other
 import reposter.core.common
@@ -54,6 +55,12 @@ def chat_str_fix(chat: str | int) -> str | int:
 
 
 def set_handlers():
+    reposter.core.common.tg.client.add_handler(
+        pyrogram.handlers.message_handler.MessageHandler(
+            callback=reposter.handlers.other.on_logs_chat_msg,
+            filters=pyrogram.filters.chat(reposter.core.common.tg.logs_chat.id),
+        )
+    )
     notify = []
     for chat_to_fix in reposter.core.config.json.stream_notify_chats:
          notify.append(

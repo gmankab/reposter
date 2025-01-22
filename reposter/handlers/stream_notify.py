@@ -21,6 +21,7 @@ class StreamNotify:
     async def notify_all(
         self,
     ):
+        reposter.core.common.tg.stream_notificating_now = True
         task_id_big = self.progress.add_task(
             description='stream notifications',
             total=self.repeat_count,
@@ -43,14 +44,17 @@ class StreamNotify:
                 task_id=task_id_little,
                 hide=False,
             )
-        self.progress.update(
-            task_id=task_id_big,
-            completed=self.repeat_count,
-            visible=False,
-        )
-        self.progress.stop_task(
-            task_id=task_id_big,
-        )
+            if not reposter.core.common.tg.stream_notificating_now:
+                break
+        for task in task_id_big, task_id_little:
+            self.progress.update(
+                task_id=task,
+                visible=False,
+            )
+            self.progress.stop_task(
+                task_id=task,
+            )
+        reposter.core.common.tg.stream_notificating_now = False
 
     async def notify_one(
         self,

@@ -35,6 +35,8 @@ class app:
 class tg:
     client: pyrogram.client.Client
     floodwait: int = 0
+    stream_notificating_now: bool = False
+    logs_chat: pyrogram.types.Chat
 
 
 log = app.console.log

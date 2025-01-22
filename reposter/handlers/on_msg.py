@@ -36,36 +36,14 @@ class OnMsg:
                 src_msg=src_msg,
             )
             await service.service_all()
-            if src_msg.service == pyrogram.enums.MessageServiceType.VIDEO_CHAT_STARTED:
-                stream_notify = reposter.handlers.stream_notify.StreamNotify(
-                    target_any=self.target_any,
-                )
-                await stream_notify.notify_all()
             return
-        elif reposter.core.config.json.repost_delay_seconds:
-            await reposter.funcs.handle.wait(
-                reposter.core.config.json.repost_delay_seconds,
-                text='repost delay',
-            )
-            update_src_msg = await reposter.core.common.tg.client.get_messages(
-                chat_id=src_msg.chat.id,
-                message_ids=src_msg.id,
-            )
-            assert isinstance(update_src_msg, pyrogram.types.Message)
-            src_msg = update_src_msg
+        if reposter.core.config.json.repost_delay_seconds:
+            src_msg = await wait_delay(src_msg)
         if src_msg.has_protected_content or src_msg.chat.has_protected_content:
-            if src_msg.media_group_id:
-                resend_media_group = reposter.handlers.resend_restricted.ResendMediaGroup(
-                    src_msg=src_msg,
-                    target_any=self.target_any,
-                )
-                await resend_media_group.all()
-            else:
-                resend_one = reposter.handlers.resend_restricted.ResendOne(
-                    src_msg=src_msg,
-                    target_any=self.target_any,
-                )
-                await resend_one.all()
+            await on_protected_content(
+                target_any=self.target_any,
+                src_msg=src_msg,
+            )
         else:
             real_time_forward = reposter.handlers.forward_unrestricted.ForwardUnrestricted(
                 target_any=self.target_any,
@@ -115,4 +93,37 @@ class OnMsg:
                 db_msg=db_msg,
             )
             await edit.edit()
+
+
+async def wait_delay(
+    src_msg: pyrogram.types.Message,
+) -> pyrogram.types.Message:
+    await reposter.funcs.handle.wait(
+        reposter.core.config.json.repost_delay_seconds,
+        text='repost delay',
+    )
+    src_msg_updated = await reposter.core.common.tg.client.get_messages(
+        chat_id=src_msg.chat.id,
+        message_ids=src_msg.id,
+    )
+    assert isinstance(src_msg_updated, pyrogram.types.Message)
+    return src_msg_updated
+
+
+async def on_protected_content(
+    target_any: reposter.core.types.target,
+    src_msg: pyrogram.types.Message,
+):
+    if src_msg.media_group_id:
+        resend_media_group = reposter.handlers.resend_restricted.ResendMediaGroup(
+            src_msg=src_msg,
+            target_any=target_any,
+        )
+        await resend_media_group.all()
+    else:
+        resend_one = reposter.handlers.resend_restricted.ResendOne(
+            src_msg=src_msg,
+            target_any=target_any,
+        )
+        await resend_one.all()
 
