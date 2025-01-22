@@ -13,7 +13,7 @@
 ### build and upload to pypi
 
 ```shell
-build_dir=/tmp/reposter
+export build_dir=/tmp/reposter
 rm -rf $build_dir
 git clone https://github.com/gmankab/reposter $build_dir
 python -m ensurepip
