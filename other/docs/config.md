@@ -41,14 +41,14 @@
 - `logs_chat` - bot will send logs to this chat, it's recommended to change it from `me` to something else
 - `@autotests_source` - chat to take posts from
 - `@autotests_target` - chat to send posts to
-- `stream_notify_chats` - list of chats to get notifications if source channel starts video chat
+- `stream_notify_chats` - list of chats to get notifications if source channel starts video chat, notifications can be stopped by writing `/stop` or `/s` in logs chat
 - you may want to replace this values with other ones
 
 ### chats formats
 
 you can use following formats:
-- `@username`
-- `t.me/+abcd1234` (ivite link)
+- `"@username"`
+- `"t.me/+abcd1234"` (ivite link)
 - `"-100123456789"` (id)
 - all ids should be strings, not integers
 - supergroups and channels ids should start with `-100`
