@@ -17,7 +17,7 @@ userbot that forwards messages from telegram channels to others in real time
 
 
 ### supported features:
-- msg edit sync (text only)
+- msg edit sync, text only
 - repost msgs
 - repost restricted content
 - chunk by chunk download and upload big files without writing on disk
@@ -25,10 +25,8 @@ userbot that forwards messages from telegram channels to others in real time
 - logs
 
 ### todo:
-- msg edit sync (media)
+- media support for msg edit sync
 - msg edit history
-- stop stream notifications button
-- msg with multiple media support
 - notify if msg deleted
 - multiple account support
 - reading and posting messages as different accounts
