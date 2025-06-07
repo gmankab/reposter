@@ -31,10 +31,10 @@
 
 ### sessions
 
-- in order to start using reposter you should open (my.telegram.org)[https://my.telegram.org], get your `api_id` and `api_hash`, and paste it to `config.json`
+- in order to start using reposter you should open https://my.telegram.org and get your `api_id` and `api_hash`, then paste it to `config.json`
 - if you have pyrogram/pyrofork session file, you can rename it to `tg_bot.session` and put near `config.json`
 - if you have pyrogram/pyrofork session string, you can put it in `config.json` as `tg_session` parameter
-- there is not need to set api_id or api_hash if you already have session file or session string
+- if you already have session file or session string, you can skip putting api_id and api_hash in config
 
 ### chats
 
