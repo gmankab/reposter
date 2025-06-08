@@ -1,0 +1,13 @@
+ARG TARGETARCH
+FROM quay.io/fedora/fedora-minimal AS base-amd64
+FROM quay.io/fedora/fedora-minimal AS base-arm64
+FROM docker.io/fedorariscv/base AS base-riscv64
+FROM base-${TARGETARCH}
+ENV reposter_data_dir /etc/reposter
+RUN mkdir $reposter_data_dir
+RUN dnf upgrade -y
+RUN dnf install -y python3-pip
+RUN dnf clean all
+RUN pip install reposter
+CMD ["reposter"]
+
