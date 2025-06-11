@@ -3,9 +3,6 @@ Image=quay.io/gmanka/reposter
 Volume=%h/reposter_data:/etc/reposter:z
 PodmanArgs=--tty
 
-[Service]
-Restart=on-failure
-
 [Install]
 WantedBy=default.target
 
