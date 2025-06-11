@@ -81,7 +81,6 @@ async def get_msgs_userbot(
     max_id +=1
     min_id -=1
     total = max_id - min_id - 1
-    print(f'{max_id}, {min_id}, {total}')
     assert total > 0
     history_generator = reposter.core.common.tg.client.get_chat_history(
         chat_id=from_chat,
