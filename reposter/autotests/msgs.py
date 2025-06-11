@@ -20,7 +20,7 @@ async def test_all() -> str:
         await timer.timer(restricted.restricted(msg))
     if not started:
         raise AssertionError(
-            f'bot should be in {reposter.core.config.tests.source} and should have access to messages'
+            f'bot should be in {reposter.core.config.tests.source} chat and should have access to messages'
         )
     return 'messages tests'
 
