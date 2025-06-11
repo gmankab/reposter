@@ -82,11 +82,11 @@ def log_msg(
     to_log += f' {links}'
     if src_msg.media:
         to_log += f' media={src_msg.media.value}'
-    to_add = ''
+    to_add: str = ''
     if src_msg.text:
-        to_add = src_msg.text
+        to_add = str(src_msg.text)
     elif src_msg.caption:
-        to_add = src_msg.caption
+        to_add = str(src_msg.caption)
     if to_add:
         if len(to_add) > 30:
             to_add = f'{to_add[:30]}…'
