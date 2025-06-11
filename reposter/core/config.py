@@ -17,6 +17,10 @@ class env:
     tg_session: str
     big_tests: str
     tests: str
+    source: str
+    target: str
+    msg_start: str
+    msg_stop: str
 
 
 class json:
