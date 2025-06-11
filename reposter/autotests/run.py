@@ -29,6 +29,6 @@ async def main():
         )
         await tasks
     except asyncio.TimeoutError:
-        print('timed out')
+        reposter.core.common.log('timed out')
     await reposter.funcs.other.shutdown()
 
