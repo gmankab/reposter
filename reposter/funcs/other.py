@@ -4,6 +4,7 @@ import reposter.core.common
 import pyrogram.client
 import reposter.tg.save_file
 import reposter.db.init
+import tortoise
 import hashlib
 import types
 import sys
@@ -66,7 +67,8 @@ def before_shutdown() -> None:
 async def shutdown() -> None:
     before_shutdown()
     await reposter.core.common.tg.client.stop()
-    os._exit(reposter.core.common.app.exit_code)
+    await tortoise.Tortoise.close_connections()
+    sys.exit(reposter.core.common.app.exit_code)
 
 
 def single_link(
