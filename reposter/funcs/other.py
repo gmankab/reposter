@@ -98,3 +98,15 @@ def get_hash(
     hash.update(to_hash)
     return hash.hexdigest()
 
+
+def chat_str_fix(chat: str | int) -> str | int:
+    if isinstance(chat, int):
+        return chat
+    if 't.me/+' not in chat:
+        chat = chat.replace('https://t.me/', '@')
+        chat = chat.replace('http://t.me/', '@')
+    try:
+        return int(chat)
+    except Exception:
+        return chat
+
