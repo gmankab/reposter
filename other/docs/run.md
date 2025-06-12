@@ -29,7 +29,6 @@ cd ~/.config/containers/systemd
 https://raw.githubusercontent.com/gmankab/reposter/refs/heads/main/other/container/reposter.container | tee ~/.config/containers/systemd/reposter.container
 systemctl --user daemon-reload
 systemctl --user start reposter
-systemctl --user enable reposter
 systemctl --user status reposter
 ```
 
