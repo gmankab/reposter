@@ -1,15 +1,28 @@
-## env variables guide
-
 ### navigation
 
 - [github repo](https://github.com/gmankab/reposter)
 - [gitlab repo](https://gitlab.com/gmanka/reposter)
 - [codeberg repo](https://codeberg.org/gmanka/reposter)
 - [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
-- [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
+- [contributing](https://github.com/gmankab/reposter/blob/main/other/docs/contributing.md)
 - [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
 - [env](https://github.com/gmankab/reposter/blob/main/other/docs/env.md)
 - [pypi](https://pypi.org/project/reposter)
+
+### available environment variables
+
+- `XDG_CONFIG_HOME`
+- `XDG_DATA_HOME`
+- `session_name`
+- `reposter_data_dir`
+- `reposter_conf`
+- `tg_session`
+- `big_tests`
+- `tests`
+- `source`
+- `target`
+- `msg_start`
+- `msg_stop`
 
 ### reposter_data_dir
 
@@ -33,4 +46,18 @@
 - `tests` - if set to `true`, autotests are started
 - `big_tests` - if set to `true`, autotests with additional tests for big 10mb+ files are started
 - big tests takes more time then regular tests
+
+### repost messages by their id range
+
+- `source` - chat to take posts from
+- `target` - chat to send posts to
+- `msg_start` - first message to be reposted
+- `msg_stop` - last message to be reposted
+
+you can use following formats:
+
+- `source=@username` - username
+- `source=t.me/+abcd1234` - ivite link
+- `source=-100123456789` - id
+- supergroups and channels ids should start with `-100`
 

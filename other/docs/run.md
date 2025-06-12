@@ -4,14 +4,14 @@
 - [gitlab repo](https://gitlab.com/gmanka/reposter)
 - [codeberg repo](https://codeberg.org/gmanka/reposter)
 - [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
-- [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
+- [contributing](https://github.com/gmankab/reposter/blob/main/other/docs/contributing.md)
 - [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
 - [env](https://github.com/gmankab/reposter/blob/main/other/docs/env.md)
 - [pypi](https://pypi.org/project/reposter)
 
 ### run via pip (recommended, any os)
 
-```
+```sh
 python -m ensurepip
 python -m pip install reposter
 python -m reposter
@@ -21,29 +21,37 @@ python -m reposter
 
 download and run [reposter.bat](https://gitlab.com/gmanka/reposter/-/raw/main/other/launcher/reposter.bat?inline=false)
 
-### run from sources
+### run container using podman and systemd
 
-```shell
-git clone https://github.com/gmankab/reposter
-cd reposter
-python -m ensurepip
-python -m pip install uv
-python -m uv venv
-python -m uv pip install -r pyproject.toml --python=.venv/bin/python
-.venv/bin/python reposter
+```sh
+mkdir ~/.config/containers/systemd
+cd ~/.config/containers/systemd
+https://raw.githubusercontent.com/gmankab/reposter/refs/heads/main/other/container/reposter.container | tee ~/.config/containers/systemd/reposter.container
+systemctl --user daemon-reload
+systemctl --user start reposter
+systemctl --user enable reposter
+systemctl --user status reposter
 ```
 
-### run tests from sources
+### usage guide
 
-```shell
-python -m uv pip install -r pyproject.toml --extra=tests --python=.venv/bin/python
-tests=true .venv/bin/python reposter
+- by default reposter waits for all new message in chat, and when new message arrives, it gets reposted
+- for configuring guide see [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md) page
+- also you can repost messages by their id range, if you set following environment variables
+
+```sh
+source=@source_chat target=@target_chat msg_start=1 msg_stop=10 python -m reposter
 ```
 
-### run big tests from sources
+- `source` - chat to take posts from
+- `target` - chat to send posts to
+- `msg_start` - first message to be reposted
+- `msg_stop` - last message to be reposted
 
-```shell
-python -m uv pip install -r pyproject.toml --extra=tests --python=.venv/bin/python
-big_tests=true .venv/bin/python reposter
-```
+you can use following formats:
+
+- `source=@username` - username
+- `source=t.me/+abcd1234` - ivite link
+- `source=-100123456789` - id
+- supergroups and channels ids should start with `-100`
 

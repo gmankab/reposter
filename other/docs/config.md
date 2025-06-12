@@ -4,11 +4,10 @@
 - [gitlab repo](https://gitlab.com/gmanka/reposter)
 - [codeberg repo](https://codeberg.org/gmanka/reposter)
 - [how to run](https://github.com/gmankab/reposter/blob/main/other/docs/run.md)
-- [how to build](https://github.com/gmankab/reposter/blob/main/other/docs/build.md)
+- [contributing](https://github.com/gmankab/reposter/blob/main/other/docs/contributing.md)
 - [config](https://github.com/gmankab/reposter/blob/main/other/docs/config.md)
 - [env](https://github.com/gmankab/reposter/blob/main/other/docs/env.md)
 - [pypi](https://pypi.org/project/reposter)
-
 
 ### default config
 
@@ -47,9 +46,10 @@
 ### chats formats
 
 you can use following formats:
-- `"@username"`
-- `"t.me/+abcd1234"` (ivite link)
-- `"-100123456789"` (id)
+
+- `"@username"` - username
+- `"t.me/+abcd1234"` - ivite link
+- `"-100123456789"` - id
 - all ids should be strings, not integers
 - supergroups and channels ids should start with `-100`
 
