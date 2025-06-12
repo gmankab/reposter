@@ -9,7 +9,6 @@ import hashlib
 import types
 import sys
 import io
-import os
 
 
 async def init():
