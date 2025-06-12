@@ -6,7 +6,7 @@ dependencies = [
     'rich',
 ]
 name = 'reposter'
-version = '25.0.0'
+version = '25.1.0'
 description = 'userbot that forwards messages from telegram channels to others in real time'
 readme = 'readme.md'
 requires-python = '>=3.11'
