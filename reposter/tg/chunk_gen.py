@@ -15,7 +15,7 @@ class ChunkGen:
         self.remove_progress: bool = remove_progress
         self.progress = reposter.core.common.app.progress
         self.total: int = media.file_size
-        self.name: str = getattr(media, 'file_name', 'noname')
+        self.name: str = getattr(media, 'file_name', 'noname') or 'noname'
         self.msg: pyrogram.types.Message = msg
         self.return_next: bytes = b''
         self.max_chunk_size = 512 * 1024
