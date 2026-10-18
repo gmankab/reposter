@@ -1,0 +1,14 @@
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+jobs:
+  windows-bat-pypi:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: tests
+      run: |
+        $env:tg_session = '${{ secrets.bat_pypi_win }}'
+        $env:big_tests = 'true'
+        cd other/launcher
+        cmd /c reposter.bat

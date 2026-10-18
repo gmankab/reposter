@@ -1,0 +1,9 @@
+on:
+  workflow_dispatch: {}
+jobs:
+  linux-git:
+    uses: ./.github/workflows/tests-linux-git.yml
+  windows-git:
+    uses: ./.github/workflows/tests-windows-git.yml
+  windows-bat-pypi:
+    uses: ./.github/workflows/tests-windows-bat-pypi.yml

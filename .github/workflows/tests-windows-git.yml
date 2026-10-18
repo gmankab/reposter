@@ -1,0 +1,23 @@
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+jobs:
+  windows-git:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: set up python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.15'
+    - name: dependencies
+      run: |
+        python -m ensurepip
+        python -m pip install -U uv
+        python -m uv venv
+        python -m uv pip install -r pyproject.toml --extra=tests --python=.venv/scripts/python.exe
+    - name: tests
+      run: |
+        $env:tg_session = '${{ secrets.git_win }}'
+        $env:big_tests = 'true'
+        .venv/scripts/python reposter

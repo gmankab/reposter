@@ -1,0 +1,20 @@
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+jobs:
+  linux-git:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: set up python
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.15'
+    - name: dependencies
+      run: |
+        python -m ensurepip
+        python -m pip install -U uv
+        python -m uv venv
+        python -m uv pip install -r pyproject.toml --extra=tests --python=.venv/bin/python
+    - name: tests
+      run: tg_session=${{ secrets.git_linux }} big_tests=true .venv/bin/python reposter
