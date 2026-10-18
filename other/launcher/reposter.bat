@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-set python_version=3.13.7
+set python_version=3.15.0
 set app_name=reposter
 set deps=%app_name%
 set app_path=%~dp0
