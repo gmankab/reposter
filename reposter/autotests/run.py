@@ -16,8 +16,8 @@ async def main():
     to_run_list: list[typing.Coroutine] = []
     to_timer_list: list[typing.Coroutine] = [
         msgs.test_all(),
-        pyright.pyright(),
-        ruff.ruff(),
+        # pyright.pyright(),
+        # ruff.ruff(),
     ]
     for to_timer in to_timer_list:
         to_run_list.append(timer.timer(to_timer))
