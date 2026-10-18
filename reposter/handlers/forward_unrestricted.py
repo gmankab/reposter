@@ -40,7 +40,7 @@ class ForwardUnrestricted:
         target_msg = await reposter.funcs.handle.run_excepted(
             self.src_msg.forward,
             chat_id=target,
-            drop_author=reposter.core.config.json.drop_author,
+            hide_sender_name=reposter.core.config.json.drop_author,
         )
         assert isinstance(target_msg, pyrogram.types.Message)
         await reposter.db.models.Msg.create(

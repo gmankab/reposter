@@ -12,7 +12,7 @@ async def unrestricted(
     target_msg = await reposter.funcs.handle.run_excepted(
         src_msg.forward,
         chat_id=reposter.core.config.tests.target,
-        drop_author=drop_author,
+        hide_sender_name=drop_author,
     )
     if src_msg.media:
         media = src_msg.media.value
